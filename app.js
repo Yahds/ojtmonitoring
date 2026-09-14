@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
@@ -10,10 +12,14 @@ let loggedInAdviser;
 app.use(bodyParser.urlencoded({ extended: true }));
 // for session handling
 app.use(session({
-    secret: 'sesh_cookie', // A secret key for signing the session ID cookie
+    secret: process.env.SESSION_SECRET, // A secret key for signing the session ID cookie
     resave: false,              // Forces the session to be saved back to the session store
-    saveUninitialized: true,    // Forces a session that is "uninitialized" to be saved to the store
-    cookie: { secure: false }   // Set true if using HTTPS, false otherwise
+    saveUninitialized: false,    // set to false so it doesn't save empty sessions for users who never login
+    cookie: { 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+    }   // Set true if using HTTPS, false otherwise
 }));
 
 // to block requests that are not logged in
@@ -32,7 +38,6 @@ app.use('/ojt-dashboard', express.static(path.join(__dirname, 'ojt-monitoring-fi
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
-
 
 // Import functions from database.js
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
