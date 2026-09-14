@@ -424,12 +424,10 @@ app.post("/ojt-login-page", async (req, res) => {
     try {
         const adviser = await authenticateAdviser(adviserEmail, password);
         if (adviser) {
-            console.log('SERVER: LOGGING IN email = ' + adviserEmail + ' password = ' + password);
             req.session.adviserID = adviser.adviserID;
             req.session.isLoggedIn = true;
             res.redirect('/ojt-dashboard');
         } else {
-            console.log('SERVER: NOT AN ADVISER = email = ' + adviserEmail + ' password = ' + password);
             res.status(401).send('false'); // Send back a simple 'false' string
         }
     } catch (error) {
