@@ -482,42 +482,44 @@ app.post('/ojt-dashboard/postannouncement', async (req, res) => {
     const description = req.body['description-text'];
     console.log("Inserting announcement");
 
-    // Handle your data here (e.g., save to database, process, etc.)
-    insertAnnouncement(sender, recipient, subject, description);
-    res.redirect('/ojt-dashboard');
-
+    try {
+        await insertAnnouncement(sender, recipient, subject, description);
+        res.redirect('/ojt-dashboard');
+    } catch (error) {
+        console.error('Error inserting announcement: ', error.message);
+        res.status(500).send('Could not post announcement');
+    }
 });
-
-
 
 
 app.post('/ojt-dashboard/deleteannouncement', async (req, res) => {
     const announcementid = req.body['announcementid'];
 
     try {
-        deleteAnnouncement(announcementid);
-        res.redirect('/ojt-dashboard')
-
-        res.status(200).json({ success: true, message: 'Announcement deleted successfully' });
-    } catch (err) {
-        console.log(err.message);
+        await deleteAnnouncement(announcementid);
+        res.redirect('/ojt-dashboard');
+    } catch (error) {
+        console.error('Error deleting announcement: ', error.message);
+        res.status(500).send('Could not delete announcement');
     }
 })
 
 
 app.post('/ojt-dashboard/uploadprofilepicture', async (req, res) => {
     console.log("upload")
-
     if (!req.files || Object.keys(req.files).length === 0) {
         return res.status(400).send('No files were uploaded.');
     }
 
-
     let uploadedFile = req.files.prof_image;
-    let filename = req.files.filename;
 
-    uploadPicture(uploadedFile)
-
+    try{
+        await uploadPicture(uploadedFile);
+        res.redirect('/ojt-dashboard');
+    }catch (error){
+        console.error('Error uploading profile picture: ', error.message);
+        res.status(500).send('Could not upload profile picture');
+    }
 });
 
 
