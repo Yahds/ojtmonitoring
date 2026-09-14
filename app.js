@@ -27,17 +27,11 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 
 
 // Import functions from database.js
-const { fetchStudent, authenticateAdviser, hashAdviserPasswords } = require('./database.js');
-const { fetchAdviser, fetchInterns, insertAnnouncement, fetchAnnouncements, fetchInternDailyReports, fetchDailyReports } = require('./database.js');
-const { fetchAdviser, fetchInterns, insertAnnouncement, fetchAnnouncements } = require('./database.js');
-const { fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByAddress, fetchPendingStudentsByCompany, updateStatus} = require('./database.js');
-
-const { fetchStudents, fetchPendingStudents, updateStatus} = require('./database.js');
-const { fetchStudent, authenticateAdviser, hashAdviserPasswords, fetchInternId, updateInternRemarks } = require('./database.js');
-const { fetchAdviser, fetchInterns, insertAnnouncement, fetchAnnouncements, deleteAnnouncement } = require('./database.js');
-const { fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
-    fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, fetchAllRequirements, insertInternRequirement,
-    fetchInternDailyReports, fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsByInternId, updateRemarks, fetchSupervisor, fetchWeeklyReports, uploadPicture } = require('./database.js');
+const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
+    fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement,
+    fetchInternDailyReports, fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsByInternId, updateRemarks, 
+    fetchSupervisor, fetchWeeklyReports, uploadPicture, authenticateAdviser, hashAdviserPasswords, fetchInterns, fetchAnnouncements,
+    deleteAnnouncement, fetchAdviser, insertAnnouncement, fetchInternId, updateInternRemarks } = require('./database.js');
 
 //GET 
 // // run node app.js then access http://localhost:8080/ojt-login-page/

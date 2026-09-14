@@ -598,7 +598,6 @@ async function closeDatabase() {
 module.exports = {
     fetchStudents,
     fetchStudent,
-    authenticateIntern,
     fetchPendingStudents,
     fetchPendingStudentsByName,
     fetchPendingStudentsByClassCode,
