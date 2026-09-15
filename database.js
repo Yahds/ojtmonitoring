@@ -2,7 +2,6 @@
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt'); // bcrypt library for password hashing
-const { format } = require('path');
 dotenv.config()
 
 // uses pool instead of connection, instead of creating a brand new connection for each query,
@@ -433,7 +432,7 @@ async function fetchAnnouncements(senderid) {
 async function deleteAnnouncement(announcementid) {
     try {
         await pool.query('DELETE from announcements where announcementid = ?', [announcementid]);
-    } catch (er) {
+    } catch (error) {
         console.error('Error executing query:', error.message);
         throw error;
     }

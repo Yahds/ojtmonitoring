@@ -7,7 +7,6 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const port = 8080;
-let loggedInAdviser;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 // for session handling
@@ -103,7 +102,7 @@ app.get("/ojt-dashboard", requireAuth, async (req, res) => {
         }
 
         let unassignedRequirementsMap = {};
-        reports = {}; // Temporary still doing
+        const reports = {}; // Temporary still doing
 
         if (adviser) {
             const announcements = await fetchAnnouncements(adviser.adviserID)
@@ -357,6 +356,7 @@ app.get('/ojt-pending/sort', requireAuth, async (req, res) => {
                 break;
             case 'worktype':
                 pendingStudents = await fetchPendingStudentsByWorkType(req.session.adviserID);
+                break;
             default:
                 pendingStudents = await fetchPendingStudents(req.session.adviserID);
         }
@@ -465,7 +465,6 @@ app.get('/logout', requireAuth, (req, res) => {
             console.log("A problem occured while logging out: " + err.message)
         }
         console.log("pakilog out")
-        adviser = {};
         res.redirect('/ojt-login-page');
     });
 });
