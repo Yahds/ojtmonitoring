@@ -47,12 +47,11 @@ script.
         },
         body: `adviserEmail=${encodeURIComponent(emailInput.value)}&password=${encodeURIComponent(passwordInput.value)}`
       })
-      .then(response => response.text())
-      .then(text => {
-        if (text === 'false') {
-          alert('Invalid email or password. Please try again.');
+      .then(response => {
+        if (response.ok) {
+          window.location.href = '/ojt-dashboard';
         } else {
-          window.location.href = '/ojt-dashboard'; // Redirect on successful login
+          alert('Invalid email or password. Please try again.');
         }
       })
       .catch(error => {
