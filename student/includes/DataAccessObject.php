@@ -4,10 +4,10 @@ class DAO {
     private $connection;
 
     public function __construct() {
-        $host = 'localhost';
-        $user = 'root';
-        $password = '';
-        $databaseName = "ojt";
+        $host = getenv('MYSQL_HOST') ?: 'localhost';
+        $user = getenv('MYSQL_USER') ?: 'root';
+        $password = getenv('MYSQL_PASSWORD') ?: '';
+        $databaseName = getenv('MYSQL_DATABASE') ?: 'ojt';
 
         $this->connection = mysqli_connect($host, $user, $password, $databaseName);
     }

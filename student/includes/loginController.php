@@ -10,11 +10,6 @@
             $row = $result->fetch_assoc();
 
             if ($row) {
-
-                echo '<pre>';
-    print_r($row);
-    echo '</pre>';
-    
                 $_SESSION['id'] = $row['studentid'];
                 $_SESSION['studentName'] = $row['studentName'];
                 $_SESSION['course'] = $row['course'];
