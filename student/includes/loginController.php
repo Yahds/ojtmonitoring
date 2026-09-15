@@ -6,11 +6,9 @@
     if (isset($_POST['id'])) {
         $id = $_POST['id'];
         $password = $_POST['password'];
-        $result = $db->internLogIn($id, $password);
+        $row = $db->internLogIn($id, $password);
 
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-
+        if ($row) {
             session_regenerate_id(true);
 
             $_SESSION['id'] = $row['studentid'];
