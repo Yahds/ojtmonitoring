@@ -22,7 +22,7 @@
     <header>
         <nav class="navbar">
             <div class="nav-logo">SAINT LOUIS UNIVERSITY</div>
-            <div class="nav-name"> <?php echo($_SESSION['studentName'])?></div>
+            <div class="nav-name"> <?php echo htmlspecialchars($_SESSION['studentName'])?></div>
             <div class="nav-item">
                 <img src="./ojt-images/jannsen.png" alt="Profile" class="profile-image">
             </div>
@@ -73,7 +73,7 @@
                                 </div>
 
                                 <div>
-                                    <div class="adviser-name"><?php echo($_SESSION["studentName"])?></div>
+                                    <div class="adviser-name"><?php echo htmlspecialchars($_SESSION["studentName"])?></div>
                                     <p class="intern-p">Intern</p>
 
                                     <p>COMPANY</p>
@@ -81,7 +81,7 @@
                                         // Fetch the company name based on companyid 
                                         $companyId = $_SESSION['companyid'];
                                         $companyInfo = $db->getCompanyInfoById($companyId);
-                                        echo "<div class='company-name'>" .$companyInfo['companyname']. "</div>";
+                                        echo "<div class='company-name'>" . htmlspecialchars($companyInfo['companyname']) . "</div>";
                                     ?>
                                 </div>
                                     
@@ -122,7 +122,7 @@
                                         // Fetch the company address based on companyid 
                                         $companyId = $_SESSION['companyid'];
                                         $companyInfo = $db->getCompanyInfoById($companyId);
-                                        echo "<div class='company-location'>".$companyInfo['companyaddress']."</div>";
+                                        echo "<div class='company-location'>". htmlspecialchars($companyInfo['companyaddress']) ."</div>";
                                     ?>
                                 </div>
                             </div>
@@ -211,9 +211,9 @@
                 if (!empty($announcements)) {
                     foreach ($announcements as $announcement) {
                         echo '<div class="announcement">';
-                        echo '<h3>' . $announcement['subject'] . '</h3>';
+                        echo '<h3>' . htmlspecialchars($announcement['subject']) . '</h3>';
                         echo '<p>Date: ' . $announcement['date'] . '</p>';
-                        echo '<p>' . $announcement['message'] . '</p>';
+                        echo '<p>' . htmlspecialchars($announcement['message']) . '</p>';
                         echo '</div>';
                     }
                 } else {
