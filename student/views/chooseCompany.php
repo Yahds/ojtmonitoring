@@ -74,7 +74,7 @@
         <nav class="navbar">
             <div class="nav-logo">SAINT LOUIS UNIVERSITY</div>
             <div class="nav-name">
-                <?php echo(isset($_SESSION['studentName']) ? $_SESSION['studentName'] : ''); ?>
+                <?php echo htmlspecialchars(isset($_SESSION['studentName']) ? $_SESSION['studentName'] : ''); ?>
             </div>
             <div class="nav-item">
                 <img src="#" alt="Profile" class="profile-image">
@@ -105,7 +105,7 @@
                             if ($_SESSION['status'] == "PENDING" && $_SESSION['companyid'] != null) {
                                 echo '<div class="details">';
                                 echo '    <div class="intern-name">';
-                                echo '        ' . (isset($_SESSION['studentName']) ? $_SESSION['studentName'] : '');
+                                echo '        ' . htmlspecialchars(isset($_SESSION['studentName']) ? $_SESSION['studentName'] : '');
                                 echo '    </div>';
                                 echo '    <div class="yellow-horizontal bar"></div>';
                                 echo '    <div class="intern-title">INTERN</div>';
@@ -122,7 +122,7 @@
                             }  else{
                                 echo '<div class="details" ' . ($_SESSION['status'] == "PENDING" && $_SESSION['companyid'] != null ? 'style="display:none;"' : '') . '>';
                                 echo '    <div class="intern-name">';
-                                echo '        ' . (isset($_SESSION['studentName']) ? $_SESSION['studentName'] : '');
+                                echo '        ' . htmlspecialchars(isset($_SESSION['studentName']) ? $_SESSION['studentName'] : '');
                                 echo '    </div>';
                                 echo '    <div class="yellow-horizontal bar"></div>';
                                 echo '    <div class="intern-title">INTERN</div>';
@@ -152,7 +152,7 @@
                                     do {
                                         $companyName = $row['companyname'];
                                         $companyAddress = $row['companyaddress'];
-                                        $optionValue = "$companyName - $companyAddress";
+                                        $optionValue = htmlspecialchars("$companyName - $companyAddress");
                                         echo "                <option value='$optionValue' data-view='company'>$optionValue</option>";
                                     } while ($row = $companyData->fetch_assoc());
                                 } else {

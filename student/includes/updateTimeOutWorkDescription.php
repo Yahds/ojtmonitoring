@@ -1,15 +1,8 @@
 <?php
 // ./includes/updateTimeOutWorkDescription.php
-
-// Include the DataAccessObject.php file
+require_once __DIR__ . '/requireLogin.php';
 include("./DataAccessObject.php");
 
-// Start the session if it's not started already
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['workDescription'])) {
 
@@ -20,7 +13,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $internID = $_SESSION['internid'];
         $companyID = $_SESSION['companyid'];
 
-        // Update the dailyreports table with the work description
         $result = $db->updateWorkDescription($internID, $companyID, $workDescription);
 
         if ($result) {

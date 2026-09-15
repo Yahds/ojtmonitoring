@@ -1,14 +1,12 @@
 <?php
+require_once __DIR__ . '/requireLogin.php';
 include("DataAccessObject.php");
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-} 
 
 $db = new DAO();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['internID'], $_POST['requirementName'], $_POST['newStatus'])) {
-        $internID = $_POST['internID'];
+    if (isset($_POST['requirementName'], $_POST['newStatus'])) {
+        $internID = $_SESSION['internID'];
         $currentDate = $_POST['currentDate'];
         $requirementName = $_POST['requirementName'];
         $newStatus = $_POST['newStatus'];

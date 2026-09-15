@@ -17,7 +17,7 @@
     <header>
         <nav class="navbar">
             <div class="nav-logo">SAINT LOUIS UNIVERSITY</div>
-            <div class="nav-name"> <?php echo($_SESSION['studentName'])?></div>
+            <div class="nav-name"> <?php echo htmlspecialchars($_SESSION['studentName'])?></div>
             <div class="nav-item">
                 <img src="../images/jannsen.png" alt="Profile" class="profile-image">
             </div>
@@ -74,12 +74,13 @@
                     
                             <?php 
                             foreach ($requirements as $requirement) {
+                                $checkboxValue = htmlspecialchars($requirement->internID . '-' . $requirement->reqName);
                                 echo "<tr class='table-data'>";
-                                echo "<td><input type='checkbox' name='status[]' value='$requirement->internID-$requirement->reqName' " . ($requirement->status == 'SUBMITTED' ? 'checked' : '') . "></td>";
-                                echo "<td>$requirement->reqName </td>";
-                                echo "<td>$requirement->dateSubmitted</td>";
-                                echo "<td>$requirement->status</td>";
-                                echo "<td>$requirement->remarks</td>";
+                                echo "<td><input type='checkbox' name='status[]' value='$checkboxValue' " . ($requirement->status == 'SUBMITTED' ? 'checked' : '') . "></td>";
+                                echo "<td>" . htmlspecialchars($requirement->reqName) . " </td>";
+                                echo "<td>" . htmlspecialchars($requirement->dateSubmitted) . "</td>";
+                                echo "<td>" . htmlspecialchars($requirement->status) . "</td>";
+                                echo "<td>" . htmlspecialchars($requirement->remarks ?? '') . "</td>";
                                 echo "</tr>";
                             }
                             ?>

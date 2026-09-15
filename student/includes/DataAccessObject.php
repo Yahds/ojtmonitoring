@@ -13,13 +13,18 @@ class DAO {
     }
 
     public function internLogIn($id, $password) {
-        $query = "SELECT * FROM interns i JOIN students s ON i.studentid = s.studentID WHERE s.studentid = ? and password = ?";
+        $query = "SELECT * FROM interns i JOIN students s ON i.studentid = s.studentID WHERE s.studentid = ?";
         $statement = $this->connection->prepare($query);
 
-        $statement->bind_param("is", $id, $password);
+        $statement->bind_param("i", $id);
 
         $statement->execute();
         $result = $statement->get_result();
+
+        $row = $result->fetch_assoc();
+        if ($row && password_verify($password, $row['password'])){
+            return $row;
+        }
 
         return $result;
     }
