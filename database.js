@@ -13,7 +13,7 @@ const pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE,
 }).promise();
 
-console.log('Database connection successful');
+console.log('Database pool created');
 
 // fetches all details of students from student table
 async function fetchStudents() {
