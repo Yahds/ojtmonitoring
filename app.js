@@ -325,7 +325,7 @@ app.get("/ojt-pending", requireAuth, async (req, res) => {
         if (adviser) {
             const students = await fetchStudents();
             const pendingStudents = await fetchPendingStudents(req.session.adviserID);
-            res.render('ojt-pending/index', { students, pendingStudents })
+            res.render('ojt-pending/index', { adviser, students, pendingStudents })
         } else {
             res.redirect('/ojt-login-page');
         }
@@ -415,8 +415,6 @@ app.post('/update-status', requireAuth, async (req, res) => {
         res.json(updatedStudent);
         
     } catch (error) {
-      console.error('Error updating status:', error.message);
-      res.status(500).send('Warning: Internal Server Error');
       console.error('Error updating status:', error.message);
       res.status(500).send('Warning: Internal Server Error');
     }

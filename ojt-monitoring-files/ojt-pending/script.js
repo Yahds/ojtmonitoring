@@ -79,7 +79,7 @@ async function openPopup(studentData) {
   window.studentId = studentId;
   const studentName = studentData.studentName;
 
-  document.getElementById('studentName').innerHTML = studentName;
+  document.getElementById('studentName').textContent = studentName;
   document.getElementById('popupContainer').style.display = 'block';
   document.getElementById('overlay').style.display = 'block';
 
@@ -128,14 +128,24 @@ function updateRequirementsTable(requirements) {
   tableBody.appendChild(headerRow);
 
   // Add table rows
-  requirements.forEach(req => {
+    requirements.forEach(req => {
       const newRow = document.createElement('tr');
-      newRow.innerHTML = `
-          <td>${req.requirementname}</td>
-          <td>${req.datesubmitted || ''}</td>
-          <td class="editable" contenteditable="true">${req.remarks || 'Type here your remarks...'}</td>
-          <td>${req.status}</td>
-      `;
+
+      const nameCell = document.createElement('td');
+      nameCell.textContent = req.requirementname;
+
+      const dateCell = document.createElement('td');
+      dateCell.textContent = req.datesubmitted || '';
+
+      const remarksCell = document.createElement('td');
+      remarksCell.className = 'editable';
+      remarksCell.contentEditable = 'true';
+      remarksCell.textContent = req.remarks || 'Type here your remarks...';
+
+      const statusCell = document.createElement('td');
+      statusCell.textContent = req.status;
+
+      newRow.append(nameCell, dateCell, remarksCell, statusCell);
       tableBody.appendChild(newRow);
   });
 }
