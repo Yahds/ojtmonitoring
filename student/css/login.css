@@ -1,0 +1,204 @@
+/* Imports */
+@import url('https://fonts.googleapis.com/css?family=Atkinson Hyperlegible');
+
+/* All */
+*{
+    padding: 0%;
+    margin: 0%;
+    text-decoration: none;
+    font-family: Atkinson Hyperlegible;
+}
+
+body{
+    background: linear-gradient(90deg, #0D0464, #E1AD0F);
+    display: flex;
+    justify-content: center;
+    width: 99.55vw;
+    height: 99.55vh;
+}
+
+
+.login-box{
+    justify-content: center;
+    align-self: center;
+    display: flex;
+    width: 63.5%;
+    height: 80%;
+    border-radius: 50px;
+}
+
+.login-box .blue-box{
+    background-color: #0D0464;
+    border-start-start-radius: 50px;
+    border-end-start-radius: 50px;
+    color: #FFFFFF;
+}
+
+.login-box .white-box{
+    background-color: #EAE4DA;
+    border-start-end-radius: 50px;
+    border-end-end-radius: 50px;
+}
+
+.login-box .blue-box, .login-box .white-box{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 50%;
+}
+
+/* Login-blue-box */
+.login-box .blue-box .login-details-box{
+    width: 70%;
+    height: auto;
+    margin-left: 10%;
+    margin-bottom: 20%;
+}
+
+.login-box .blue-box .login-details-box h1{
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 4vw;
+    margin-bottom: 10%;
+}
+
+.login-box .blue-box .login-details-box hr{
+    border-top: 5px solid ;
+    border-color: #E1AD0F;
+    width: 90%;
+    margin-bottom: 10%;
+    
+}
+
+.login-box .blue-box .login-details-box h3{
+    font-size: 2vw;
+    font-family: Helvetica, sans-serif;
+    text-transform: uppercase;
+    margin-bottom: 10%;
+}
+
+.login-box .blue-box .login-details-box p{
+    font-size: 1.5vw;
+}
+
+
+/* Login-white-box */
+
+.login-box .white-box .slu-logo-box{
+    display:flex;
+    width: 20%;
+    height: 25%;
+    align-self: center;
+    margin-bottom: 7%;
+}
+
+.login-box .white-box .slu-logo-box .slu-logo{
+    width: 100%;
+    height: 100%;
+}
+
+.login-box .white-box .login-fields-box{
+    display:flex;
+    flex-direction: column;
+    align-self: center;
+    width: 80%;
+    height: 50%;
+    margin-bottom: 10%;
+    
+}
+
+.login-box .white-box .login-fields-box label[for="email"],
+.login-box .white-box .login-fields-box label[for="password"]{
+    font-size: 3.5vh;
+    text-transform: uppercase;
+}
+
+.login-box .white-box .login-fields-box #email,
+.login-box .white-box .login-fields-box #password{
+    border-radius: 30px;
+    height: 15%;
+    margin-bottom: 7%;
+    padding-left: 5%;
+    font-size: 2.5vh;
+    border: 2px solid transparent;
+}
+
+
+.login-box .white-box .login-fields-box #password{
+    margin-bottom: 3%;
+}
+
+/* Checkmark */
+.login-box .white-box .login-fields-box .checkbox-container{
+    margin-left: 3%;
+    display: block;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 0.9vw;
+    text-transform: uppercase;
+    margin-bottom: 10%;
+}
+
+.login-box .white-box .login-fields-box .checkbox-container input{
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+    
+}
+
+.checkmark{
+    position: absolute;
+    top: -1.5px;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+    border-radius: 50%;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+    background-color: #ccc;
+}
+  
+.checkbox-container input:checked ~ .checkmark {
+    background-color: #2196F3;
+}
+  
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+  
+.checkbox-container input:checked ~ .checkmark:after {
+    display: block;
+}
+  
+.checkbox-container .checkmark:after {
+    top: 9px;
+    left: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+}
+
+/* Login button */
+.login-button{
+    border-radius: 30px;
+    height: 15%;
+    font-size: 1.5vw;
+    text-transform: uppercase;
+    cursor: pointer;
+    background-color: #024708;
+    color: #FFFFFF;
+    transition: transform 0.3s ease;
+}
+
+.login-button:hover{
+    transform: scale(1.1);
+}
