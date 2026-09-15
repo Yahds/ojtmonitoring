@@ -5,8 +5,8 @@ include("DataAccessObject.php");
 $db = new DAO();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['internID'], $_POST['requirementName'], $_POST['newStatus'])) {
-        $internID = $_POST['internID'];
+    if (isset($_POST['requirementName'], $_POST['newStatus'])) {
+        $internID = $_SESSION['internID'];
         $currentDate = $_POST['currentDate'];
         $requirementName = $_POST['requirementName'];
         $newStatus = $_POST['newStatus'];
