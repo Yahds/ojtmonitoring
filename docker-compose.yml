@@ -1,33 +1,39 @@
-version: '3.8'
-
 services:
   app:
     build:
       context: .
-      dockerfile: docker/Dockerfile.node
+      dockerfile: Dockerfile.node
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_HOST=database
-      - DATABASE_USER=user
-      - DATABASE_PASSWORD=password
-      - DATABASE_NAME=ojt_database
+      - MYSQL_HOST=database
+      - MYSQL_USER=ojt_app
+      - MYSQL_PASSWORD=ojt_app_password
+      - MYSQL_DATABASE=ojt
+      - PORT=8080
+      - SESSION_SECRET=change_in_prod
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   database:
     build:
       context: .
-      dockerfile: docker/Dockerfile.sql
+      dockerfile: Dockerfile.sql
     environment:
       - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_DATABASE=ojt_database
-      - MYSQL_USER=user
-      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=ojt
+      - MYSQL_USER=ojt_app
+      - MYSQL_PASSWORD=ojt_app_password
     ports:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   db_data:
