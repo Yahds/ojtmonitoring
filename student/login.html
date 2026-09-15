@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login Page</title>
+        <link rel="stylesheet" href="css/login.css">
+    </head>
+    <body>
+        <div class="login-box"> 
+            <div class="blue-box">
+                <div class="login-details-box">
+                    <h1>Log in</h1>
+                    <hr>
+                    <h3>Intern</h3>
+                    <p>Dive into this learning journey, ask lots, and soak it all in.</p>
+                </div>
+            </div>
+            <div class="white-box">
+                <div class="slu-logo-box">
+                    <img src="ojt-images/slu-logo.png" class="slu-logo">
+                </div>
+                <div class="login-fields-box">
+                    <form action="./includes/loginController.php" method="POST">
+                        <label for="email" >IDNumber</label>
+                        <input type="text" id="email" name="id">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password">
+                        <label class="checkbox-container">Show Password
+                            <input type="checkbox" id="showPassword">
+                            <span class="checkmark"></span>
+                        </label>
+                    <input type="submit" value="Log in" class="login-button">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
+            let checkbox = document.getElementById('showPassword');
+            let passwordInput = document.getElementById('password');
+
+            checkbox.addEventListener('change', function() {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+            } else {
+                passwordInput.type = 'password';
+            }
+            });
+        </script>
+    </body>
+</html>
+
+
+
+
