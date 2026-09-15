@@ -1,7 +1,7 @@
 <?php
+require_once __DIR__ . '/requireLogin.php';
 include("DataAccessObject.php");
 
-session_start();
 $db = new DAO();
 
 date_default_timezone_set('Asia/Manila'); // Set the timezone to Philippines
