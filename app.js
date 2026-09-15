@@ -42,7 +42,7 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
     fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement,
     fetchInternDailyReports, fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsByInternId, updateRemarks, 
-    fetchSupervisor, fetchWeeklyReports, uploadPicture, authenticateAdviser, hashAdviserPasswords, fetchInterns, fetchAnnouncements,
+    fetchSupervisor, fetchWeeklyReports, uploadPicture, authenticateAdviser, fetchInterns, fetchAnnouncements,
     deleteAnnouncement, fetchAdviser, insertAnnouncement, fetchInternId, updateInternRemarks } = require('./database.js');
 
 //GET 
@@ -515,9 +515,6 @@ app.post('/ojt-dashboard/uploadprofilepicture', requireAuth, async (req, res) =>
     }
 });
 
-
-hashAdviserPasswords().then(() => {
-    app.listen(port, () => {
-        console.log(`Server is running at port ${port}`);
-    });
+app.listen(port, () => {
+    console.log(`Server is running at port ${port}`);
 });

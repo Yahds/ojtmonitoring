@@ -15,7 +15,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint app.js database.js"
+    "lint": "eslint app.js database.js",
+    "hash-passwords": "node scripts/hash-passwords.js"
   },
   "keywords": [],
   "author": "",
