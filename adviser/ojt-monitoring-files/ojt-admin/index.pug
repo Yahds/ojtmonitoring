@@ -1,0 +1,27 @@
+// to fix frontend
+meta(charset='UTF-8')
+meta(name='viewport' content='width=device-width, initial-scale=1.0')
+title Admin Dashboard
+style.
+  body { font-family: system-ui, sans-serif; margin: 0; background: #eceae3; color: #2b2a33; }
+  .navbar { display: flex; align-items: center; justify-content: space-between; background: #0d0464; color: #fff; padding: 12px 20px; border-bottom: 3px solid #e1ad0f; }
+  .nav-logo { font-weight: 700; letter-spacing: .03em; }
+  main { padding: 24px; }
+  h1 { color: #0d0464; margin-bottom: 4px; }
+  .admin-links { display: flex; gap: 16px; margin-top: 20px; }
+  .admin-links a { background: #0d0464; color: #fff; padding: 12px 18px; border-radius: 6px; text-decoration: none; font-weight: 600; }
+  .logout { margin-top: 30px; }
+  .logout input { padding: 8px 14px; cursor: pointer; }
+header
+  nav.navbar
+    .nav-logo SAINT LOUIS UNIVERSITY
+    .nav-name #{adviser.adviserName.split(' ').reverse().join(' ').replace(',', '')} · Department Head
+main
+  h1 Admin Dashboard
+  p Manage the advisers and interns in your department.
+  .admin-links
+    a(href='#') Manage Advisers
+    a(href='#') Enroll Intern
+  .logout
+    form(action='/logout' method='GET')
+      input(type='submit' value='LOG OUT')

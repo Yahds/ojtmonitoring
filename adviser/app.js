@@ -29,6 +29,18 @@ function requireAuth(req, res, next) {
     return res.redirect('/ojt-login-page');
 }
 
+function requireRole(role){
+    return function(req, res, next){
+        if (!req.session.isLoggedIn){
+            return res.redirect('/ojt-login-page');
+        }
+        if (req.session.role !== role) {
+            return res.status(403).send('Forbidden (403): you do not have access to this page.');
+        }
+        return next();
+    }
+}
+
 app.use('/ojt-images', express.static(path.join(__dirname, 'ojt-images')));
 app.use('/ojt-about-us', express.static(path.join(__dirname, 'ojt-monitoring-files', 'ojt-about-us')))
 app.use('/ojt-login-page', express.static(path.join(__dirname, 'ojt-monitoring-files', 'ojt-login-page')));
@@ -127,6 +139,15 @@ app.get("/ojt-dashboard", requireAuth, async (req, res) => {
     }
 });
 
+app.get("/ojt-admin", requireRole('dept_head'), async (req, res) => {
+    try{
+        const adviser = await fetchAdviser(req.session.adviserID);
+        res.render('ojt-admin/index', { adviser });
+    } catch (error) {
+        console.error('Error: ', error.message);
+        res.status(500).send('Warning: Internal Server Error')
+    }
+});
 
 app.get("/ojt-dashboard/daily-reports/:internName", requireAuth, async (req, res) => {
     try {
@@ -166,7 +187,7 @@ app.get("/ojt-dashboard/daily-reports/:internName", requireAuth, async (req, res
         res.render('ojt-dashboard/views/intern-reports.pug', { reports });
     } catch (error) {
         console.error('Error', error);
-        res.status(500).send("Error: Internal Server Error");
+        res.status(500).send("Warning: Internal Server Error");
     }
 });
 
@@ -207,7 +228,7 @@ app.get("/ojt-dashboard/weekly-reports/:internName", requireAuth, async (req, re
         res.render('ojt-dashboard/views/weekly-report.pug', { weeklyReports });
     } catch (error) {
         console.error('Error', error);
-        res.status(500).send("Error: Internal Server Error");
+        res.status(500).send("Warning: Internal Server Error");
     }
 });
 
@@ -245,7 +266,7 @@ app.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async (r
         });
     } catch (error) {
         console.error('Error', error);
-        res.status(500).send("Error: Internal Server Error");
+        res.status(500).send("Warning: Internal Server Error");
     }
 });
 
@@ -265,7 +286,7 @@ app.get("/fetch-unassigned-requirements/:internId", requireAuth, async (req, res
         res.json(unassignedRequirements);
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).send('Warning: Internal Server Error');
     }
 });
 
@@ -294,8 +315,7 @@ app.post('/ojt-dashboard/postrequirement', requireAuth, async (req, res) => {
         res.redirect('/ojt-dashboard');
     } catch (error) {
         console.error('Error:', error);
-        // Send a response with status 500 (Internal Server Error) and a message
-        return res.status(500).json({ message: "An error occurred while processing the requirement." });
+        res.status(500).send('Warning: Internal Server Error');
     }
 });
 
@@ -312,7 +332,7 @@ app.get('/ojt-pending/requirements', requireAuth, async (req, res) => {
         res.json(requirements);
     } catch (error) {
         console.error('Error fetching requirements:', error.message);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).send('Warning: Internal Server Error');
     }
 });
 
@@ -364,7 +384,7 @@ app.get('/ojt-pending/sort', requireAuth, async (req, res) => {
         res.json(pendingStudents);
     } catch (error) {
         console.error('Error:', error.message);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).send('Warning: Internal Server Error');
     }
 });
 
@@ -385,7 +405,7 @@ app.post('/update-remarks', requireAuth, async (req, res) => {
         res.json({ message: 'Remarks updated successfully' });
     } catch (error) {
         console.error('Error updating remarks:', error.message);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).send('Warning: Internal Server Error');
     }
 });
 
@@ -399,7 +419,7 @@ app.post('/update-intern-remarks', requireAuth, async (req, res) => {
         res.json({ message: 'Remarks updated successfully' });
     } catch (error) {
         console.error('Error updating intern remarks:', error.message);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).send('Warning: Internal Server Error');
     }
 });
 
@@ -430,17 +450,20 @@ app.post("/ojt-login-page", async (req, res) => {
             req.session.adviserID = adviser.adviserID;
             req.session.isLoggedIn = true;
             req.session.role = adviser.role;
-            res.redirect('/ojt-dashboard');
+            if (adviser.role === 'dept_head'){
+                res.redirect('/ojt-admin');
+            } else {
+                res.redirect('/ojt-dashboard');
+            }
         } else {
             res.status(401).send('false'); // Send back a simple 'false' string
         }
     } catch (error) {
-        console.error('Error:', error.message);
+        console.error('Error authenticating adviser:', error.message);
         res.status(500).send('Warning: Internal Server Error');
     }
 });
 
-// run node app.js then access http://localhost:8080/ojt-pending/
 app.get("/ojt-about-us", requireAuth, async (req, res) => {
     try {
         const adviser = await fetchAdviser(req.session.adviserID);
@@ -451,11 +474,10 @@ app.get("/ojt-about-us", requireAuth, async (req, res) => {
             res.redirect('/ojt-login-page');
         }
     } catch (error) {
-        console.error('Error:', error.message);
+        console.error('Error loading about-us page:', error.message);
         res.status(500).send('Warning: Internal Server Error');
     }
 });
-
 
 
 app.get('/logout', requireAuth, (req, res) => {
@@ -481,7 +503,7 @@ app.post('/ojt-dashboard/postannouncement', requireAuth, async (req, res) => {
         res.redirect('/ojt-dashboard');
     } catch (error) {
         console.error('Error inserting announcement: ', error.message);
-        res.status(500).send('Could not post announcement');
+        res.status(500).send('Warning: Internal Server Error');
     }
 });
 
@@ -494,7 +516,7 @@ app.post('/ojt-dashboard/deleteannouncement', requireAuth, async (req, res) => {
         res.redirect('/ojt-dashboard');
     } catch (error) {
         console.error('Error deleting announcement: ', error.message);
-        res.status(500).send('Could not delete announcement');
+        res.status(500).send('Warning: Internal Server Error');
     }
 })
 
@@ -512,7 +534,7 @@ app.post('/ojt-dashboard/uploadprofilepicture', requireAuth, async (req, res) =>
         res.redirect('/ojt-dashboard');
     }catch (error){
         console.error('Error uploading profile picture: ', error.message);
-        res.status(500).send('Could not upload profile picture');
+        res.status(500).send('Warning: Internal Server Error');
     }
 });
 
