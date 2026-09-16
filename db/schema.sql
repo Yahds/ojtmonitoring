@@ -16,6 +16,17 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `departments`
+--
+DROP TABLE IF EXISTS `departments`;
+CREATE TABLE `departments` (
+  `departmentid` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  PRIMARY KEY (`departmentid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+--
 -- Table structure for table `advisers`
 --
 
@@ -28,8 +39,12 @@ CREATE TABLE `advisers` (
   `adviserEmail` varchar(45) NOT NULL,
   `password` varchar(60) NOT NULL,
   `image` blob,
+  `departmentid` int DEFAULT NULL,
+  `role` varchar(20) NOT NULL DEFAULT 'adviser',
   PRIMARY KEY (`adviserID`),
-  UNIQUE KEY `adviserID_UNIQUE` (`adviserID`)
+  UNIQUE KEY `adviserID_UNIQUE` (`adviserID`),
+  KEY `departmentid_idx` (`departmentid`),
+  CONSTRAINT `advisers_department` FOREIGN KEY (`departmentid`) REFERENCES `departments` (`departmentid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

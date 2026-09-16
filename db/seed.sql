@@ -16,12 +16,17 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Dumping data for table `departments`
+--
+INSERT INTO departments VALUES (1,'Computer Science');
+
+--
 -- Dumping data for table `advisers`
 --
 
 LOCK TABLES `advisers` WRITE;
 /*!40000 ALTER TABLE `advisers` DISABLE KEYS */;
-INSERT INTO `advisers` VALUES (1,'Stevens, Amelia','amelia.stevens@example.com','$2b$10$78LKeo0LmG..I3zOKczr2uZ6RHoh4iKZc.vuHdqr1PEv.HWgdSQaS',NULL),(2,'Hayes, Benjamin','benjamin.hayes@example.com','$2b$10$1oBGejEJUYWQZTZ7V0xxuuZxYjduOiFMagjgxkCjiopy22A5uI0qm',NULL),(3,'Rodriguez, Michelle','michelle.rodriguez@example.com','$2b$10$d2eujojFxw0DeNFttys0JOj937fQK.tBY2VAiNL4kAQiRrx2aEt3W',NULL),(4,'Carter, Jonathan','jonathan.carter@example.com','$2b$10$D3KQLZvEP4N/.iynp2Ky5OFEPQvANl9Y/kdAj7.7gqycoafrOjCem',NULL),(5,'Foster, Emily','emily.foster@example.com','$2b$10$aM.1NkZJPr4yYwg4g.IIu.R8o3yG/hZ0zyBKN27Et/C51/38xs5fu',NULL),(6,'Anderson, Samuel','samuel.anderson@example.com','$2b$10$uqgZwaAeA09LFoVJjczX.uofGft2PmqQGV.G23Pkn9YT92YXcWx3a',NULL),(7,'Taylor, Victoria','victoria.taylor@example.com','$2b$10$vNNVoLCUZrcEFuLnTvo3.OnebIWLG7T1RETaxoAxk/S583F2VsA3q',NULL),(8,'Parker, Ben','richard.parker@example.com','$2b$10$06gRV7gaFRUNwcLp1f/Dqu.qhRDGgzbJy/.kxWeLR7mYcEpcaFq1u',NULL),(9,'Collins, Thompson','thompson.collins.example.com','$2b$10$MqKbILt8Dl32Z6/h2Q5pkOtZ4SXohLmjSYkkWBVFSerxPuC89fxNu',NULL),(10,'David, Allison','allison.david@example.com','$2b$10$2uDOiFER7SfkDau/YX8cmOubQA/HaYn1R6GKRRnV3MOgnwJdyJ5pu',NULL);
+INSERT INTO `advisers` VALUES (1,'Stevens, Amelia','amelia.stevens@example.com','$2b$10$78LKeo0LmG..I3zOKczr2uZ6RHoh4iKZc.vuHdqr1PEv.HWgdSQaS',NULL,1,'adviser'),(2,'Hayes, Benjamin','benjamin.hayes@example.com','$2b$10$1oBGejEJUYWQZTZ7V0xxuuZxYjduOiFMagjgxkCjiopy22A5uI0qm',NULL,1,'adviser'),(3,'Rodriguez, Michelle','michelle.rodriguez@example.com','$2b$10$d2eujojFxw0DeNFttys0JOj937fQK.tBY2VAiNL4kAQiRrx2aEt3W',NULL,1,'adviser'),(4,'Carter, Jonathan','jonathan.carter@example.com','$2b$10$D3KQLZvEP4N/.iynp2Ky5OFEPQvANl9Y/kdAj7.7gqycoafrOjCem',NULL,1,'adviser'),(5,'Foster, Emily','emily.foster@example.com','$2b$10$aM.1NkZJPr4yYwg4g.IIu.R8o3yG/hZ0zyBKN27Et/C51/38xs5fu',NULL,1,'adviser'),(6,'Anderson, Samuel','samuel.anderson@example.com','$2b$10$uqgZwaAeA09LFoVJjczX.uofGft2PmqQGV.G23Pkn9YT92YXcWx3a',NULL,1,'adviser'),(7,'Taylor, Victoria','victoria.taylor@example.com','$2b$10$vNNVoLCUZrcEFuLnTvo3.OnebIWLG7T1RETaxoAxk/S583F2VsA3q',NULL,1,'adviser'),(8,'Parker, Ben','richard.parker@example.com','$2b$10$06gRV7gaFRUNwcLp1f/Dqu.qhRDGgzbJy/.kxWeLR7mYcEpcaFq1u',NULL,1,'adviser'),(9,'Collins, Thompson','thompson.collins.example.com','$2b$10$MqKbILt8Dl32Z6/h2Q5pkOtZ4SXohLmjSYkkWBVFSerxPuC89fxNu',NULL,1,'adviser'),(10,'David, Allison','allison.david@example.com','$2b$10$2uDOiFER7SfkDau/YX8cmOubQA/HaYn1R6GKRRnV3MOgnwJdyJ5pu',NULL,1,'adviser'),(11,'Cruz, Maria','maria.cruz@example.com','$2b$10$WSzcQ1MqY2hXh3KFPiEkDeFGOepN7VivurpjpYdBu8LlWuwg8PgFC',NULL,1,'dept_head');
 /*!40000 ALTER TABLE `advisers` ENABLE KEYS */;
 UNLOCK TABLES;
 
