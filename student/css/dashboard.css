@@ -835,24 +835,3 @@ background-color: #024708;
 }
 
 
-.timeForm {
-    width: 100%;
-    height: fit-content;
-}
-
-.yellow-horizontal {
-    width: 30%;
-    background-color: #E1AD0F;
-    height: 3px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 10px;
-}
-
-.attendance {
-    text-align: left;
-    margin-top: 5%;
-    margin-left: 15%;
-    font-size: 14px;
-}
-
