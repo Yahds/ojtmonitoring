@@ -34,7 +34,7 @@ DROP TABLE IF EXISTS `advisers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `advisers` (
-  `adviserID` int NOT NULL,
+  `adviserID` int NOT NULL AUTO_INCREMENT,
   `adviserName` varchar(45) NOT NULL,
   `adviserEmail` varchar(45) NOT NULL,
   `password` varchar(60) NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE `advisers` (
   UNIQUE KEY `adviserID_UNIQUE` (`adviserID`),
   KEY `departmentid_idx` (`departmentid`),
   CONSTRAINT `advisers_department` FOREIGN KEY (`departmentid`) REFERENCES `departments` (`departmentid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1; 
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
