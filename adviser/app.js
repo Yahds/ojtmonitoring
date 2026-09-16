@@ -429,6 +429,7 @@ app.post("/ojt-login-page", async (req, res) => {
         if (adviser) {
             req.session.adviserID = adviser.adviserID;
             req.session.isLoggedIn = true;
+            req.session.role = adviser.role;
             res.redirect('/ojt-dashboard');
         } else {
             res.status(401).send('false'); // Send back a simple 'false' string
