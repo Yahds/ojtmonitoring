@@ -26,7 +26,7 @@ class DAO {
             return $row;
         }
 
-        return $result;
+        return false;
     }
 
     public function getRequirements($internID) {
