@@ -350,6 +350,34 @@ async function insertAdviser(name, email, password, departmentid){
     }
 }
 
+async function insertStudent(studentID, name, course, year, classcode) {
+    try {
+        await pool.query(
+            "INSERT INTO students (studentID, studentName, course, year, classcode) VALUES (?, ?, ?, ?, ?)",
+            [studentID, name, course, year, classcode]
+        );
+        return studentID;
+    } catch (error) {
+        console.error('Error executing query:', error.message);
+        throw error;
+    }
+}
+
+async function insertIntern(studentid, adviserid, password, status) {
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [result] = await pool.query(
+            "INSERT INTO interns (password, adviserid, studentid, status) VALUES (?, ?, ?, ?)",
+            [hashedPassword, adviserid, studentid, status]
+        );
+        return result.insertId;
+    } catch (error) {
+        console.error('Error executing query:', error.message);
+        throw error;
+    }
+}
+
+
 async function insertAnnouncement(sender, recipient, subject, announcement) {
 
     // Get the current date
@@ -415,14 +443,22 @@ async function fetchSupervisor(supervisorId) {
     }
 }
 
-
-
 async function fetchInterns(adviserID) {
     try {
         const [rows] = await pool.query("SELECT students.studentid, studentname, classcode, companyname, companyaddress, COALESCE(subquery.totalhours, 0) AS totalhours, CASE WHEN COALESCE(subquery.totalhours, 0) < 240 THEN 'ON GOING' WHEN COALESCE(subquery.totalhours, 0) > 240 THEN 'FINISHED' ELSE 'ON GOING' END AS 'status' FROM students LEFT JOIN interns ON students.studentid = interns.studentid LEFT JOIN (SELECT interns.internid, SUM(hours) AS totalhours FROM interns LEFT JOIN dailyreports ON interns.internid = dailyreports.internid WHERE interns.status = 'ACCEPTED' GROUP BY interns.internid) AS subquery ON interns.internid = subquery.internid LEFT JOIN company ON interns.companyid = company.companyid LEFT JOIN advisers ON advisers.adviserID = interns.adviserID WHERE advisers.adviserID = ? AND interns.status = 'ACCEPTED'", [adviserID]);
         return rows;
     } catch (error) {
         console.error('Error executing qeury:', error.message);
+        throw error;
+    }
+}
+
+async function fetchInternsByAdviser(adviserid){
+    try{
+        const [rows] = await pool.query("SELECT s.studentID, s.studentName, s.course, i.status FROM interns i JOIN students s ON i.studentid = s.studentID WHERE i.adviserid = ? ORDER BY s.studentName", [adviserid]);
+        return rows;
+    } catch (error) {
+        console.error('Error executing query:', error.message);
         throw error;
     }
 }
@@ -490,6 +526,10 @@ async function fetchInternId(name) {
         throw error;
     }
 }
+
+
+
+
 async function fetchInternDailyReports(internID) {
     try {
         const [rows] = await pool.query(`
@@ -620,11 +660,14 @@ module.exports = {
     authenticateAdviser,
     hashAdviserPasswords,
     fetchInterns,
+    fetchInternsByAdviser,
     fetchAnnouncements,
     deleteAnnouncement,
     fetchAdviser,
     fetchAdvisersByDepartment,
     insertAdviser,
+    insertStudent,
+    insertIntern,
     insertAnnouncement,
     insertNewRequirement,
     insertInternRequirement,

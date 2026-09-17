@@ -138,7 +138,7 @@ DROP TABLE IF EXISTS `interns`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `interns` (
-  `internid` int NOT NULL,
+  `internid` int NOT NULL AUTO_INCREMENT,
   `password` varchar(60) NOT NULL,
   `adviserid` int NOT NULL,
   `studentid` int NOT NULL,
@@ -158,7 +158,7 @@ CREATE TABLE `interns` (
   CONSTRAINT `companyid` FOREIGN KEY (`companyid`) REFERENCES `company` (`companyid`),
   CONSTRAINT `studentid` FOREIGN KEY (`studentid`) REFERENCES `students` (`studentID`),
   CONSTRAINT `supervisorid` FOREIGN KEY (`supervisorid`) REFERENCES `supervisors` (`supervisorid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=200 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
