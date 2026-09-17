@@ -329,7 +329,26 @@ async function fetchAdviser(adviserID) {
     }
 }
 
+async function fetchAdvisersByDepartment(departmentid) {
+    try {
+        const [rows] = await pool.query("SELECT adviserID, adviserName, adviserEmail FROM advisers WHERE departmentid = ? AND role = 'adviser' ORDER BY adviserName", [departmentid]);
+        return rows;
+    } catch (error) {
+        console.error('Error executing query:', error.message);
+        throw error;
+    }
+}
 
+async function insertAdviser(name, email, password, departmentid){
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [result] = await pool.query("INSERT INTO advisers (adviserName, adviserEmail, password, departmentid, role) VALUES (?, ?, ?, ?, 'adviser')", [name, email, hashedPassword, departmentid]);
+        return result.insertId;
+    } catch (error) {
+        console.error('Error executing query', error.message);
+        throw error;
+    }
+}
 
 async function insertAnnouncement(sender, recipient, subject, announcement) {
 
@@ -604,6 +623,8 @@ module.exports = {
     fetchAnnouncements,
     deleteAnnouncement,
     fetchAdviser,
+    fetchAdvisersByDepartment,
+    insertAdviser,
     insertAnnouncement,
     insertNewRequirement,
     insertInternRequirement,

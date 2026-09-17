@@ -55,7 +55,7 @@ const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsB
     fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement,
     fetchInternDailyReports, fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsByInternId, updateRemarks, 
     fetchSupervisor, fetchWeeklyReports, uploadPicture, authenticateAdviser, fetchInterns, fetchAnnouncements,
-    deleteAnnouncement, fetchAdviser, insertAnnouncement, fetchInternId, updateInternRemarks } = require('./database.js');
+    deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks } = require('./database.js');
 
 //GET 
 // // run node app.js then access http://localhost:8080/ojt-login-page/
@@ -143,6 +143,17 @@ app.get("/ojt-admin", requireRole('dept_head'), async (req, res) => {
     try{
         const adviser = await fetchAdviser(req.session.adviserID);
         res.render('ojt-admin/index', { adviser });
+    } catch (error) {
+        console.error('Error: ', error.message);
+        res.status(500).send('Warning: Internal Server Error')
+    }
+});
+
+app.get("/ojt-admin/advisers", requireRole('dept_head'), async (req, res) => {
+    try{
+        const adviser = await fetchAdviser(req.session.adviserID);
+        const advisers = await fetchAdvisersByDepartment(adviser.departmentid);
+        res.render('ojt-admin/views/advisers', { adviser, advisers });
     } catch (error) {
         console.error('Error: ', error.message);
         res.status(500).send('Warning: Internal Server Error')
@@ -391,6 +402,19 @@ app.get('/ojt-pending/sort', requireAuth, async (req, res) => {
 
 
 //POST REQUESTS
+
+app.post('/ojt-admin/advisers', requireRole('dept_head'), async (req, res) => {
+    const { name, email, password } = req.body;
+
+    try {
+        const adviser = await fetchAdviser(req.session.adviserID);
+        await insertAdviser(name, email, password, adviser.departmentid);
+        res.redirect('/ojt-admin/advisers');
+    } catch (error) {
+        console.error('Error', error.message);
+        res.status(500).send('Warning: Internal Server Error');
+    }
+});
 
 // updates the remarks
 app.post('/update-remarks', requireAuth, async (req, res) => {
