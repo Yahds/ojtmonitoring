@@ -52,11 +52,11 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 
 // Import functions from database.js
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
-    fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement,
-    fetchInternDailyReports, fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsByInternId, updateRemarks, 
+    fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement, updateRequirementReview,
+    fetchInternDailyReports, fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsForReview, updateRemarks, 
     fetchSupervisor, fetchWeeklyReports, uploadPicture, authenticateAdviser, fetchInterns, fetchInternsByAdviser, fetchAnnouncements,
     deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks, 
-    insertStudent, insertIntern} = require('./database.js');
+    insertStudent, insertIntern, fetchRequirementFile} = require('./database.js');
 
 //GET 
 // // run node app.js then access http://localhost:8080/ojt-login-page/
@@ -260,7 +260,7 @@ app.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async (r
         console.log(internId + ' is ' + internName);
 
         // Fetch the assigned requirements using the intern ID
-        const assignedRequirements = await fetchRequirementsByInternId(internId);
+        const assignedRequirements = await fetchRequirementsForReview(internId, req.session.adviserID);
 
         // Format dates in assigned requirements
         assignedRequirements.forEach(requirement => {
@@ -275,6 +275,71 @@ app.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async (r
         // Render the intern requirements view with the requirements data
         res.render('ojt-dashboard/views/intern-requirement.pug', {
             assignedRequirements
+        });
+    } catch (error) {
+        console.error('Error', error);
+        res.status(500).send("Warning: Internal Server Error");
+    }
+});
+
+app.get("/ojt-dashboard/requirements-review/:internId", requireAuth, async (req, res) => {
+    try {
+        const internId = req.params.internId;
+
+        const assignedRequirements = await fetchRequirementsForReview(internId, req.session.adviserID);
+
+        // Format dates in assigned requirements
+        assignedRequirements.forEach(requirement => {
+            if (requirement.datesubmitted) {
+                requirement.datesubmitted = new Date(requirement.datesubmitted).toDateString();
+            }
+        });
+
+        console.log('Assigned Requirements:', assignedRequirements);
+
+        // Render the intern requirements view with the requirements data
+        res.render('ojt-dashboard/views/review-requirements', {
+            assignedRequirements, internId
+        });
+    } catch (error) {
+        console.error('Error', error);
+        res.status(500).send("Warning: Internal Server Error");
+    }
+});
+
+app.post("/ojt-dashboard/requirements-review/:internId", requireAuth, async (req, res) => {
+    try {
+        const internId = req.params.internId;
+        const { reqid, decision, remarks } = req.body;
+
+        if (decision !== 'APPROVED' && decision !== 'REJECTED') {
+            return res.status(400).send("Invalid decision");
+        }
+
+        await updateRequirementReview(internId, reqid, req.session.adviserID, decision, remarks);
+
+        res.redirect(`/ojt-dashboard/requirements-review/${internId}`);
+    } catch (error) {
+        console.error('Error', error);
+        res.status(500).send("Warning: Internal Server Error");
+    }
+});
+
+app.get("/ojt-dashboard/requirement-file/:internId/:reqid", requireAuth, async (req, res) => {
+    try {
+        const { internId, reqid } = req.params;
+        const filePath = await fetchRequirementFile(internId, reqid, req.session.adviserID);
+
+        if (!filePath) {
+            return res.status(404).send("File not found");
+        }
+
+        const safePath = path.join('/var/www/uploads', path.basename(filePath));
+        res.sendFile(safePath, (err) => {
+            if (err) {
+                console.error('Error sending file:', err.message);
+                if (!res.headersSent) res.status(404).send("File not found");
+            }
         });
     } catch (error) {
         console.error('Error', error);

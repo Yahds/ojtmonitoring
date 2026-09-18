@@ -43,11 +43,14 @@ main
       th Name
       th Course
       th Status
+      th Requirements
     each i in interns
       tr
         td #{i.studentName}
         td #{i.course}
         td #{i.status}
+        td
+          a(href=`/ojt-dashboard/requirements-review/${i.internid}`) Review
     if interns.length === 0
       tr
-        td(colspan='3') No interns yet.
+        td(colspan='4') No interns yet.

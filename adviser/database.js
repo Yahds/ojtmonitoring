@@ -184,27 +184,54 @@ async function fetchUnassignedRequirements(internID) {
     }
 }
 
-async function fetchRequirementsByInternId(internID) {
+async function fetchRequirementsForReview(internID, adviserID) {
     try {
         const [rows] = await pool.query(`
             SELECT
+                requirements.reqid,    
                 requirements.requirementname,
+                students.studentName,
                 internrequirements.datesubmitted,
+                internrequirements.intern_remarks,
+                internrequirements.file_path,
                 internrequirements.remarks,
                 internrequirements.status
             FROM
                 internrequirements
             JOIN
                 requirements ON internrequirements.reqid = requirements.reqid
+            JOIN
+                interns ON internrequirements.internid = interns.internid
+            JOIN
+                students ON interns.studentid = students.studentID
             WHERE
-                internrequirements.internid = ?
-        `, [internID]);
+                internrequirements.internid = ? AND interns.adviserid = ?
+            ORDER by reqid
+        `, [internID, adviserID]);
         return rows;
     } catch (error) {
         console.error('Error executing query:', error.message);
         throw error;
     }
 }
+
+async function fetchRequirementFile(internID, reqID, adviserID) {
+    try {
+        const [rows] = await pool.query(
+            `SELECT ir.file_path
+             FROM internrequirements ir
+             JOIN interns i ON ir.internid = i.internid
+             WHERE ir.internid = ? AND ir.reqid = ? AND i.adviserid = ?`,
+            [internID, reqID, adviserID]
+        );
+        return rows[0] ? rows[0].file_path : null;
+    } catch (error) {
+        console.error('Error executing query:', error.message);
+        throw error;
+    }
+}
+
+
 // query to check all requirements of pending students:
 // SELECT
 //     students.studentID,
@@ -233,6 +260,23 @@ async function fetchStudent(studentID) {
         throw error;
     }
 }
+
+async function updateRequirementReview(internID, reqID, adviserID, decision, remarks) {
+    try {
+        const [result] = await pool.query(
+            `UPDATE internrequirements ir
+             JOIN interns i ON ir.internid = i.internid
+             SET ir.status = ?, ir.remarks = ?
+             WHERE ir.internid = ? AND ir.reqid = ? AND i.adviserid = ?`,
+            [decision, remarks, internID, reqID, adviserID]
+        );
+        return result;
+    } catch (error) {
+        console.error('Error executing query:', error.message);
+        throw error;
+    }
+}
+
 
 // updates the status in the interns table
 async function updateStatus(studentID, newStatus) {
@@ -455,7 +499,7 @@ async function fetchInterns(adviserID) {
 
 async function fetchInternsByAdviser(adviserid){
     try{
-        const [rows] = await pool.query("SELECT s.studentID, s.studentName, s.course, i.status FROM interns i JOIN students s ON i.studentid = s.studentID WHERE i.adviserid = ? ORDER BY s.studentName", [adviserid]);
+        const [rows] = await pool.query("SELECT i.internid, s.studentID, s.studentName, s.course, i.status FROM interns i JOIN students s ON i.studentid = s.studentID WHERE i.adviserid = ? ORDER BY s.studentName", [adviserid]);
         return rows;
     } catch (error) {
         console.error('Error executing query:', error.message);
@@ -653,7 +697,9 @@ module.exports = {
     fetchPendingStudentsByAddress,
     fetchPendingStudentsByWorkType,
     fetchRequirementsByStudentId,
-    fetchRequirementsByInternId,
+    fetchRequirementsForReview,
+    fetchRequirementFile,
+    updateRequirementReview,
     updateRemarks,
     updateStatus,
     uploadPicture,

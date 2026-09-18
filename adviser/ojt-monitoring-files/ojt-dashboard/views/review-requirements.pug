@@ -1,0 +1,55 @@
+meta(charset='UTF-8')
+meta(name='viewport' content='width=device-width, initial-scale=1.0')
+title Review Requirements
+style.
+  body { font-family: system-ui, sans-serif; margin: 0; background: #eceae3; color: #2b2a33; }
+  .navbar { display: flex; align-items: center; justify-content: space-between; background: #0d0464; color: #fff; padding: 12px 20px; border-bottom: 3px solid #e1ad0f; }
+  .nav-logo { font-weight: 700; letter-spacing: .03em; }
+  main { padding: 24px; max-width: 640px; margin: 0 auto; }
+  h1 { color: #0d0464; }
+  a.back { color: #0d0464; text-decoration: none; font-weight: 600; }
+  .req-card { background: #fff; border: 1px solid #e0ddd4; border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+  .req-head { display: flex; justify-content: space-between; align-items: center; }
+  .req-name { color: #0d0464; font-size: 16px; font-weight: 700; }
+  .status { font-weight: 600; }
+  .intern-remark { margin: 8px 0; }
+  .awaiting { margin: 8px 0; color: #888; font-style: italic; }
+  .review-form { margin-top: 10px; display: grid; gap: 8px; }
+  .review-form textarea { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+  .actions { display: flex; gap: 8px; }
+  button.approve { background: #024708; color: #fff; border: none; border-radius: 6px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+  button.reject { background: #8a1f1f; color: #fff; border: none; border-radius: 6px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+header
+  nav.navbar
+    .nav-logo SAINT LOUIS UNIVERSITY
+main
+  a.back(href='/ojt-dashboard') ← Back to dashboard
+  if assignedRequirements.length
+    h1 Review Requirements — #{assignedRequirements[0].studentName}
+  else
+    h1 Review Requirements
+  each req in assignedRequirements
+    .req-card
+      .req-head
+        .req-name #{req.requirementname}
+        .status #{req.status}
+      if req.datesubmitted
+        p Submitted: #{req.datesubmitted}
+      if req.intern_remarks
+        p.intern-remark Intern: #{req.intern_remarks}
+      if req.file_path
+        p
+          | Submitted file:&nbsp;
+          a(href=`/ojt-dashboard/requirement-file/${internId}/${req.reqid}`) view
+      if req.status === 'PENDING'
+        p.awaiting Waiting for the intern to submit.
+      else
+        form.review-form(action=`/ojt-dashboard/requirements-review/${internId}` method='POST')
+          input(type='hidden' name='reqid' value=req.reqid)
+          label Adviser remark
+          textarea(name='remarks' rows='2')= req.remarks
+          .actions
+            button.approve(type='submit' name='decision' value='APPROVED') Approve
+            button.reject(type='submit' name='decision' value='REJECTED') Reject
+  if assignedRequirements.length === 0
+    p No requirements found for this intern.
