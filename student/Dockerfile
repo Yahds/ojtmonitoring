@@ -2,5 +2,6 @@ FROM php:8.2-apache
 RUN docker-php-ext-install mysqli
 COPY php.ini /usr/local/etc/php/conf.d/zz-app.ini
 COPY . /var/www/html/
+RUN mkdir -p /var/www/uploads && chown www-data:www-data /var/www/uploads
 RUN rm -f /var/www/html/php.ini
 EXPOSE 80

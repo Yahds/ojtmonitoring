@@ -125,6 +125,8 @@ CREATE TABLE `internrequirements` (
   `datesubmitted` varchar(45) DEFAULT NULL,
   `status` varchar(45) DEFAULT NULL,
   `remarks` varchar(200) DEFAULT NULL,
+  `intern_remarks` varchar(255) DEFAULT NULL,
+  `file_path` varchar(255) DEFAULT NULL,
   KEY `internid_fk_idx` (`internid`),
   KEY `reqid_fk_idx` (`reqid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
@@ -169,10 +171,10 @@ DROP TABLE IF EXISTS `requirements`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `requirements` (
-  `reqid` int NOT NULL,
+  `reqid` int NOT NULL AUTO_INCREMENT,
   `requirementname` varchar(45) NOT NULL,
   PRIMARY KEY (`reqid`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
