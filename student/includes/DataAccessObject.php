@@ -29,6 +29,18 @@ class DAO {
         return false;
     }
 
+    public function getRequirementFile($internID, $reqID) {
+        $query = "SELECT file_path FROM internrequirements WHERE internid = ? AND reqid = ?";
+        $statement = $this->connection->prepare($query);
+        $statement->bind_param("ii", $internID, $reqID);
+        $statement->execute();
+        $result = $statement->get_result();
+        $row = $result->fetch_assoc();
+        $statement->close();
+        return $row ? $row['file_path'] : null;
+    }
+
+
     public function getRequirements($internID) {
         $requirements = [];
         $query = "SELECT * FROM internrequirements ir JOIN requirements r ON ir.reqid = r.reqid where internid = ?";
