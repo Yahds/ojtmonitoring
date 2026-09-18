@@ -58,6 +58,21 @@ class DAO {
         return $requirements;
     }
 
+    public function submitRequirement($internID, $reqID, $internRemarks, $filePath) {
+        $date = date("Y-m-d");
+        if ($filePath !== null) {
+            $query = "UPDATE internrequirements SET intern_remarks = ?, file_path = ?, status = 'SUBMITTED', datesubmitted = ? WHERE internid = ? AND reqid = ?";
+            $statement = $this->connection->prepare($query);
+            $statement->bind_param("sssii", $internRemarks, $filePath, $date, $internID, $reqID);
+        } else {
+            $query = "UPDATE internrequirements SET intern_remarks = ?, status = 'SUBMITTED', datesubmitted = ? WHERE internid = ? AND reqid = ?";
+            $statement = $this->connection->prepare($query);
+            $statement->bind_param("ssii", $internRemarks, $date, $internID, $reqID);
+        }
+        $statement->execute();
+        return $statement->affected_rows;
+    }
+
     public function updateStatusByCheckbox($requirementInfo, $newStatus, $currentDate) {
         list($internid, $requirementname) = explode('-', $requirementInfo);
         $query = "UPDATE internrequirements ir JOIN requirements r ON ir.reqid = r.reqid SET status = ?, datesubmitted = ? WHERE internid = ? AND requirementname = ?";
