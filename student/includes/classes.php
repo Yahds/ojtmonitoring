@@ -14,10 +14,13 @@ class Intern {
 class Requirement {
     public function __construct(
         public int $internID,
+        public int $reqID,
         public String $reqName,
-        public String $dateSubmitted,
+        public ?String $dateSubmitted,
         public String $status,
-        public ?String $remarks = '--',
+        public ?String $remarks = null, 
+        public ?String $internRemarks = null,
+        public ?String $filePath = null,
     ) {}
     
     public function __toString()

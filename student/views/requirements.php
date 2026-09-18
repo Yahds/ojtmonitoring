@@ -46,114 +46,45 @@
             </form>
         </aside>
         <section>
-            <form action="../includes/updateStatus.php" method="POST" onsubmit="setTimeout(function(){window.location.reload();},10);">
-                <div class="intern-list-container">
-                    <div class="table-label-filter">
-                        <div class="title">DOCUMENTS</div>
+            <div class="intern-list-container">
+                <div class="table-label-filter">
+                    <div class="title">REQUIREMENTS</div>
+                </div>
+
+                <?php foreach ($requirements as $requirement): ?>
+                    <div class="requirement-card" style="background:#fff;border:1px solid #e0ddd4;border-radius:8px;padding:16px;margin-bottom:14px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <strong style="color:#0D0464;font-size:16px;"><?php echo htmlspecialchars($requirement->reqName); ?></strong>
+                            <span style="font-weight:600;"><?php echo htmlspecialchars($requirement->status); ?></span>
+                        </div>
+
+                        <?php if (!empty($requirement->remarks)): ?>
+                            <p style="color:#8a6d0f;margin:8px 0;"><em>Adviser: <?php echo htmlspecialchars($requirement->remarks); ?></em></p>
+                        <?php endif; ?>
+
+                        <?php if (!empty($requirement->filePath)): ?>
+                            <p style="margin:8px 0;">Submitted file:
+                                <a href="../includes/downloadRequirement.php?reqid=<?php echo (int)$requirement->reqID; ?>">view</a>
+                            </p>
+                        <?php endif; ?>
+
+                        <form action="../includes/submitRequirement.php" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
+                            <input type="hidden" name="reqid" value="<?php echo (int)$requirement->reqID; ?>">
+                            <label>Your remarks</label>
+                            <textarea name="intern_remarks" rows="2" style="width:100%;box-sizing:border-box;"><?php echo htmlspecialchars($requirement->internRemarks ?? ''); ?></textarea>
+                            <div style="margin-top:8px;">
+                                <input type="file" name="requirement_file">
+                                <button type="submit">Submit</button>
+                            </div>
+                        </form>
                     </div>
+                <?php endforeach; ?>
 
-                    <div class="intern-table">
-                        <table class="intern-table-holder">
-                            <tr class="table-header">
-                                <th>
-                                
-                                </th>
-                                <th>
-                                    REQUIREMENTS
-                                </th>
-                                <th>
-                                    DATE SUBMITTED
-                                </th>
-                                <th>
-                                    STATUS
-                                </th>
-                                <th>
-                                    REMARKS
-                                </th>
-                            </tr>
-                    
-                            <?php 
-                            foreach ($requirements as $requirement) {
-                                $checkboxValue = htmlspecialchars($requirement->internID . '-' . $requirement->reqName);
-                                echo "<tr class='table-data'>";
-                                echo "<td><input type='checkbox' name='status[]' value='$checkboxValue' " . ($requirement->status == 'SUBMITTED' ? 'checked' : '') . "></td>";
-                                echo "<td>" . htmlspecialchars($requirement->reqName) . " </td>";
-                                echo "<td>" . htmlspecialchars($requirement->dateSubmitted) . "</td>";
-                                echo "<td>" . htmlspecialchars($requirement->status) . "</td>";
-                                echo "<td>" . htmlspecialchars($requirement->remarks ?? '') . "</td>";
-                                echo "</tr>";
-                            }
-                            ?>
-
-                        </table>
-                    </div>
-                </div>
-
-                <div class="cansave-container">
-                    NOTE: IF A REQUIREMENT HAS BEEN REJECTED PLEASE CONTACT YOUR ADVISER
-                </div>
-
-                <div class="cansave-container">
-                    <input type="button" class="cancel-button" value="Cancel" onclick="clearBoxes()">
-                    <input type="submit" class="save-button" value="Save">
-                </div>
-            </form>
+                <?php if (empty($requirements)): ?>
+                    <p>No requirements assigned yet.</p>
+                <?php endif; ?>
+            </div>
         </section>
     </main>
-    <script>
-        let initialCheckboxes = [];
-        let initialStatus = [];
-
-        document.addEventListener("DOMContentLoaded", function () {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            const statusCells = document.querySelectorAll('.table-data td:nth-child(4)'); // Assuming the status cell is the fourth cell in each row
-
-            initialCheckboxes = Array.from(checkboxes).map(checkbox => checkbox.checked);
-            initialStatus = Array.from(statusCells).map(cell => cell.textContent);
-
-            checkboxes.forEach(function (checkbox, index) {
-                checkbox.addEventListener("change", function () {
-                    const statusCell = this.parentNode.nextElementSibling.nextElementSibling.nextElementSibling; // Assuming the status cell is the fourth cell in the row
-                    const internID = this.value.split('-')[0];
-                    const currentDate = this.checked ? new Date().toISOString().split('T')[0] : '';
-                    const requirementName = this.value.split('-')[1];
-                    const newStatus = this.checked ? "SUBMITTED" : "PENDING";
-
-                    statusCell.textContent = newStatus;
-
-                    updateStatusInDatabase(internID, currentDate, requirementName, newStatus);
-                });
-            });
-        });
-
-        function clearBoxes() {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            const statusCells = document.querySelectorAll('.table-data td:nth-child(4)'); // Assuming the status cell is the fourth cell in each row
-
-            checkboxes.forEach(function (checkbox, index) {
-                checkbox.checked = initialCheckboxes[index];
-                statusCells[index].textContent = initialStatus[index];
-            });
-        }
-
-        function updateStatusInDatabase(internID, currentDate, requirementName, newStatus) {
-            const xhr = new XMLHttpRequest();
-
-            xhr.open("POST", "../includes/updateStatus.php", true);
-            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-            const data = "internID=" + encodeURIComponent(internID) +
-                "&currentDate=" + encodeURIComponent(currentDate) +
-                "&requirementName=" + encodeURIComponent(requirementName) +
-                "&newStatus=" + encodeURIComponent(newStatus);
-            xhr.onload = function () {
-                console.log(xhr.responseText);
-            };
-
-            xhr.send(data);
-        }
-    </script>
-
-
 </body>
 </html>

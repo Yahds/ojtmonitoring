@@ -44,10 +44,13 @@ class DAO {
         while ($row = $result->fetch_assoc()) {
             $req = new Requirement(
                 $row["internid"],
+                $row["reqid"],
                 $row["requirementname"],
                 $row["datesubmitted"],
                 $row["status"],
                 $row["remarks"],
+                $row["intern_remarks"],
+                $row["file_path"],
         );
             $requirements[] = $req;
         }
