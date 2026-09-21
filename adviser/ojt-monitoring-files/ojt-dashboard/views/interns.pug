@@ -37,13 +37,14 @@ main
     label Temporary password
     input(type='text' name='password' required)
     button(type='submit') Enroll intern
-  h2 Interns
+    h2 Interns
   table
     tr
       th Name
       th Course
       th Status
       th Requirements
+      th Action
     each i in interns
       tr
         td #{i.studentName}
@@ -51,6 +52,11 @@ main
         td #{i.status}
         td
           a(href=`/ojt-dashboard/requirements-review/${i.internid}`) Review
+        td
+          if i.status === 'ENROLLED'
+            form(action='/ojt-dashboard/deploy' method='POST')
+              input(type='hidden' name='internID' value=i.internid)
+              button(type='submit') Deploy
     if interns.length === 0
       tr
-        td(colspan='4') No interns yet.
+        td(colspan='5') No interns yet.

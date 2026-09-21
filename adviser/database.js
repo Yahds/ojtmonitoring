@@ -277,6 +277,22 @@ async function updateRequirementReview(internID, reqID, adviserID, decision, rem
     }
 }
 
+async function deployIntern(internID, adviserID) {
+    try {
+        const [result] = await pool.query(
+            `UPDATE interns i
+             JOIN internrequirements ir ON ir.internid = i.internid AND ir.reqid = 4
+             SET i.status = 'ACTIVE'
+             WHERE i.internid = ? AND i.adviserid = ? AND i.status = 'ENROLLED' AND ir.status = 'APPROVED'`,
+            [internID, adviserID]
+        );
+        return result;
+    } catch (error) {
+        console.error('Error executing query:', error.message);
+        throw error;
+    }
+}
+
 
 // updates the status in the interns table
 async function updateStatus(studentID, newStatus) {
@@ -681,6 +697,8 @@ async function uploadPicture(picture) {
 }
 
 
+
+
 async function closeDatabase() {
     await pool.end();
 }
@@ -705,6 +723,7 @@ module.exports = {
     uploadPicture,
     authenticateAdviser,
     hashAdviserPasswords,
+    deployIntern,
     fetchInterns,
     fetchInternsByAdviser,
     fetchAnnouncements,
