@@ -33,8 +33,8 @@ async function fetchPendingStudents(adviserID) {
         SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress, i.worktype
         FROM interns i
             JOIN students s ON i.studentid = s.studentid
-            JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
+            LEFT JOIN company c ON i.companyid = c.companyid
+            WHERE i.status = 'ENROLLED' AND i.adviserID = ?
         `, [adviserID]);
         return rows;
     } catch (error) {
@@ -49,8 +49,8 @@ async function fetchPendingStudentsByName(adviserID) {
             SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress
             FROM interns i
             JOIN students s ON i.studentid = s.studentid
-            JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
+            LEFT JOIN company c ON i.companyid = c.companyid
+            WHERE i.status = 'ENROLLED' AND i.adviserID = ?
             ORDER BY s.studentName;
         `, [adviserID]);
         return rows;
@@ -66,8 +66,8 @@ async function fetchPendingStudentsByClassCode(adviserID) {
             SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress
             FROM interns i
             JOIN students s ON i.studentid = s.studentid
-            JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
+            LEFT JOIN company c ON i.companyid = c.companyid
+            WHERE i.status = 'ENROLLED' AND i.adviserID = ?
             ORDER BY s.classcode;
         `, [adviserID]);
         return rows;
@@ -83,8 +83,8 @@ async function fetchPendingStudentsByCompany(adviserID) {
         SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress
         FROM interns i
             JOIN students s ON i.studentid = s.studentid
-            JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
+            LEFT JOIN company c ON i.companyid = c.companyid
+            WHERE i.status = 'ENROLLED' AND i.adviserID = ?
             ORDER BY c.companyname;
         `, [adviserID]);
         return rows;
@@ -100,8 +100,8 @@ async function fetchPendingStudentsByAddress(adviserID) {
         SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress
         FROM interns i
             JOIN students s ON i.studentid = s.studentid
-            JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
+            LEFT JOIN company c ON i.companyid = c.companyid
+            WHERE i.status = 'ENROLLED' AND i.adviserID = ?
             ORDER BY c.companyaddress;
         `, [adviserID]);
         return rows;
@@ -117,8 +117,8 @@ async function fetchPendingStudentsByWorkType(adviserID) {
         SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress, i.worktype
         FROM interns i
             JOIN students s ON i.studentid = s.studentid
-            JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
+            LEFT JOIN company c ON i.companyid = c.companyid
+            WHERE i.status = 'ENROLLED' AND i.adviserID = ?
             ORDER BY i.worktype;
         `, [adviserID]);
         return rows;
@@ -156,7 +156,7 @@ async function fetchRequirementsByStudentId(studentId) {
             JOIN
                 requirements ON internrequirements.reqid = requirements.reqid
             WHERE
-                interns.status = 'ACCEPTED' AND students.studentID = ?
+                interns.status = 'ACTIVE' AND students.studentID = ?
         `, [studentId]);
         return rows;
     } catch (error) {
@@ -489,7 +489,7 @@ async function fetchSupervisor(supervisorId) {
 
 async function fetchInterns(adviserID) {
     try {
-        const [rows] = await pool.query("SELECT students.studentid, studentname, classcode, companyname, companyaddress, COALESCE(subquery.totalhours, 0) AS totalhours, CASE WHEN COALESCE(subquery.totalhours, 0) < 240 THEN 'ON GOING' WHEN COALESCE(subquery.totalhours, 0) > 240 THEN 'FINISHED' ELSE 'ON GOING' END AS 'status' FROM students LEFT JOIN interns ON students.studentid = interns.studentid LEFT JOIN (SELECT interns.internid, SUM(hours) AS totalhours FROM interns LEFT JOIN dailyreports ON interns.internid = dailyreports.internid WHERE interns.status = 'ACCEPTED' GROUP BY interns.internid) AS subquery ON interns.internid = subquery.internid LEFT JOIN company ON interns.companyid = company.companyid LEFT JOIN advisers ON advisers.adviserID = interns.adviserID WHERE advisers.adviserID = ? AND interns.status = 'ACCEPTED'", [adviserID]);
+        const [rows] = await pool.query("SELECT students.studentid, studentname, classcode, companyname, companyaddress, COALESCE(subquery.totalhours, 0) AS totalhours, CASE WHEN COALESCE(subquery.totalhours, 0) < 240 THEN 'ON GOING' WHEN COALESCE(subquery.totalhours, 0) > 240 THEN 'FINISHED' ELSE 'ON GOING' END AS 'status' FROM students LEFT JOIN interns ON students.studentid = interns.studentid LEFT JOIN (SELECT interns.internid, SUM(hours) AS totalhours FROM interns LEFT JOIN dailyreports ON interns.internid = dailyreports.internid WHERE interns.status = 'ACTIVE' GROUP BY interns.internid) AS subquery ON interns.internid = subquery.internid LEFT JOIN company ON interns.companyid = company.companyid LEFT JOIN advisers ON advisers.adviserID = interns.adviserID WHERE advisers.adviserID = ? AND interns.status = 'ACTIVE'", [adviserID]);
         return rows;
     } catch (error) {
         console.error('Error executing qeury:', error.message);
