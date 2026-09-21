@@ -54,9 +54,9 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
     fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement, updateRequirementReview,
     fetchInternDailyReports, fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsForReview, updateRemarks, 
-    fetchSupervisor, fetchWeeklyReports, uploadPicture, authenticateAdviser, fetchInterns, fetchInternsByAdviser, fetchAnnouncements,
+    fetchSupervisor, fetchWeeklyReports, uploadPicture, authenticateAdviser, fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements,
     deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks, 
-    insertStudent, insertIntern, fetchRequirementFile} = require('./database.js');
+    insertStudent, insertIntern, fetchRequirementFile, deployIntern} = require('./database.js');
 
 //GET 
 // // run node app.js then access http://localhost:8080/ojt-login-page/
@@ -602,10 +602,28 @@ app.post('/ojt-dashboard/enroll', requireAuth, async (req, res) => {
 
     try {
         await insertStudent(studentID, name, course, year, classcode);
-        await insertIntern(studentID, req.session.adviserID, password, "ENROLLED")
+        const internid = await insertIntern(studentID, req.session.adviserID, password, "ENROLLED")
+        const requirements = await fetchAllRequirements();
+        for (const requirement of requirements){
+            await insertInternRequirement(internid, requirement.reqid);
+        }
         res.redirect('/ojt-dashboard');
     } catch (error){
         console.error('Error enrolling student: ', error.message);
+        res.status(500).send('Warning: Internal Server Error');
+    }
+});
+
+app.post('/ojt-dashboard/deploy', requireAuth, async (req, res) => {
+    try {
+        const internID = req.body.internID;
+        const result = await deployIntern(internID, req.session.adviserID);
+        if (result.affectedRows == 0) {
+            return res.status(400).send('Cannot deploy: the intern must be enrolled and have an approved endorsement.');
+        }
+        res.redirect('/ojt-dashboard/enroll');
+    } catch (error) {
+        console.error('Error deploying intern:', error.message);
         res.status(500).send('Warning: Internal Server Error');
     }
 });

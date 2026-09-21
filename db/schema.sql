@@ -149,7 +149,7 @@ CREATE TABLE `interns` (
   `totalhours` int DEFAULT NULL,
   `worktype` varchar(45) DEFAULT NULL,
   `image` blob,
-  `status` varchar(45) DEFAULT 'PENDING',
+  `status` varchar(45) DEFAULT 'ENROLLED',
   PRIMARY KEY (`internid`),
   UNIQUE KEY `internid_UNIQUE` (`internid`),
   KEY `adviserid_idx` (`adviserid`),
