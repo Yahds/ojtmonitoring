@@ -19,7 +19,7 @@
             $_SESSION['companyid'] = $row['companyid'];
             $_SESSION['status'] = $row['status'];
 
-            if ($_SESSION['status'] != "ACCEPTED") {
+            if ($_SESSION['status'] != "ACTIVE") {
                 header('Location: ../views/chooseCompany.php');
             } else {
                 header('Location: ../index.php');
