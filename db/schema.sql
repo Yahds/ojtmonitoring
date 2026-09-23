@@ -84,35 +84,6 @@ CREATE TABLE `company` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `dailyreports`
---
-
-DROP TABLE IF EXISTS `dailyreports`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `dailyreports` (
-  `reportid` int NOT NULL,
-  `internid` int NOT NULL,
-  `companyid` int NOT NULL,
-  `supervisorid` int NOT NULL,
-  `date` date NOT NULL,
-  `timeIn` time DEFAULT NULL,
-  `timeOut` time DEFAULT NULL,
-  `hours` int DEFAULT NULL,
-  `workdescription` varchar(45) DEFAULT NULL,
-  `verificationstatus` varchar(45) DEFAULT 'PENDING',
-  `remark` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`reportid`,`internid`),
-  UNIQUE KEY `reportid_UNIQUE` (`reportid`),
-  KEY `companyid_idx` (`companyid`),
-  KEY `internid_idx` (`internid`),
-  KEY `supervisor_id_idx` (`supervisorid`),
-  CONSTRAINT `company_id` FOREIGN KEY (`companyid`) REFERENCES `company` (`companyid`),
-  CONSTRAINT `super_id` FOREIGN KEY (`supervisorid`) REFERENCES `supervisors` (`supervisorid`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `internrequirements`
 --
 

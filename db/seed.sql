@@ -51,16 +51,6 @@ INSERT INTO `company` VALUES (1,'Accenture','Singapore','Private'),(2,'Microsoft
 UNLOCK TABLES;
 
 --
--- Dumping data for table `dailyreports`
---
-
-LOCK TABLES `dailyreports` WRITE;
-/*!40000 ALTER TABLE `dailyreports` DISABLE KEYS */;
-INSERT INTO `dailyreports` VALUES (1,1,1,110,'2023-10-06','08:00:00','16:00:00',8,'joshua nagooverthink','yes','yes');
-/*!40000 ALTER TABLE `dailyreports` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Dumping data for table `internrequirements`
 --
 
