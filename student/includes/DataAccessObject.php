@@ -70,6 +70,33 @@ class DAO {
         return $requirements;
     }
 
+    public function getWeeklyReports($internID) {
+        $reports = [];
+        $query = "SELECT * FROM weeklyreports WHERE internid = ? ORDER BY weeknumber";
+        $statement = $this->connection->prepare($query);
+        $statement->bind_param("i", $internID);
+        $statement->execute();
+        $result = $statement->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+            $reports[] = $row;
+        }
+
+        $statement->close();
+        return $reports;
+    }
+
+    public function getWeeklyReportFile($internID, $reportID) {
+        $query = "SELECT file_path FROM weeklyreports WHERE internid = ? AND reportid = ?";
+        $statement = $this->connection->prepare($query);
+        $statement->bind_param("ii", $internID, $reportID);
+        $statement->execute();
+        $result = $statement->get_result();
+        $row = $result->fetch_assoc();
+        $statement->close();
+        return $row ? $row['file_path'] : null;
+    }
+
     public function submitRequirement($internID, $reqID, $internRemarks, $filePath) {
         $date = date("Y-m-d");
         if ($filePath !== null) {
@@ -84,6 +111,16 @@ class DAO {
         $statement->execute();
         return $statement->affected_rows;
     }
+
+   public function submitWeeklyReport($internID, $weeknumber, $hours, $workdescription, $filePath) {
+        $date = date("Y-m-d");
+        $query = "INSERT INTO weeklyreports (internid, weeknumber, hours, workdescription, file_path, status, datesubmitted) VALUES (?, ?, ?, ?, ?, 'PENDING', ?)";
+        $statement = $this->connection->prepare($query);
+        $statement->bind_param("iiisss", $internID, $weeknumber, $hours, $workdescription, $filePath, $date);
+        $statement->execute();
+        return $statement->affected_rows;
+    }
+
 
     public function updateStatusByCheckbox($requirementInfo, $newStatus, $currentDate) {
         list($internid, $requirementname) = explode('-', $requirementInfo);
@@ -152,7 +189,7 @@ class DAO {
     }
 
     public function getTotalHours($internID) {
-        $query = "SELECT SUM(hours) AS total_hours FROM dailyreports WHERE internid = ?";
+        $query = "SELECT SUM(hours) AS total_hours FROM weeklyreports WHERE internid = ? AND status = 'APPROVED'";
         $statement = $this->connection->prepare($query);
         $statement->bind_param("i", $internID);
         $statement->execute();

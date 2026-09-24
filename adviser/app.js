@@ -53,10 +53,10 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 // Import functions from database.js
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
     fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement, updateRequirementReview,
-    fetchInternDailyReports, fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsForReview, updateRemarks, 
-    fetchSupervisor, fetchWeeklyReports, uploadPicture, authenticateAdviser, fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements,
-    deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks, 
-    insertStudent, insertIntern, fetchRequirementFile, deployIntern} = require('./database.js');
+    fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsForReview, updateRemarks, 
+    fetchWeeklyReportsForReview, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser, uploadPicture, authenticateAdviser, 
+    fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements, deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, 
+    insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks, insertStudent, insertIntern, fetchRequirementFile, deployIntern} = require('./database.js');
 
 //GET 
 // // run node app.js then access http://localhost:8080/ojt-login-page/
@@ -161,83 +161,40 @@ app.get("/ojt-admin/advisers", requireRole('dept_head'), async (req, res) => {
     }
 });
 
-app.get("/ojt-dashboard/daily-reports/:internName", requireAuth, async (req, res) => {
+app.get("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res) => {
     try {
-        const internName = req.params.internName;
-        console.log('Fetching reports for intern:', internName);
-
-        // Fetch the intern ID
-        const internIdResult = await fetchInternId(internName);
-        const internId = internIdResult[0]?.internid;
-        if (!internId) {
-            console.log('No intern found for name:', internName);
-            return res.status(404).send("Intern not found");
-        }
-
-        console.log(internId + ' is ' + internName);
-
-        // Fetch the reports using the intern ID
-        const reports = await fetchInternDailyReports(internId);
-
-        // Check if reports array is empty
-        if (reports.length === 0) {
-            return res.render('ojt-dashboard/views/no-reports.pug', {
-                message: 'No daily reports found for ' + internName,
-                colspan: 9,
-                reportsExist: false
-            });
-        }
-
-        for (let report of reports) {
-            report.date = new Date(report.date).toDateString();
-            const supervisorDetails = await fetchSupervisor(report.supervisorid);
-            report.supervisorName = supervisorDetails.supervisorname;
-        }
-        console.log('Reports:', reports);
-
-        // Render the intern reports view with the reports data
-        res.render('ojt-dashboard/views/intern-reports.pug', { reports });
+        const internId = req.params.internId;
+        const weeklyReports = await fetchWeeklyReportsForReview(internId, req.session.adviserID);
+        weeklyReports.forEach(report => {
+            if (report.datesubmitted) report.datesubmitted = new Date(report.datesubmitted).toDateString();
+        });
+        res.render('ojt-dashboard/views/weekly-reports-review', { weeklyReports, internId });
     } catch (error) {
         console.error('Error', error);
         res.status(500).send("Warning: Internal Server Error");
     }
 });
 
-app.get("/ojt-dashboard/weekly-reports/:internName", requireAuth, async (req, res) => {
+app.post("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res) => {
     try {
-        const internName = req.params.internName;
-        console.log('Fetching reports for intern:', internName);
+        const internId = req.params.internId;
+        const { reportid, decision, remark } = req.body;
+        if (decision !== 'APPROVED' && decision !== 'REJECTED') return res.status(400).send("Invalid decision");
+        await updateWeeklyReportReview(reportid, req.session.adviserID, decision, remark);
+        res.redirect(`/ojt-dashboard/weekly-reports-review/${internId}`);
+    } catch (error) {
+        console.error('Error', error);
+        res.status(500).send("Warning: Internal Server Error");
+    }
+});
 
-        // Fetch the intern ID
-        const internIdResult = await fetchInternId(internName);
-        const internId = internIdResult[0]?.internid;
-        if (!internId) {
-            console.log('No intern found for name:', internName);
-            return res.status(404).send("Intern not found");
-        }
-
-        console.log(internId + ' is ' + internName);
-
-        // Fetch the full week reports using the intern ID
-        const weeklyReports = await fetchWeeklyReports(internId);
-
-        // Check if weeklyReports array is empty
-        if (weeklyReports.length === 0) {
-            return res.render('ojt-dashboard/views/no-reports.pug', {
-                message: 'No full week reports found for ' + internName,
-                colspan: 4,
-                reportsExist: false
-            });
-        }
-
-        weeklyReports.forEach(report => {
-            report.date = new Date(report.date).toDateString(); // Format the date
-        });
-
-        console.log('Full Week Reports:', weeklyReports);
-
-        // Render the weekly report view with the reports data
-        res.render('ojt-dashboard/views/weekly-report.pug', { weeklyReports });
+app.get("/ojt-dashboard/weekly-report-file/:reportId", requireAuth, async (req, res) => {
+    try {
+        const reportId = req.params.reportId;
+        const filePath = await fetchWeeklyReportFileForAdviser(reportId, req.session.adviserID);
+        if (!filePath) return res.status(404).send("File not found");
+        const safePath = path.join('/var/www/uploads', path.basename(filePath));
+        res.sendFile(safePath, (err) => { if (err) { console.error('Error sending file:', err.message); if (!res.headersSent) res.status(404).send("File not found"); } });
     } catch (error) {
         console.error('Error', error);
         res.status(500).send("Warning: Internal Server Error");

@@ -52,6 +52,7 @@ main
         td #{i.status}
         td
           a(href=`/ojt-dashboard/requirements-review/${i.internid}`) Review
+          a(href=`/ojt-dashboard/weekly-reports-review/${i.internid}`) Reports
         td
           if i.status === 'ENROLLED'
             form(action='/ojt-dashboard/deploy' method='POST')
