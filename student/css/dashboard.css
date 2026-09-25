@@ -423,7 +423,6 @@ th, td {
 /* right column*/
 .third-column {
     flex: 1;
-    background-color: purple;
 }
 
 .announcement-column {
@@ -767,13 +766,6 @@ background-color: #024708;
     'wght' 400,
     'GRAD' 0,
     'opsz' 24
-}
-
-/*AKIN*/
-.section {
-    border-color: red;
-    background-color: red;
-    width: 100px;
 }
 
 /*TIME BUTTON SECTION*/
