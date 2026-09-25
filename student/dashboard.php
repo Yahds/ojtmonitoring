@@ -37,8 +37,9 @@
             <ol>
                 <?php 
                     echo "<li><a href='dashboard.php'>DASHBOARD</a></li>";
-                    echo "<li><a href='#'>TIME SHEET</a></li>";
                     echo "<li><a href='views/requirements.php'>REQUIREMENTS</a></li>";
+                    echo "<li><a href='views/weeklyReports.php'>WEEKLY REPORTS</a></li>";
+                    echo "<li><a href='views/monthlyJournals.php'>MONTHLY JOURNALS</a></li>";
                     echo "<li><a href='#'>ABOUT US</a></li>";
                 ?>
             </ol>

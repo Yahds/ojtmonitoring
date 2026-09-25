@@ -29,6 +29,7 @@
                 <li><a href="../dashboard.php">DASHBOARD</a></li>
                 <li><a href="./requirements.php">REQUIREMENTS</a></li>
                 <li><a href="./weeklyReports.php">WEEKLY REPORTS</a></li>
+                <li><a href="./monthlyJournals.php">MONTHLY JOURNALS</a></li>
                 <li><a href="#">ABOUT US</a></li>
             </ol>
             <form action="../includes/logoutController.php" method="post">
