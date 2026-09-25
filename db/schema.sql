@@ -205,6 +205,24 @@ CREATE TABLE `weeklyreports` (
   CONSTRAINT `weeklyreports_intern` FOREIGN KEY (`internid`) REFERENCES `interns` (`internid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Table structure for table `journals`
+--
+
+DROP TABLE IF EXISTS `journals`;
+CREATE TABLE `journals` (
+  `journalid` int NOT NULL AUTO_INCREMENT,
+  `internid` int NOT NULL,
+  `monthnumber` int NOT NULL,
+  `notes` varchar(2000) DEFAULT NULL,
+  `file_path` varchar(255) DEFAULT NULL,
+  `status` varchar(45) DEFAULT 'PENDING',
+  `remark` varchar(255) DEFAULT NULL,
+  `datesubmitted` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`journalid`),
+  KEY `internid_idx` (`internid`),
+  CONSTRAINT `journals_intern` FOREIGN KEY (`internid`) REFERENCES `interns` (`internid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
