@@ -121,6 +121,41 @@ class DAO {
         return $statement->affected_rows;
     }
 
+    public function getMonthlyJournals($internID){
+        $journals = [];
+        $query = "SELECT * FROM journals WHERE internid = ? ORDER BY monthnumber";
+        $statement = $this->connection->prepare($query);
+        $statement->bind_param("i", $internID);
+        $statement->execute();
+        $result = $statement->get_result();
+
+        while ($row = $result->fetch_assoc()){
+            $journals[] = $row;
+        }
+
+        $statement->close();
+        return $journals;
+    }
+
+    public function getMonthlyJournalFile($internID, $journalID) {
+        $query = "SELECT file_path FROM journals WHERE internid = ? AND journalid = ?";
+        $statement = $this->connection->prepare($query);
+        $statement->bind_param("ii", $internID, $journalID);
+        $statement->execute();
+        $result = $statement->get_result();
+        $row = $result->fetch_assoc();
+        $statement->close();
+        return $row ? $row['file_path'] : null;
+    }
+
+    public function submitJournal($internID, $monthnumber, $notes, $filePath) {
+        $date = date("Y-m-d");
+        $query = "INSERT INTO journals (internid, monthnumber, notes, file_path, status, datesubmitted) VALUES (?, ?, ?, ?, 'PENDING', ?)";
+        $statement = $this->connection->prepare($query);
+        $statement->bind_param("iisss", $internID, $monthnumber, $notes, $filePath, $date);
+        $statement->execute();
+        return $statement->affected_rows;
+    }
 
     public function updateStatusByCheckbox($requirementInfo, $newStatus, $currentDate) {
         list($internid, $requirementname) = explode('-', $requirementInfo);

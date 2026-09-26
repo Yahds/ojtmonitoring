@@ -32,10 +32,11 @@
                     echo "<li><a href='./chooseCompany.php'>DASHBOARD</a></li>";
                 } else {
                     echo "<li><a href='../dashboard.php'>DASHBOARD</a></li>";
-                    echo "<li><a href='#'>TIME SHEET</a></li>";
+                    echo "<li><a href='./requirements.php'>REQUIREMENTS</a></li>";
+                    echo "<li><a href='./weeklyReports.php'>WEEKLY REPORTS</a></li>";
+                    echo "<li><a href='./monthlyJournals.php'>MONTHLY JOURNALS</a></li>";
+                    echo "<li><a href='#'>ABOUT US</a></li>";
                 }
-                echo "<li><a href='#'>REQUIREMENTS</a></li>";
-                echo "<li><a href='#'>ABOUT US</a></li>";
                 ?>
               
             </ol>
