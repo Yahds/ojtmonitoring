@@ -1,8 +1,8 @@
 <?php 
+    require_once __DIR__ . '/../includes/requireLogin.php';
     include("../includes/DataAccessObject.php");
-    session_start();
     $db = new DAO();
-    $journals = $db->getMonthlyJournals($_SESSION['internid']);
+    $requirements = $db->getRequirements($_SESSION['internid']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -47,7 +47,6 @@
                     <form action="../includes/submitJournal.php" method="POST" enctype="multipart/form-data" style="margin-top:10px;display:grid;gap:8px;max-width:420px;">
                         <label>Month number</label>
                         <input type="number" name="monthnumber" min="1" required>
-                        <label>Journal on your learning experience</label>
                         <label>Notes (optional)</label>
                         <textarea name="notes" rows="6" style="width:100%;box-sizing:border-box;"></textarea>
                         <label>Monthly journal file (required) — PDF, JPG, PNG, DOC, DOCX</label>
@@ -62,7 +61,6 @@
                             <strong style="color:#0D0464;font-size:16px;">Month <?php echo (int)$journal['monthnumber']; ?></strong>
                             <span style="font-weight:600;"><?php echo htmlspecialchars($journal['status']); ?></span>
                         </div>
-                        <p style="margin:8px 0;"><?php echo nl2br(htmlspecialchars($journal['notes'])); ?></p>
                         <?php if (!empty($journal['file_path'])): ?>
                             <p style="margin:8px 0;">File:<a href="../includes/downloadJournal.php?journalid=<?php echo (int)$journal['journalid']; ?>">view</a></p>
                         <?php endif; ?>

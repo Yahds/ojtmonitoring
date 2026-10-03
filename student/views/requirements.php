@@ -1,6 +1,6 @@
 <?php 
+    require_once __DIR__ . '/../includes/requireLogin.php';
     include("../includes/DataAccessObject.php");
-    session_start();
     $db = new DAO();
     $requirements = $db->getRequirements($_SESSION['internid']);
 ?>

@@ -1,8 +1,8 @@
 <?php 
+    require_once __DIR__ . '/../includes/requireLogin.php';
     include("../includes/DataAccessObject.php");
-    session_start();
     $db = new DAO();
-    $reports = $db->getWeeklyReports($_SESSION['internid']);
+    $requirements = $db->getRequirements($_SESSION['internid']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
