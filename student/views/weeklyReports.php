@@ -1,8 +1,9 @@
 <?php 
+    require_once __DIR__ . '/../includes/requireLogin.php';
+    require_once __DIR__ . '/../includes/csrf.php';
     include("../includes/DataAccessObject.php");
-    session_start();
     $db = new DAO();
-    $reports = $db->getWeeklyReports($_SESSION['internid']);
+    $requirements = $db->getRequirements($_SESSION['internid']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,6 +46,7 @@
                 <div class="requirement-card" style="background:#fff;border:1px solid #e0ddd4;border-radius:8px;padding:16px;margin-bottom:20px;">
                     <strong style="color:#0D0464;font-size:16px;">Submit a weekly report</strong>
                     <form action="../includes/submitWeeklyReport.php" method="POST" enctype="multipart/form-data" style="margin-top:10px;display:grid;gap:8px;max-width:420px;">
+                        <?php echo csrf_field(); ?>
                         <label>Week number</label>
                         <input type="number" name="weeknumber" min="1" required>
                         <label>Hours worked this week</label>

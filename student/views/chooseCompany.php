@@ -1,8 +1,9 @@
-<?php
+<?php 
+    require_once __DIR__ . '/../includes/requireLogin.php';
+    require_once __DIR__ . '/../includes/csrf.php';
     include("../includes/DataAccessObject.php");
-    session_start();
     $db = new DAO();
-
+    $requirements = $db->getRequirements($_SESSION['internid']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -84,7 +85,7 @@
     <main class="container">
         <aside class="left-nav">
             <ol>
-                <li><a href="../temporary_dashboard.php">DASHBOARD</a></li>
+                <li><a href="../dashboard.php">DASHBOARD</a></li>
                 <li><a href="requirements.php">REQUIREMENTS</a></li>
                 <li><a href="#">ABOUT US</a></li>
             </ol>
@@ -215,8 +216,6 @@
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState == 4 && xhr.status == 200) {
                         var companyId = xhr.responseText;
-                        console.log('Company ID updated:', companyId);
-                        updateSessionCompanyId(companyId);
                         displaySuccessMessage('Company information updated successfully.');
                     } else {
                     console.error('Failed to update Company ID.');
@@ -224,29 +223,14 @@
                 };
 
                 var data = 'companyName=' + encodeURIComponent(companyName) +
-                        '&companyLocation=' + encodeURIComponent(companyAddress);
+                        '&companyLocation=' + encodeURIComponent(companyAddress) +
+                        '&csrf_token=' + encodeURIComponent('<?php echo csrf_token(); ?>');
 
                 xhr.open('POST', '../includes/updateCompany.php', true);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                 console.log('Data:', data);
                 xhr.send(data);
             }
-        }
-
-        // update the session variable on the server side
-        function updateSessionCompanyId(companyId) {
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    console.log('Session Company ID updated:', xhr.responseText);
-                }
-            };
-
-            var data = 'companyId=' + encodeURIComponent(companyId);
-
-            xhr.open('POST', '../includes/updateSessionCompanyId.php', true); // Updated file path
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.send(data);
         }
 
         function displaySuccessMessage(message) {

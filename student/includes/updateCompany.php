@@ -1,13 +1,11 @@
 <?php
+require_once __DIR__ . '/requireLogin.php';
+require_once __DIR__ . '/csrf.php';
 include("DataAccessObject.php");
-
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-} 
-
 $db = new DAO();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    verify_csrf();
     if (isset($_POST['companyName']) && isset($_POST['companyLocation'])) {
         $company = $_POST['companyName'];
         $location = $_POST['companyLocation'];

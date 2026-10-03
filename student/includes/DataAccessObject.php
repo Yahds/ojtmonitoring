@@ -157,14 +157,6 @@ class DAO {
         return $statement->affected_rows;
     }
 
-    public function updateStatusByCheckbox($requirementInfo, $newStatus, $currentDate) {
-        list($internid, $requirementname) = explode('-', $requirementInfo);
-        $query = "UPDATE internrequirements ir JOIN requirements r ON ir.reqid = r.reqid SET status = ?, datesubmitted = ? WHERE internid = ? AND requirementname = ?";
-        $statement = $this->connection->prepare($query);
-        $statement->bind_param("ssis", $newStatus, $currentDate, $internid, $requirementname);
-        $statement->execute();
-    }
-
     // used in updateCompany.php when intern has no company and needs to input the company information
     // the company information is to be confirmed by the adviser or no
     public function updateCompany($studentid, $companyName, $companyLocation) {
