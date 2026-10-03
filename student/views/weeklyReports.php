@@ -3,7 +3,7 @@
     require_once __DIR__ . '/../includes/csrf.php';
     include("../includes/DataAccessObject.php");
     $db = new DAO();
-    $requirements = $db->getRequirements($_SESSION['internid']);
+    $reports = $db->getWeeklyReports($_SESSION['internid']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
