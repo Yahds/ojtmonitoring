@@ -1,5 +1,6 @@
 <?php 
     require_once __DIR__ . '/../includes/requireLogin.php';
+    require_once __DIR__ . '/../includes/csrf.php';
     include("../includes/DataAccessObject.php");
     $db = new DAO();
     $requirements = $db->getRequirements($_SESSION['internid']);
@@ -45,6 +46,7 @@
                 <div class="requirement-card" style="background:#fff;border:1px solid #e0ddd4;border-radius:8px;padding:16px;margin-bottom:20px;">
                     <strong style="color:#0D0464;font-size:16px;">Submit a monthly journal</strong>
                     <form action="../includes/submitJournal.php" method="POST" enctype="multipart/form-data" style="margin-top:10px;display:grid;gap:8px;max-width:420px;">
+                        <?php echo csrf_field(); ?>
                         <label>Month number</label>
                         <input type="number" name="monthnumber" min="1" required>
                         <label>Notes (optional)</label>

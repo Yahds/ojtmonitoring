@@ -1,5 +1,6 @@
 <?php 
     require_once __DIR__ . '/../includes/requireLogin.php';
+    require_once __DIR__ . '/../includes/csrf.php';
     include("../includes/DataAccessObject.php");
     $db = new DAO();
     $requirements = $db->getRequirements($_SESSION['internid']);
@@ -222,7 +223,8 @@
                 };
 
                 var data = 'companyName=' + encodeURIComponent(companyName) +
-                        '&companyLocation=' + encodeURIComponent(companyAddress);
+                        '&companyLocation=' + encodeURIComponent(companyAddress) +
+                        '&csrf_token=' + encodeURIComponent('<?php echo csrf_token(); ?>');
 
                 xhr.open('POST', '../includes/updateCompany.php', true);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');

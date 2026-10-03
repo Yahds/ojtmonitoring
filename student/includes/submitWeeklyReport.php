@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/requireLogin.php';
+require_once __DIR__ . '/csrf.php';
 include("DataAccessObject.php");
 
 $db = new DAO();
@@ -8,6 +9,8 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     header('Location: ../views/weeklyReports.php');
     exit();
 }
+
+verify_csrf();
 
 $internID = $_SESSION['internid'];
 $weeknumber = $_POST['weeknumber'] ?? null;

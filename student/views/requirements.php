@@ -1,5 +1,6 @@
 <?php 
     require_once __DIR__ . '/../includes/requireLogin.php';
+    require_once __DIR__ . '/../includes/csrf.php';
     include("../includes/DataAccessObject.php");
     $db = new DAO();
     $requirements = $db->getRequirements($_SESSION['internid']);
@@ -71,6 +72,7 @@
 
                         <form action="../includes/submitRequirement.php" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
                             <input type="hidden" name="reqid" value="<?php echo (int)$requirement->reqID; ?>">
+                            <?php echo csrf_field(); ?>
                             <label>Your remarks</label>
                             <textarea name="intern_remarks" rows="2" style="width:100%;box-sizing:border-box;"><?php echo htmlspecialchars($requirement->internRemarks ?? ''); ?></textarea>
                             <div style="margin-top:8px;">
