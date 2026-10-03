@@ -5,11 +5,11 @@ services:
       dockerfile: Dockerfile
     environment:
       - MYSQL_HOST=database
-      - MYSQL_USER=ojt_app
-      - MYSQL_PASSWORD=ojt_app_password
-      - MYSQL_DATABASE=ojt
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
       - PORT=8080
-      - SESSION_SECRET=change_in_prod
+      - SESSION_SECRET=${SESSION_SECRET}
     depends_on:
       database:
         condition: service_healthy
@@ -20,10 +20,10 @@ services:
       context: ./db
       dockerfile: Dockerfile
     environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_DATABASE=ojt
-      - MYSQL_USER=ojt_app
-      - MYSQL_PASSWORD=ojt_app_password
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -40,9 +40,9 @@ services:
       dockerfile: Dockerfile
     environment:
       - MYSQL_HOST=database
-      - MYSQL_USER=ojt_app
-      - MYSQL_PASSWORD=ojt_app_password
-      - MYSQL_DATABASE=ojt
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
     depends_on:
       database:
         condition: service_healthy
