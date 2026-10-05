@@ -618,7 +618,7 @@ app.post('/ojt-dashboard/deploy', requireAuth, async (req, res) => {
         const internID = req.body.internID;
         const result = await deployIntern(internID, req.session.adviserID);
         if (result.affectedRows == 0) {
-            return res.status(400).send('Cannot deploy: the intern must be enrolled and have an approved endorsement.');
+            return res.status(400).send('Cannot deploy: the intern must have a chosen company and an approved endorsement');
         }
         res.redirect('/ojt-dashboard/enroll');
     } catch (error) {
