@@ -42,6 +42,7 @@ main
     tr
       th Name
       th Course
+      th Company
       th Status
       th Requirements
       th Action
@@ -49,16 +50,17 @@ main
       tr
         td #{i.studentName}
         td #{i.course}
+        td #{i.companyname || '—'}
         td #{i.status}
         td
           a(href=`/ojt-dashboard/requirements-review/${i.internid}`) Review
           a(href=`/ojt-dashboard/weekly-reports-review/${i.internid}`) Reports
           a(href=`/ojt-dashboard/journals-review/${i.internid}`) Journals
         td
-          if i.status === 'ENROLLED'
+          if i.status === 'PENDING'
             form(action='/ojt-dashboard/deploy' method='POST')
               input(type='hidden' name='internID' value=i.internid)
               button(type='submit') Deploy
     if interns.length === 0
       tr
-        td(colspan='5') No interns yet.
+        td(colspan='6') No interns yet.
