@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { requireAuth, requireRole } = require('./middleware/auth');
+const { requireAuth} = require('./middleware/auth');
 
 const express = require('express');
 const session = require('express-session');
@@ -35,13 +35,15 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
     fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement, 
     updateRemarks, authenticateAdviser, 
-    fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements, deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, 
-    insertAdviser, insertAnnouncement, updateInternRemarks, insertStudent, insertIntern, deployIntern} = require('./db');
+    fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements, deleteAnnouncement, fetchAdviser,
+    insertAnnouncement, updateInternRemarks, insertStudent, insertIntern, deployIntern} = require('./db');
 
+const adminRoutes = require('./routes/admin');
 const journalRoutes = require('./routes/journals');
 const reportRoutes = require('./routes/reports');
 const requirementRoutes = require('./routes/requirements');
 
+app.use(adminRoutes);
 app.use(journalRoutes);
 app.use(reportRoutes);
 app.use(requirementRoutes);
@@ -126,27 +128,6 @@ app.get("/ojt-dashboard", requireAuth, async (req, res) => {
     } catch (error) {
         console.error('Error', error);
         res.status(500).send("Warning: Internal Server Error")
-    }
-});
-
-app.get("/ojt-admin", requireRole('dept_head'), async (req, res) => {
-    try{
-        const adviser = await fetchAdviser(req.session.adviserID);
-        res.render('ojt-admin/index', { adviser });
-    } catch (error) {
-        console.error('Error: ', error.message);
-        res.status(500).send('Warning: Internal Server Error')
-    }
-});
-
-app.get("/ojt-admin/advisers", requireRole('dept_head'), async (req, res) => {
-    try{
-        const adviser = await fetchAdviser(req.session.adviserID);
-        const advisers = await fetchAdvisersByDepartment(adviser.departmentid);
-        res.render('ojt-admin/views/advisers', { adviser, advisers });
-    } catch (error) {
-        console.error('Error: ', error.message);
-        res.status(500).send('Warning: Internal Server Error')
     }
 });
 
@@ -244,19 +225,6 @@ app.get('/logout', requireAuth, (req, res) => {
 
 
 //POST REQUESTS
-
-app.post('/ojt-admin/advisers', requireRole('dept_head'), async (req, res) => {
-    const { name, email, password } = req.body;
-
-    try {
-        const adviser = await fetchAdviser(req.session.adviserID);
-        await insertAdviser(name, email, password, adviser.departmentid);
-        res.redirect('/ojt-admin/advisers');
-    } catch (error) {
-        console.error('Error', error.message);
-        res.status(500).send('Warning: Internal Server Error');
-    }
-});
 
 // updates the remarks
 app.post('/update-remarks', requireAuth, async (req, res) => {
