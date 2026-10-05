@@ -57,7 +57,7 @@ const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsB
     fetchWeeklyReportsForReview, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser, authenticateAdviser, 
     fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements, deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, 
     insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks, insertStudent, insertIntern, fetchRequirementFile, deployIntern,
-    fetchJournalsForReview, updateJournalReview, fetchJournalFileForAdviser} = require('./database.js');
+    fetchJournalsForReview, updateJournalReview, fetchJournalFileForAdviser} = require('./db');
 
 //GET 
 // // run node app.js then access http://localhost:8080/ojt-login-page/
