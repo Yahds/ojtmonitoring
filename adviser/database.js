@@ -1,19 +1,5 @@
-
-const mysql = require('mysql2');
-const dotenv = require('dotenv');
+const { pool, closeDatabase } = require('./db/pool');
 const bcrypt = require('bcrypt'); // bcrypt library for password hashing
-dotenv.config()
-
-// uses pool instead of connection, instead of creating a brand new connection for each query,
-// there will be a pool of connections that can be reused
-const pool = mysql.createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-}).promise();
-
-console.log('Database pool created');
 
 // fetches all details of students from student table
 async function fetchStudents() {
@@ -662,12 +648,6 @@ async function fetchJournalFileForAdviser(journalID, adviserID) {
         throw error;
     }
 }
-
-
-async function closeDatabase() {
-    await pool.end();
-}
-
 
 
 module.exports = {
