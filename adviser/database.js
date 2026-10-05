@@ -693,21 +693,6 @@ async function hashAdviserPasswords() {
     }
 }
 
-async function uploadPicture(picture) {
-    try {
-        if (picture) {
-            await pool.query('INSERT INTO advisers (image) VALUES (?)', [picture]);
-            return true;
-        }
-    } catch (error) {
-        console.error('Error uploading image:', error.message);
-        throw error;
-    }
-}
-
-
-
-
 async function closeDatabase() {
     await pool.end();
 }
@@ -730,7 +715,6 @@ module.exports = {
     updateWeeklyReportReview,
     updateRemarks,
     updateStatus,
-    uploadPicture,
     authenticateAdviser,
     hashAdviserPasswords,
     deployIntern,

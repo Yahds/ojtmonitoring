@@ -54,7 +54,7 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
     fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement, updateRequirementReview,
     fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsForReview, updateRemarks, 
-    fetchWeeklyReportsForReview, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser, uploadPicture, authenticateAdviser, 
+    fetchWeeklyReportsForReview, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser, authenticateAdviser, 
     fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements, deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, 
     insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks, insertStudent, insertIntern, fetchRequirementFile, deployIntern,
     fetchJournalsForReview, updateJournalReview, fetchJournalFileForAdviser} = require('./database.js');
@@ -655,24 +655,6 @@ app.post('/ojt-dashboard/deleteannouncement', requireAuth, async (req, res) => {
         res.status(500).send('Warning: Internal Server Error');
     }
 })
-
-
-app.post('/ojt-dashboard/uploadprofilepicture', requireAuth, async (req, res) => {
-    console.log("upload")
-    if (!req.files || Object.keys(req.files).length === 0) {
-        return res.status(400).send('No files were uploaded.');
-    }
-
-    let uploadedFile = req.files.prof_image;
-
-    try{
-        await uploadPicture(uploadedFile);
-        res.redirect('/ojt-dashboard');
-    }catch (error){
-        console.error('Error uploading profile picture: ', error.message);
-        res.status(500).send('Warning: Internal Server Error');
-    }
-});
 
 app.listen(port, () => {
     console.log(`Server is running at port ${port}`);
