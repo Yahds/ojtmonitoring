@@ -35,73 +35,25 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
     fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement, 
     updateRemarks,
-    fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements, deleteAnnouncement, fetchAdviser,
-    insertAnnouncement, updateInternRemarks, insertStudent, insertIntern, deployIntern} = require('./db');
+    fetchInternsByAdviser, fetchAllRequirements, fetchAdviser,
+    updateInternRemarks, insertStudent, insertIntern, deployIntern} = require('./db');
 
 const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
-
+const dashboardRoutes = require('./routes/dashboard');
 const journalRoutes = require('./routes/journals');
 const reportRoutes = require('./routes/reports');
 const requirementRoutes = require('./routes/requirements');
 
 app.use(adminRoutes);
 app.use(authRoutes);
+app.use(dashboardRoutes);
 app.use(journalRoutes);
 app.use(reportRoutes);
 app.use(requirementRoutes);
 
 
 //GET 
-
-app.get("/ojt-dashboard", requireAuth, async (req, res) => {
-    try {
-        const adviser = await fetchAdviser(req.session.adviserID);
-        const interns = await fetchInterns(req.session.adviserID);
-        let pendingcount = 0, total = interns.length, finished = 0;
-
-        // Prepare a map or object to hold the unassigned requirements for each intern
-
-
-        for (let i = 0; i < interns.length; i++) {
-            let intern = interns[i];
-            switch (intern.status) {
-                case 'ON GOING':
-                    pendingcount++;
-                    break;
-                case 'FINISHED':
-                    finished++;
-                    break;
-            }
-
-
-        }
-
-        let unassignedRequirementsMap = {};
-        const reports = {}; // Temporary still doing
-
-        if (adviser) {
-            const announcements = await fetchAnnouncements(adviser.adviserID)
-
-            res.render('ojt-dashboard/index', {
-                adviser,
-                interns,
-                announcements,
-                pendingcount,
-                finished,
-                reports,
-                total,
-                unassignedRequirementsMap
-            });
-        } else {
-            res.redirect('/ojt-login-page');
-        }
-
-    } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error")
-    }
-});
 
 app.get('/ojt-dashboard/enroll', requireAuth, async (req, res) => {
     try{
@@ -164,21 +116,6 @@ app.get('/ojt-pending/sort', requireAuth, async (req, res) => {
         res.json(pendingStudents);
     } catch (error) {
         console.error('Error:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
-    }
-});
-
-app.get("/ojt-about-us", requireAuth, async (req, res) => {
-    try {
-        const adviser = await fetchAdviser(req.session.adviserID);
-        if (adviser) {
-           
-            res.render('ojt-about-us/index', { adviser })
-        } else {
-            res.redirect('/ojt-login-page');
-        }
-    } catch (error) {
-        console.error('Error loading about-us page:', error.message);
         res.status(500).send('Warning: Internal Server Error');
     }
 });
@@ -268,35 +205,6 @@ app.post('/ojt-dashboard/deploy', requireAuth, async (req, res) => {
         res.status(500).send('Warning: Internal Server Error');
     }
 });
-
-app.post('/ojt-dashboard/postannouncement', requireAuth, async (req, res) => {
-    const sender = req.body['sender'];
-    const recipient = req.body.recipient;
-    const subject = req.body['subject-text'];
-    const description = req.body['description-text'];
-    console.log("Inserting announcement");
-
-    try {
-        await insertAnnouncement(sender, recipient, subject, description);
-        res.redirect('/ojt-dashboard');
-    } catch (error) {
-        console.error('Error inserting announcement: ', error.message);
-        res.status(500).send('Warning: Internal Server Error');
-    }
-});
-
-
-app.post('/ojt-dashboard/deleteannouncement', requireAuth, async (req, res) => {
-    const announcementid = req.body['announcementid'];
-
-    try {
-        await deleteAnnouncement(announcementid);
-        res.redirect('/ojt-dashboard');
-    } catch (error) {
-        console.error('Error deleting announcement: ', error.message);
-        res.status(500).send('Warning: Internal Server Error');
-    }
-})
 
 if (require.main === module) {
     app.listen(port, () => {

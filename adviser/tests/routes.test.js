@@ -49,6 +49,9 @@ describe('route smoke tests', () => {
         ['get', '/fetch-unassigned-requirements/1'],
         ['post', '/ojt-dashboard/postrequirement'],
         ['get', '/ojt-pending/requirements'],
+        ['post', '/ojt-dashboard/postannouncement'],
+        ['post', '/ojt-dashboard/deleteannouncement'],
+        ['get', '/ojt-about-us/'],
         ['get', '/logout'],
     ];
 
