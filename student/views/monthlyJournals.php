@@ -69,6 +69,9 @@
                         <?php if (!empty($journal['notes'])): ?>
                             <p style="margin:8px 0;"><?php echo nl2br(htmlspecialchars($journal['notes'])); ?></p>
                         <?php endif; ?>
+                        <?php if (!empty($journal['remark'])): ?>
+                            <p style="color:#8a6d0f;margin:8px 0;"><em>Adviser: <?php echo htmlspecialchars($journal['remark']); ?></em></p>
+                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
 
