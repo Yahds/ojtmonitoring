@@ -656,6 +656,10 @@ app.post('/ojt-dashboard/deleteannouncement', requireAuth, async (req, res) => {
     }
 })
 
-app.listen(port, () => {
-    console.log(`Server is running at port ${port}`);
-});
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Server is running at port ${port}`);
+    });
+}
+
+module.exports = app;
