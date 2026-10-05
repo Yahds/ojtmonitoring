@@ -26,6 +26,13 @@ describe('route smoke tests', () => {
         ['get', '/ojt-dashboard/weekly-reports-review/1'],
         ['post', '/ojt-dashboard/weekly-reports-review/1'],
         ['get', '/ojt-dashboard/weekly-report-file/1'],
+        ['get', '/ojt-dashboard/requirements-reports/someone'],
+        ['get', '/ojt-dashboard/requirements-review/1'],
+        ['post', '/ojt-dashboard/requirements-review/1'],
+        ['get', '/ojt-dashboard/requirement-file/1/1'],
+        ['get', '/fetch-unassigned-requirements/1'],
+        ['post', '/ojt-dashboard/postrequirement'],
+        ['get', '/ojt-pending/requirements'],
     ];
 
     test.each(protectedRoutes)('%s %s redirects to login when not authenticated', async (method, url) => {
