@@ -100,6 +100,21 @@ LOCK TABLES `supervisors` WRITE;
 INSERT INTO `supervisors` VALUES (110,'Doja Kat','kat@email.com','QA Lead',1),(120,'Nath Nyel','nyel@email.com','QA Lead',2),(130,'Cris P Bacon','cris@email.com','Lead Designer',3),(140,'Kev Vin','kev@email.com','UI/UX Lead',4),(150,'Vince Karl','karl@email.com','Frontend Manager',5);
 /*!40000 ALTER TABLE `supervisors` ENABLE KEYS */;
 UNLOCK TABLES;
+
+-- Dumping data for table `students` 
+-- Both belong to adviser 1 (amelia)
+INSERT INTO `students` (`studentID`, `studentName`, `course`, `year`, `classcode`) VALUES
+  (2299001, 'Maria Santos', 'BSCS', '4', 'CS401'),
+  (2299002, 'Jose Ramos', 'BSIT', '4', 'IT401');
+
+INSERT INTO `interns` (`internid`, `password`, `adviserid`, `studentid`, `companyid`, `supervisorid`, `totalhours`, `worktype`, `image`, `status`) VALUES
+  (300, '$2y$12$dKxPcsLr4iIp0jh9OWJowu41bWbW2gTEXG4Khz7aJTPSor7wYuCFy', 1, 2299001, 2, NULL, NULL, 'WFH', NULL, 'PENDING'),
+  (301, '$2y$12$dKxPcsLr4iIp0jh9OWJowu41bWbW2gTEXG4Khz7aJTPSor7wYuCFy', 1, 2299002, 3, NULL, NULL, 'ON_SITE', NULL, 'PENDING');
+
+INSERT INTO `internrequirements` (`internid`, `reqid`, `datesubmitted`, `status`, `remarks`, `intern_remarks`, `file_path`) VALUES
+  (300, 4, '2026-10-01', 'APPROVED', NULL, NULL, NULL),
+  (301, 4, '2026-10-01', 'PENDING', NULL, NULL, NULL);
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
