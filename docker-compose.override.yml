@@ -1,0 +1,5 @@
+services:
+  adviser-node:
+    volumes:
+      - ./adviser:/app
+      - /app/node_modules
