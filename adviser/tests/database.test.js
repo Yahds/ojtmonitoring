@@ -1,4 +1,4 @@
-const { fetchInternsByAdviser, closeDatabase } = require('../database.js');
+const { fetchInternsByAdviser, closeDatabase } = require('../db');
 
 afterAll(async () => {
   await closeDatabase();

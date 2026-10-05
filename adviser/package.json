@@ -15,8 +15,7 @@
   },
   "scripts": {
     "test": "jest --runInBand",
-    "lint": "eslint .",
-    "hash-passwords": "node scripts/hash-passwords.js"
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",

@@ -49,6 +49,7 @@ jobs:
       MYSQL_USER: ojt_app
       MYSQL_PASSWORD: ojt_app_ci
       MYSQL_DATABASE: ojt
+      SESSION_SECRET: ci-test-secret
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

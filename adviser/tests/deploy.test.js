@@ -1,5 +1,5 @@
 const mysql = require('mysql2/promise');
-const { deployIntern, closeDatabase } = require('../database.js');
+const { deployIntern, closeDatabase } = require('../db');
 
 let db;
 const INTERN = 300;   
