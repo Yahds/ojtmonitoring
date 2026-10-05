@@ -17,4 +17,17 @@ describe('route smoke tests', () => {
         expect(res.status).toBe(302);
         expect(res.headers.location).toBe('/ojt-login-page');
     });
+
+    // every protected route sends logged-out user to login page
+    const protectedRoutes = [
+        ['get', '/ojt-dashboard/journals-review/1'],
+        ['post', '/ojt-dashboard/journals-review/1'],
+        ['get', '/ojt-dashboard/journal-file/1'],
+    ];
+
+    test.each(protectedRoutes)('%s %s redirects to login when not authenticated', async (method, url) => {
+        const res = await request(app)[method](url);
+        expect(res.status).toBe(302);
+        expect(res.headers.location).toBe('/ojt-login-page');
+    });
 });

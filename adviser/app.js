@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { requireAuth, requireRole } = require('./middleware/auth');
 
 const express = require('express');
 const session = require('express-session');
@@ -21,26 +22,6 @@ app.use(session({
     }   // Set true if using HTTPS, false otherwise
 }));
 
-// to block requests that are not logged in
-function requireAuth(req, res, next) {
-    if (req.session.isLoggedIn) {
-        return next();
-    }
-    return res.redirect('/ojt-login-page');
-}
-
-function requireRole(role){
-    return function(req, res, next){
-        if (!req.session.isLoggedIn){
-            return res.redirect('/ojt-login-page');
-        }
-        if (req.session.role !== role) {
-            return res.status(403).send('Forbidden (403): you do not have access to this page.');
-        }
-        return next();
-    }
-}
-
 app.use('/ojt-images', express.static(path.join(__dirname, 'ojt-images')));
 app.use('/ojt-about-us', express.static(path.join(__dirname, 'ojt-monitoring-files', 'ojt-about-us')))
 app.use('/ojt-login-page', express.static(path.join(__dirname, 'ojt-monitoring-files', 'ojt-login-page')));
@@ -56,8 +37,10 @@ const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsB
     fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsForReview, updateRemarks, 
     fetchWeeklyReportsForReview, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser, authenticateAdviser, 
     fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements, deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, 
-    insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks, insertStudent, insertIntern, fetchRequirementFile, deployIntern,
-    fetchJournalsForReview, updateJournalReview, fetchJournalFileForAdviser} = require('./db');
+    insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks, insertStudent, insertIntern, fetchRequirementFile, deployIntern} = require('./db');
+
+const journalRoutes = require('./routes/journals');
+app.use(journalRoutes);
 
 //GET 
 // // run node app.js then access http://localhost:8080/ojt-login-page/
@@ -201,47 +184,6 @@ app.get("/ojt-dashboard/weekly-report-file/:reportId", requireAuth, async (req, 
         res.status(500).send("Warning: Internal Server Error");
     }
 });
-
-app.get("/ojt-dashboard/journals-review/:internId", requireAuth, async (req, res) => {
-    try {
-        const internId = req.params.internId;
-        const journals = await fetchJournalsForReview(internId, req.session.adviserID);
-        journals.forEach(journal => {
-            if (journal.datesubmitted) journal.datesubmitted = new Date(journal.datesubmitted).toDateString();
-        });
-        res.render('ojt-dashboard/views/review-journals', { journals, internId });
-    } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
-    }
-});
-
-app.post("/ojt-dashboard/journals-review/:internId", requireAuth, async (req, res) => {
-    try {
-        const internId = req.params.internId;
-        const { journalid, decision, remark } = req.body;
-        if (decision !== 'APPROVED' && decision !== 'REJECTED') return res.status(400).send("Invalid decision");
-        await updateJournalReview(journalid, req.session.adviserID, decision, remark);
-        res.redirect(`/ojt-dashboard/journals-review/${internId}`);
-    } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
-    }
-});
-
-app.get("/ojt-dashboard/journal-file/:journalId", requireAuth, async (req, res) => {
-    try {
-        const journalId = req.params.journalId;
-        const filePath = await fetchJournalFileForAdviser(journalId, req.session.adviserID);
-        if (!filePath) return res.status(404).send("File not found");
-        const safePath = path.join('/var/www/uploads', path.basename(filePath));
-        res.sendFile(safePath, (err) => { if (err) { console.error('Error sending file:', err.message); if (!res.headersSent) res.status(404).send("File not found"); } });
-    } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
-    }
-});
-
 
 app.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async (req, res) => {
     try {
