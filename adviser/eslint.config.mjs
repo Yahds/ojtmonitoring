@@ -3,8 +3,10 @@ import globals from "globals";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
+  // will fix when fixing ui
+  { ignores: ["ojt-monitoring-files/**"] },
   {
-    files: ["app.js", "database.js"],
+    files: ["**/*.js"],
     plugins: { js },
     extends: ["js/recommended"],
     languageOptions: {
@@ -14,5 +16,9 @@ export default defineConfig([
     rules: {
       "no-unused-vars": "warn",
     },
+  },
+  {
+    files: ["tests/**/*.js"],
+    languageOptions: { globals: { ...globals.node, ...globals.jest } },
   },
 ]);
