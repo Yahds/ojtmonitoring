@@ -34,13 +34,15 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 // Import functions from database.js
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
     fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement, updateRequirementReview,
-    fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsForReview, updateRemarks, 
-    fetchWeeklyReportsForReview, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser, authenticateAdviser, 
+    fetchUnassignedRequirements, insertNewRequirement, fetchRequirementsByStudentId, fetchRequirementsForReview, updateRemarks, authenticateAdviser, 
     fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements, deleteAnnouncement, fetchAdviser, fetchAdvisersByDepartment, 
     insertAdviser, insertAnnouncement, fetchInternId, updateInternRemarks, insertStudent, insertIntern, fetchRequirementFile, deployIntern} = require('./db');
 
 const journalRoutes = require('./routes/journals');
+const reportRoutes = require('./routes/reports');
 app.use(journalRoutes);
+app.use(reportRoutes);
+
 
 //GET 
 // // run node app.js then access http://localhost:8080/ojt-login-page/
@@ -142,46 +144,6 @@ app.get("/ojt-admin/advisers", requireRole('dept_head'), async (req, res) => {
     } catch (error) {
         console.error('Error: ', error.message);
         res.status(500).send('Warning: Internal Server Error')
-    }
-});
-
-app.get("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res) => {
-    try {
-        const internId = req.params.internId;
-        const weeklyReports = await fetchWeeklyReportsForReview(internId, req.session.adviserID);
-        weeklyReports.forEach(report => {
-            if (report.datesubmitted) report.datesubmitted = new Date(report.datesubmitted).toDateString();
-        });
-        res.render('ojt-dashboard/views/weekly-reports-review', { weeklyReports, internId });
-    } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
-    }
-});
-
-app.post("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res) => {
-    try {
-        const internId = req.params.internId;
-        const { reportid, decision, remark } = req.body;
-        if (decision !== 'APPROVED' && decision !== 'REJECTED') return res.status(400).send("Invalid decision");
-        await updateWeeklyReportReview(reportid, req.session.adviserID, decision, remark);
-        res.redirect(`/ojt-dashboard/weekly-reports-review/${internId}`);
-    } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
-    }
-});
-
-app.get("/ojt-dashboard/weekly-report-file/:reportId", requireAuth, async (req, res) => {
-    try {
-        const reportId = req.params.reportId;
-        const filePath = await fetchWeeklyReportFileForAdviser(reportId, req.session.adviserID);
-        if (!filePath) return res.status(404).send("File not found");
-        const safePath = path.join('/var/www/uploads', path.basename(filePath));
-        res.sendFile(safePath, (err) => { if (err) { console.error('Error sending file:', err.message); if (!res.headersSent) res.status(404).send("File not found"); } });
-    } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
     }
 });
 

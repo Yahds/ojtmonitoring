@@ -23,6 +23,9 @@ describe('route smoke tests', () => {
         ['get', '/ojt-dashboard/journals-review/1'],
         ['post', '/ojt-dashboard/journals-review/1'],
         ['get', '/ojt-dashboard/journal-file/1'],
+        ['get', '/ojt-dashboard/weekly-reports-review/1'],
+        ['post', '/ojt-dashboard/weekly-reports-review/1'],
+        ['get', '/ojt-dashboard/weekly-report-file/1'],
     ];
 
     test.each(protectedRoutes)('%s %s redirects to login when not authenticated', async (method, url) => {
