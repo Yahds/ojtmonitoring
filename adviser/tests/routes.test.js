@@ -18,6 +18,19 @@ describe('route smoke tests', () => {
         expect(res.headers.location).toBe('/ojt-login-page');
     });
 
+    test('GET / serves the login page (public)', async () => {
+        const res = await request(app).get('/');
+        expect(res.status).toBe(200);
+    });
+
+    test('POST /ojt-login-page with wrong credentials is rejected', async () => {
+        const res = await request(app)
+            .post('/ojt-login-page')
+            .type('form')
+            .send({ adviserEmail: 'nobody@example.com', password: 'wrong' });
+        expect(res.status).toBe(401);
+    });
+
     // every protected route sends logged-out user to login page
     const protectedRoutes = [
         ['get', '/ojt-admin'],
@@ -36,6 +49,7 @@ describe('route smoke tests', () => {
         ['get', '/fetch-unassigned-requirements/1'],
         ['post', '/ojt-dashboard/postrequirement'],
         ['get', '/ojt-pending/requirements'],
+        ['get', '/logout'],
     ];
 
     test.each(protectedRoutes)('%s %s redirects to login when not authenticated', async (method, url) => {

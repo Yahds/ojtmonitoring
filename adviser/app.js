@@ -34,53 +34,25 @@ app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 // Import functions from database.js
 const { fetchStudent, fetchStudents, fetchPendingStudents, fetchPendingStudentsByName, fetchPendingStudentsByClassCode, fetchPendingStudentsByAddress,
     fetchPendingStudentsByCompany, fetchPendingStudentsByWorkType, updateStatus, insertInternRequirement, 
-    updateRemarks, authenticateAdviser, 
+    updateRemarks,
     fetchInterns, fetchInternsByAdviser, fetchAnnouncements, fetchAllRequirements, deleteAnnouncement, fetchAdviser,
     insertAnnouncement, updateInternRemarks, insertStudent, insertIntern, deployIntern} = require('./db');
 
 const adminRoutes = require('./routes/admin');
+const authRoutes = require('./routes/auth');
+
 const journalRoutes = require('./routes/journals');
 const reportRoutes = require('./routes/reports');
 const requirementRoutes = require('./routes/requirements');
 
 app.use(adminRoutes);
+app.use(authRoutes);
 app.use(journalRoutes);
 app.use(reportRoutes);
 app.use(requirementRoutes);
 
 
 //GET 
-// // run node app.js then access http://localhost:8080/ojt-login-page/
-app.get("/", async (req, res) => {
-    try {
-        if (req.session.isLoggedIn) {
-
-            res.redirect('/ojt-dashboard');
-        }
-
-        const students = await fetchStudents();
-        res.render('ojt-login-page/', { students })
-    } catch (error) {
-        console.error('Error:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
-    }
-});
-
-// // run node app.js then access http://localhost:8080/ojt-login-page/
-app.get("/ojt-login-page", async (req, res) => {
-    try {
-        if (req.session.isLoggedIn) {
-
-            res.redirect('/ojt-dashboard');
-        }
-
-        const students = await fetchStudents();
-        res.render('ojt-login-page/index', { students })
-    } catch (error) {
-        console.error('Error:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
-    }
-});
 
 app.get("/ojt-dashboard", requireAuth, async (req, res) => {
     try {
@@ -211,19 +183,6 @@ app.get("/ojt-about-us", requireAuth, async (req, res) => {
     }
 });
 
-
-app.get('/logout', requireAuth, (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            console.log("A problem occured while logging out: " + err.message)
-        }
-        console.log("pakilog out")
-        res.redirect('/ojt-login-page');
-    });
-});
-
-
-
 //POST REQUESTS
 
 // updates the remarks
@@ -273,30 +232,6 @@ app.post('/update-status', requireAuth, async (req, res) => {
       res.status(500).send('Warning: Internal Server Error');
     }
     });
-
-// handling of the post requst (authenticating advisor in login)
-app.post("/ojt-login-page", async (req, res) => {
-    const { adviserEmail, password } = req.body;
-
-    try {
-        const adviser = await authenticateAdviser(adviserEmail, password);
-        if (adviser) {
-            req.session.adviserID = adviser.adviserID;
-            req.session.isLoggedIn = true;
-            req.session.role = adviser.role;
-            if (adviser.role === 'dept_head'){
-                res.redirect('/ojt-admin');
-            } else {
-                res.redirect('/ojt-dashboard');
-            }
-        } else {
-            res.status(401).send('false'); // Send back a simple 'false' string
-        }
-    } catch (error) {
-        console.error('Error authenticating adviser:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
-    }
-});
 
 app.post('/ojt-dashboard/enroll', requireAuth, async (req, res) => {
     const studentID = req.body['studentID'];
