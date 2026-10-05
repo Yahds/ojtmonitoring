@@ -664,35 +664,6 @@ async function fetchJournalFileForAdviser(journalID, adviserID) {
 }
 
 
-async function hashAdviserPasswords() {
-    try {
-
-        const [rows] = await pool.query("SELECT adviserID, password FROM advisers");
-        console.log('\nSERVER: Checking all paswords if hashed..');
-        for (const adviser of rows) {
-            const plaintextPasswordFromDatabase = adviser.password;
-
-            // check if pass is hashed
-            if (plaintextPasswordFromDatabase.startsWith("$2")) {
-                console.log(`Skipping adviser with ID ${adviser.adviserID}: Password is already hashed.`);
-                continue; //repeat the for loop
-            }
-
-            //hash the password
-            const hashedPassword = await bcrypt.hash(plaintextPasswordFromDatabase, 10);
-
-            // Update the hashed password in the database
-            await pool.query("UPDATE advisers SET password = ? WHERE adviserID = ?", [hashedPassword, adviser.adviserID]);
-            console.log(`Password for adviser ${adviser.adviserID} has been hashed.`);
-        }
-
-        console.log('\nSERVER: Password checking finished');
-    } catch (error) {
-        console.error('Error hashing adviser passwords:', error.message);
-        throw error;
-    }
-}
-
 async function closeDatabase() {
     await pool.end();
 }
@@ -716,7 +687,6 @@ module.exports = {
     updateRemarks,
     updateStatus,
     authenticateAdviser,
-    hashAdviserPasswords,
     deployIntern,
     fetchInterns,
     fetchInternsByAdviser,
@@ -740,5 +710,4 @@ module.exports = {
     updateJournalReview,
     updateInternRemarks,
     closeDatabase,
-
 };
