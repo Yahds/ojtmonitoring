@@ -1,16 +1,6 @@
 const { pool, closeDatabase } = require('./db/pool');
+const students = require('./db/students');
 const bcrypt = require('bcrypt'); // bcrypt library for password hashing
-
-// fetches all details of students from student table
-async function fetchStudents() {
-    try {
-        const [rows] = await pool.query("SELECT * FROM students");
-        return rows;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
 
 //  fetches all details of pending students from interns table
 async function fetchPendingStudents(adviserID) {
@@ -237,16 +227,6 @@ async function fetchRequirementFile(internID, reqID, adviserID) {
 // WHERE
 //     interns.status = 'PENDING';
 
-async function fetchStudent(studentID) {
-    try {
-        const [rows] = await pool.query("SELECT * FROM students WHERE studentID = ?", [studentID]);
-        return rows[0];
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
 async function updateRequirementReview(internID, reqID, adviserID, decision, remarks) {
     try {
         const [result] = await pool.query(
@@ -407,19 +387,6 @@ async function insertAdviser(name, email, password, departmentid){
         return result.insertId;
     } catch (error) {
         console.error('Error executing query', error.message);
-        throw error;
-    }
-}
-
-async function insertStudent(studentID, name, course, year, classcode) {
-    try {
-        await pool.query(
-            "INSERT INTO students (studentID, studentName, course, year, classcode) VALUES (?, ?, ?, ?, ?)",
-            [studentID, name, course, year, classcode]
-        );
-        return studentID;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
         throw error;
     }
 }
@@ -651,8 +618,7 @@ async function fetchJournalFileForAdviser(journalID, adviserID) {
 
 
 module.exports = {
-    fetchStudents,
-    fetchStudent,
+    ...students,
     fetchPendingStudents,
     fetchPendingStudentsByName,
     fetchPendingStudentsByClassCode,
@@ -675,7 +641,6 @@ module.exports = {
     fetchAdviser,
     fetchAdvisersByDepartment,
     insertAdviser,
-    insertStudent,
     insertIntern,
     insertAnnouncement,
     insertNewRequirement,
