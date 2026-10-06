@@ -1,3 +1,8 @@
 .git
 Dockerfile
 .dockerignore
+vendor
+tests
+composer.json
+composer.lock
+phpunit.xml
