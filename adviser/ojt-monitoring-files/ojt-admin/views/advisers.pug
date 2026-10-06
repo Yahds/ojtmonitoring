@@ -34,6 +34,7 @@ main
         td(colspan='2') No advisers yet.
   h2 Add an adviser
   form.add(action='/ojt-admin/advisers' method='POST')
+    input(type='hidden' name='csrf_token' value=csrfToken)
     input(type='text' name='name' placeholder='Name (e.g. Cruz, Maria)' required)
     input(type='email' name='email' placeholder='Email' required)
     input(type='password' name='password' placeholder='Temporary password' required)

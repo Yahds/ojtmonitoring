@@ -88,4 +88,10 @@ describe('route smoke tests', () => {
         const res = await request(app).get(url);
         expect(res.status).toBe(404);
     });
+
+    test('the login page form includes a CSRF token', async () => {
+        const res = await request(app).get('/ojt-login-page/');
+        expect(res.text).toMatch(/name="csrf_token" value="[0-9a-f]{64}"/);
+    });
+
 });

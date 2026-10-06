@@ -40,6 +40,7 @@ main
           | Supervisor-signed file:&nbsp;
           a(href=`/ojt-dashboard/weekly-report-file/${report.reportid}`) view
       form.review-form(action=`/ojt-dashboard/weekly-reports-review/${internId}` method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
         input(type='hidden' name='reportid' value=report.reportid)
         label Adviser remark
         textarea(name='remark' rows='2')= report.remark

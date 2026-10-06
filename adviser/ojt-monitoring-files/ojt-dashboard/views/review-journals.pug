@@ -40,6 +40,7 @@ main
           | Journal file:&nbsp;
           a(href=`/ojt-dashboard/journal-file/${journal.journalid}`) view
       form.review-form(action=`/ojt-dashboard/journals-review/${internId}` method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
         input(type='hidden' name='journalid' value=journal.journalid)
         label Adviser remark
         textarea(name='remark' rows='2')= journal.remark

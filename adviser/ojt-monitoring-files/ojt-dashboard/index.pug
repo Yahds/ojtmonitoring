@@ -192,6 +192,7 @@ main.container
 
               
               form(action="/ojt-dashboard/deleteannouncement"  id="confirmation-form" method='POST') 
+                input(type='hidden' name='csrf_token' value=csrfToken)
                 #popUpConfirmation.modalConfirmation(action='submit')
                   .content
                     a.close(href='#main') &Cross;
@@ -212,6 +213,7 @@ main.container
         button.create-post-button(type='button')
           a(href='#announcement-pop-up') CREATE POST
 form(action='/ojt-dashboard/postannouncement' id="recipient-form" method='POST')
+  input(type='hidden' name='csrf_token' value=csrfToken)
   #announcement-pop-up.modal(action='submit')
     .content
       a.close(href='#main') &Cross;
@@ -269,6 +271,7 @@ form(action='/ojt-dashboard/postannouncement' id="recipient-form" method='POST')
 
 
 form(action='/ojt-dashboard/postrequirement' id="requirement-form" method='POST')
+  input(type='hidden' name='csrf_token' value=csrfToken)
   #requirement-pop-up.modal
     .content
       a.close(href='#main') &Cross;
@@ -854,7 +857,7 @@ script.
           $.ajax({
               type: 'POST',
               url: '/update-intern-remarks',
-              data: { internId: internId, remarks: updatedRemarks },
+              data: { internId: internId, remarks: updatedRemarks, csrf_token: document.querySelector('input[name="csrf_token"]').value },
               success: function(response) {
                   remarksChanged = false;
                   console.log(response.message);

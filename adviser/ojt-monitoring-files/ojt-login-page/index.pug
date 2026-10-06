@@ -13,6 +13,7 @@ link(rel="stylesheet" type="text/css" href="/ojt-login-page/styles.css")
     .slu-logo-box
       img.slu-logo(src="/ojt-images/slu-logo.png")
     form.login-fields-box#loginForm(method="POST")
+      input(type='hidden' name='csrf_token' value=csrfToken)
       label(for="email") Email Address
       input#email(type="text", name="adviserEmail")
       label(for="password") Password
@@ -45,7 +46,7 @@ script.
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `adviserEmail=${encodeURIComponent(emailInput.value)}&password=${encodeURIComponent(passwordInput.value)}`
+        body: `adviserEmail=${encodeURIComponent(emailInput.value)}&password=${encodeURIComponent(passwordInput.value)}&csrf_token=${encodeURIComponent(loginForm.elements.csrf_token.value)}`
       })
       .then(response => {
         if (response.ok) {
