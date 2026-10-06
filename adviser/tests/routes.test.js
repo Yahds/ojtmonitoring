@@ -63,4 +63,29 @@ describe('route smoke tests', () => {
         expect(res.status).toBe(302);
         expect(res.headers.location).toBe('/ojt-login-page');
     });
+
+    // static folders should serve stylesheets and images only
+    test.each([
+        '/ojt-login-page/styles.css',
+        '/ojt-dashboard/styles.css',
+        '/ojt-images/slu-logo.png',
+        '/ojt-about-us/images/a.png',
+    ])('serves the asset %s', async (url) => {
+        const res = await request(app).get(url);
+        expect(res.status).toBe(200);
+    });
+
+    test.each([
+        '/ojt-dashboard/index.pug',
+        '/ojt-dashboard/views/interns.pug',
+        '/ojt-login-page/index.pug',
+        '/ojt-about-us/index.pug',
+        '/ojt-login-page/hash.js',
+        '/ojt-dashboard/upload.js',
+        '/ojt-dashboard/postannouncement.js',
+        '/ojt-about-us/about-us.html',
+    ])('does not serve the file %s', async (url) => {
+        const res = await request(app).get(url);
+        expect(res.status).toBe(404);
+    });
 });
