@@ -11,16 +11,6 @@ async function fetchStudents() {
     }
 }
 
-async function fetchStudent(studentID) {
-    try {
-        const [rows] = await pool.query("SELECT * FROM students WHERE studentID = ?", [studentID]);
-        return rows[0];
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
 async function insertStudent(studentID, name, course, year, classcode) {
     try {
         await pool.query(
@@ -34,4 +24,4 @@ async function insertStudent(studentID, name, course, year, classcode) {
     }
 }
 
-module.exports = { fetchStudents, fetchStudent, insertStudent };
+module.exports = { fetchStudents, insertStudent };

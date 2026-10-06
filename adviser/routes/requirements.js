@@ -1,8 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { fetchInternId, fetchRequirementsForReview, updateRequirementReview, fetchRequirementFile,
-    fetchUnassignedRequirements, insertNewRequirement, insertInternRequirement,
-    fetchRequirementsByStudentId } = require('../db');
+    fetchUnassignedRequirements, insertNewRequirement, insertInternRequirement } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -155,18 +154,6 @@ router.post('/ojt-dashboard/postrequirement', requireAuth, async (req, res) => {
         res.redirect('/ojt-dashboard');
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).send('Warning: Internal Server Error');
-    }
-});
-
-router.get('/ojt-pending/requirements', requireAuth, async (req, res) => {
-    const studentId = req.query.studentId;
-
-    try {
-        const requirements = await fetchRequirementsByStudentId(studentId);
-        res.json(requirements);
-    } catch (error) {
-        console.error('Error fetching requirements:', error.message);
         res.status(500).send('Warning: Internal Server Error');
     }
 });
