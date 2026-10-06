@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.2.34-apache
 RUN docker-php-ext-install mysqli
 COPY php.ini /usr/local/etc/php/conf.d/zz-app.ini
 COPY . /var/www/html/
