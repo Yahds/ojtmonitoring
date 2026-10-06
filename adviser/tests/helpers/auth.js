@@ -26,4 +26,5 @@ async function loginAs(app, email) {
     return agent;
 }
 
-module.exports = { createTestAdviser, deleteTestAdviser, loginAs };
+module.exports = { TEST_PASSWORD, createTestAdviser, deleteTestAdviser, loginAs };
+

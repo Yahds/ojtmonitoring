@@ -51,14 +51,19 @@ router.post("/ojt-login-page", async (req, res) => {
     try {
         const adviser = await authenticateAdviser(adviserEmail, password);
         if (adviser) {
-            req.session.adviserID = adviser.adviserID;
-            req.session.isLoggedIn = true;
-            req.session.role = adviser.role;
-            if (adviser.role === 'dept_head'){
-                res.redirect('/ojt-admin');
-            } else {
-                res.redirect('/ojt-dashboard');
-            }
+            req.session.regenerate((err) => {
+                if (err) {
+                    console.error('Error starting a new session:', err.message);
+                    return res.status(500).send('Warning: Internal Server Error');
+                }
+                req.session.adviserID = adviser.adviserID;
+                req.session.isLoggedIn = true;
+                req.session.role = adviser.role;
+                if (adviser.role === 'dept_head') {
+                    return res.redirect('/ojt-admin');
+                }
+                return res.redirect('/ojt-dashboard');
+            });
         } else {
             res.status(401).send('false'); // Send back a simple 'false' string
         }
