@@ -1,6 +1,6 @@
 const express = require('express');
 const { insertInternRequirement, fetchInternsByAdviser, fetchAllRequirements, fetchAdviser,
-    updateInternRemarks, insertStudent, insertIntern, deployIntern } = require('../db');
+    updateInternRemarks, insertStudent, insertIntern, deployIntern, isAdvisersIntern } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -30,6 +30,9 @@ router.post('/update-intern-remarks', requireAuth, async (req, res) => {
     console.log('Received Update Intern Remarks Request - Intern ID:', internId, 'Remarks:', remarks);
 
     try {
+        if (!(await isAdvisersIntern(internId, req.session.adviserID))) {
+            return res.status(404).json({ message: 'Intern not found' });
+        }
         await updateInternRemarks(internId, remarks);
         res.json({ message: 'Remarks updated successfully' });
     } catch (error) {

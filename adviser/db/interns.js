@@ -71,14 +71,14 @@ async function fetchInternsByAdviser(adviserid){
     }
 }
 
-async function fetchInternId(name) {
+async function fetchInternId(name, adviserID) {
     try {
         const [rows] = await pool.query(`
             SELECT interns.internid
             FROM interns
             JOIN students ON interns.studentid = students.studentID
-            WHERE students.studentName = ?
-        `, [name]);
+            WHERE students.studentName = ? AND interns.adviserid = ?
+        `, [name, adviserID]);
 
         return rows;
     } catch (error) {
@@ -87,6 +87,14 @@ async function fetchInternId(name) {
     }
 }
 
+// to just check if intern belongs to adviser
+async function isAdvisersIntern(internId, adviserID) {
+    const [rows] = await pool.query(
+        'SELECT 1 FROM interns WHERE internid = ? AND adviserid = ?',
+        [internId, adviserID]
+    );
+    return rows.length === 1;
+}
 
 module.exports = {
     deployIntern,
@@ -95,4 +103,5 @@ module.exports = {
     fetchInterns,
     fetchInternsByAdviser,
     fetchInternId,
+    isAdvisersIntern
 };

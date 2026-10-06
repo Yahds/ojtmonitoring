@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { fetchInternId, fetchRequirementsForReview, updateRequirementReview, fetchRequirementFile,
-    fetchUnassignedRequirements, insertNewRequirement, insertInternRequirement } = require('../db');
+    fetchUnassignedRequirements, insertNewRequirement, insertInternRequirement, isAdvisersIntern } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -12,7 +12,7 @@ router.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async
         console.log('Fetching reports for intern:', internName);
 
         // Fetch the intern ID
-        const internIdResult = await fetchInternId(internName);
+        const internIdResult = await fetchInternId(internName, req.session.adviserID);
         const internId = internIdResult[0]?.internid;
         if (!internId) {
             console.log('No intern found for name:', internName);
@@ -109,19 +109,14 @@ router.get("/ojt-dashboard/requirement-file/:internId/:reqid", requireAuth, asyn
     }
 });
 
-router.get("/fetch-unassigned-requirements/:internId", requireAuth, async (req, res) => {
+router.get("/fetch-unassigned-requirements/:internName", requireAuth, async (req, res) => {
     try {
-        const internId = req.params.internId;
-        console.log('Fetching unassigned requirements for intern ID: ' + internId);
-        const internIdResult = await fetchInternId(internId);
-        console.log('Intern ID result: ' + JSON.stringify(internIdResult));
+        const internIdResult = await fetchInternId(req.params.internName, req.session.adviserID);
+        if (internIdResult.length === 0) {
+            return res.status(404).json({ message: 'Intern not found' });
+        }
 
-        // Assuming internIdResult is an object and the actual ID is a property of this object
-        const actualInternId = internIdResult[0].internid;
-        console.log('this is beign sent' + actualInternId)
-
-        const unassignedRequirements = await fetchUnassignedRequirements(actualInternId);
-        console.log('Unassigned requirements from server: ', unassignedRequirements);
+        const unassignedRequirements = await fetchUnassignedRequirements(internIdResult[0].internid);
         res.json(unassignedRequirements);
     } catch (error) {
         console.error('Error:', error);
@@ -137,6 +132,9 @@ router.post('/ojt-dashboard/postrequirement', requireAuth, async (req, res) => {
     const internId = req.body['intern-id'];
 
     try {
+        if (!(await isAdvisersIntern(internId, req.session.adviserID))) {
+            return res.status(404).send('Intern not found');
+        }
         let requirementId;
 
         if (newRequirementName) {
