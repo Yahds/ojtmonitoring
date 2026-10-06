@@ -21,15 +21,28 @@ app.use(session({
     }   // Set true if using HTTPS, false otherwise
 }));
 
-app.use('/ojt-images', express.static(path.join(__dirname, 'ojt-images')));
-app.use('/ojt-about-us', express.static(path.join(__dirname, 'ojt-monitoring-files', 'ojt-about-us')))
-app.use('/ojt-login-page', express.static(path.join(__dirname, 'ojt-monitoring-files', 'ojt-login-page')));
-app.use('/ojt-pending', express.static(path.join(__dirname, 'ojt-monitoring-files', 'ojt-pending')));
-app.use('/ojt-dashboard', express.static(path.join(__dirname, 'ojt-monitoring-files', 'ojt-dashboard')))
+// this is so static folders only serve stylesheets and images, not page templates or code
+const PUBLIC_FILE = /\.(css|png|jpe?g)$/i;
+
+function publicFiles(folder) {
+    const serveFolder = express.static(folder);
+    return (req, res, next) => {
+        if (PUBLIC_FILE.test(req.path)) {
+            return serveFolder(req, res, next);
+        }
+        return next();
+    };
+}
+
+app.use('/ojt-images', publicFiles(path.join(__dirname, 'ojt-images')));
+app.use('/ojt-about-us', publicFiles(path.join(__dirname, 'ojt-monitoring-files', 'ojt-about-us')));
+app.use('/ojt-login-page', publicFiles(path.join(__dirname, 'ojt-monitoring-files', 'ojt-login-page')));
+app.use('/ojt-dashboard', publicFiles(path.join(__dirname, 'ojt-monitoring-files', 'ojt-dashboard')));
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 
+const { provideCsrfToken, verifyCsrf } = require('./middleware/csrf');
 const adminRoutes = require('./routes/admin');
 const internRoutes = require('./routes/interns');
 const authRoutes = require('./routes/auth');
@@ -38,6 +51,8 @@ const journalRoutes = require('./routes/journals');
 const reportRoutes = require('./routes/reports');
 const requirementRoutes = require('./routes/requirements');
 
+app.use(provideCsrfToken);
+app.use(verifyCsrf);
 app.use(adminRoutes);
 app.use(internRoutes);
 app.use(authRoutes);

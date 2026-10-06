@@ -21,6 +21,7 @@ main
   
   h1 Enroll Intern
   form.enroll(action='/ojt-dashboard/enroll' method='POST')
+    input(type='hidden' name='csrf_token' value=csrfToken)
     label Student ID (SLU number)
     input(type='text' name='studentID' required)
     label Full name
@@ -59,6 +60,7 @@ main
         td
           if i.status === 'PENDING'
             form(action='/ojt-dashboard/deploy' method='POST')
+              input(type='hidden' name='csrf_token' value=csrfToken)
               input(type='hidden' name='internID' value=i.internid)
               button(type='submit') Deploy
     if interns.length === 0

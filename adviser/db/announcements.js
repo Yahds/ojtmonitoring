@@ -15,7 +15,10 @@ async function insertAnnouncement(sender, recipient, subject, announcement) {
             for (let i = 0; i < recipient.length; i++) {
                 if (recipient[i] == 0)
                     continue;
-                const [rs] = await pool.query("select internid from interns i inner join students s on i.studentid = s.studentID where s.studentName = ?", [recipient[i]]);
+                // only find adviser/sender's own interns
+                const [rs] = await pool.query("select internid from interns i inner join students s on i.studentid = s.studentID where s.studentName = ? and i.adviserid = ?", [recipient[i], sender]);
+                if (rs.length === 0)
+                    continue;
                 await pool.query("INSERT INTO announcements(date, senderid, recipientid, subject, message) values (?,?,?,?,?)", [date, sender, rs[0].internid, subject, announcement]);
             }
         }
@@ -46,14 +49,19 @@ async function fetchAnnouncements(senderid) {
     }
 }
 
-async function deleteAnnouncement(announcementid) {
+async function deleteAnnouncement(announcementid, senderid) {
     try {
-        await pool.query('DELETE from announcements where announcementid = ?', [announcementid]);
+        const [result] = await pool.query(
+            'DELETE FROM announcements WHERE announcementid = ? AND senderid = ?',
+            [announcementid, senderid]
+        );
+        return result.affectedRows;
     } catch (error) {
         console.error('Error executing query:', error.message);
         throw error;
     }
 }
+
 
 module.exports = {
     insertAnnouncement,

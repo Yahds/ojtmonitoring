@@ -1,110 +1,6 @@
 const { pool } = require('./pool');
 const bcrypt = require('bcrypt');
 
-// -- functions for pending students (interns awaiting deployment)
-
-//  fetches all details of pending students from interns table
-async function fetchPendingStudents(adviserID) {
-    try {
-        const [rows] = await pool.query(`
-        SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress, i.worktype
-        FROM interns i
-            JOIN students s ON i.studentid = s.studentid
-            LEFT JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
-        `, [adviserID]);
-        return rows;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
-async function fetchPendingStudentsByName(adviserID) {
-    try {
-        const [rows] = await pool.query(`
-            SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress
-            FROM interns i
-            JOIN students s ON i.studentid = s.studentid
-            LEFT JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
-            ORDER BY s.studentName;
-        `, [adviserID]);
-        return rows;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
-async function fetchPendingStudentsByClassCode(adviserID) {
-    try {
-        const [rows] = await pool.query(`
-            SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress
-            FROM interns i
-            JOIN students s ON i.studentid = s.studentid
-            LEFT JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
-            ORDER BY s.classcode;
-        `, [adviserID]);
-        return rows;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
-async function fetchPendingStudentsByCompany(adviserID) {
-    try {
-        const [rows] = await pool.query(`
-        SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress
-        FROM interns i
-            JOIN students s ON i.studentid = s.studentid
-            LEFT JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
-            ORDER BY c.companyname;
-        `, [adviserID]);
-        return rows;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
-async function fetchPendingStudentsByAddress(adviserID) {
-    try {
-        const [rows] = await pool.query(`
-        SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress
-        FROM interns i
-            JOIN students s ON i.studentid = s.studentid
-            LEFT JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
-            ORDER BY c.companyaddress;
-        `, [adviserID]);
-        return rows;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
-async function fetchPendingStudentsByWorkType(adviserID) {
-    try {
-        const [rows] = await pool.query(`
-        SELECT s.studentid, s.studentName, s.classcode, c.companyname, c.companyaddress, i.worktype
-        FROM interns i
-            JOIN students s ON i.studentid = s.studentid
-            LEFT JOIN company c ON i.companyid = c.companyid
-            WHERE i.status = 'PENDING' AND i.adviserID = ?
-            ORDER BY i.worktype;
-        `, [adviserID]);
-        return rows;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
 // -- functions for changing of intern status
 
 async function deployIntern(internID, adviserID) {
@@ -116,19 +12,6 @@ async function deployIntern(internID, adviserID) {
              WHERE i.internid = ? AND i.adviserid = ? AND i.status = 'PENDING' AND ir.status = 'APPROVED'`,
             [internID, adviserID]
         );
-        return result;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
-
-// updates the status in the interns table
-async function updateStatus(studentID, newStatus) {
-    try {
-        const result = await pool.query('UPDATE interns SET status = ? WHERE studentid = ?', [newStatus, studentID]);
-        console.log('Update Result:', result);
         return result;
     } catch (error) {
         console.error('Error executing query:', error.message);
@@ -188,14 +71,14 @@ async function fetchInternsByAdviser(adviserid){
     }
 }
 
-async function fetchInternId(name) {
+async function fetchInternId(name, adviserID) {
     try {
         const [rows] = await pool.query(`
             SELECT interns.internid
             FROM interns
             JOIN students ON interns.studentid = students.studentID
-            WHERE students.studentName = ?
-        `, [name]);
+            WHERE students.studentName = ? AND interns.adviserid = ?
+        `, [name, adviserID]);
 
         return rows;
     } catch (error) {
@@ -204,19 +87,21 @@ async function fetchInternId(name) {
     }
 }
 
+// to just check if intern belongs to adviser
+async function isAdvisersIntern(internId, adviserID) {
+    const [rows] = await pool.query(
+        'SELECT 1 FROM interns WHERE internid = ? AND adviserid = ?',
+        [internId, adviserID]
+    );
+    return rows.length === 1;
+}
 
 module.exports = {
-    fetchPendingStudents,
-    fetchPendingStudentsByName,
-    fetchPendingStudentsByClassCode,
-    fetchPendingStudentsByCompany,
-    fetchPendingStudentsByAddress,
-    fetchPendingStudentsByWorkType,
     deployIntern,
-    updateStatus,
     updateInternRemarks,
     insertIntern,
     fetchInterns,
     fetchInternsByAdviser,
     fetchInternId,
+    isAdvisersIntern
 };

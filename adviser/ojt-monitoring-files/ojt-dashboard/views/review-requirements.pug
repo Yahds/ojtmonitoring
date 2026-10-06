@@ -45,6 +45,7 @@ main
         p.awaiting Waiting for the intern to submit.
       else
         form.review-form(action=`/ojt-dashboard/requirements-review/${internId}` method='POST')
+          input(type='hidden' name='csrf_token' value=csrfToken)
           input(type='hidden' name='reqid' value=req.reqid)
           label Adviser remark
           textarea(name='remarks' rows='2')= req.remarks
