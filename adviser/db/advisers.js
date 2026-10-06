@@ -19,7 +19,6 @@ async function authenticateAdviser(adviserEmail, password) {
 }
 
 async function fetchAdviser(adviserID) {
-    console.log(adviserID);
     const [rows] = await pool.query("SELECT * FROM advisers where adviserID=?", [adviserID]);
 
     if (rows.length == 1) {

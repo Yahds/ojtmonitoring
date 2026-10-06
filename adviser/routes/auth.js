@@ -37,7 +37,6 @@ router.get('/logout', requireAuth, (req, res, next) => {
         if (err) {
             return next(err);
         }
-        console.log("pakilog out")
         res.redirect('/ojt-login-page');
     });
 });

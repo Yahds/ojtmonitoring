@@ -57,7 +57,6 @@ router.post('/ojt-dashboard/postannouncement', requireAuth, async (req, res, nex
     const recipient = req.body.recipient;
     const subject = req.body['subject-text'];
     const description = req.body['description-text'];
-    console.log("Inserting announcement");
 
     try {
         await insertAnnouncement(sender, recipient, subject, description);

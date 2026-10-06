@@ -9,17 +9,13 @@ const router = express.Router();
 router.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async (req, res, next) => {
     try {
         const internName = req.params.internName;
-        console.log('Fetching reports for intern:', internName);
 
         // Fetch the intern ID
         const internIdResult = await fetchInternId(internName, req.session.adviserID);
         const internId = internIdResult[0]?.internid;
         if (!internId) {
-            console.log('No intern found for name:', internName);
             return res.status(404).send("Intern not found");
         }
-
-        console.log(internId + ' is ' + internName);
 
         // Fetch the assigned requirements using the intern ID
         const assignedRequirements = await fetchRequirementsForReview(internId, req.session.adviserID);
@@ -30,9 +26,6 @@ router.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async
                 requirement.datesubmitted = new Date(requirement.datesubmitted).toDateString();
             }
         });
-
-        console.log('Assigned Requirements:', assignedRequirements);
-
 
         // Render the intern requirements view with the requirements data
         res.render('ojt-dashboard/views/intern-requirement.pug', {
@@ -55,8 +48,6 @@ router.get("/ojt-dashboard/requirements-review/:internId", requireAuth, async (r
                 requirement.datesubmitted = new Date(requirement.datesubmitted).toDateString();
             }
         });
-
-        console.log('Assigned Requirements:', assignedRequirements);
 
         // Render the intern requirements view with the requirements data
         res.render('ojt-dashboard/views/review-requirements', {
@@ -134,7 +125,6 @@ router.post('/ojt-dashboard/postrequirement', requireAuth, async (req, res, next
 
         if (newRequirementName) {
             requirementId = await insertNewRequirement(newRequirementName);
-            console.log("New Requirement ID: ", requirementId); // Log for debugging
             await insertInternRequirement(internId, requirementId);
         } else if (existingRequirementId) {
             requirementId = existingRequirementId;
