@@ -63,13 +63,6 @@ All names and accounts in the seed data are made up.
 
 Amelia is the adviser of student 2299001.
 
-### If a page shows "502 Bad Gateway"
-
-nginx keeps the address the app had when nginx started. If a container was recreated, restart nginx:
-```
-docker compose restart nginx
-```
-
 ## Tests
 
 The tests run inside the adviser container against the real database:
