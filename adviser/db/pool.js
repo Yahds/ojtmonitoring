@@ -9,8 +9,6 @@ const pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE,
 }).promise();
 
-console.log('Database pool created');
-
 async function closeDatabase() {
     await pool.end();
 }

@@ -189,12 +189,6 @@ class DAO {
     public function getCompanyData() {
         $query = "SELECT companyname, companyaddress FROM company";
         $result = $this->connection->query($query);
-    
-        if (!$result) {
-            error_log('Error executing query: ' . $this->connection->error);
-            die('Error executing query: ' . $this->connection->error);
-        }
-    
         return $result;
     }
     
