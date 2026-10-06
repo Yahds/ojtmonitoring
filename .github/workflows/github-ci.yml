@@ -73,3 +73,15 @@ jobs:
       - name: Run tests
         working-directory: adviser
         run: npm test
+      - name: Set up PHP  
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli
+          tools: composer:2.10.3
+      - name: Install PHP deps
+        working-directory: student
+        run: composer install --no-interaction
+      - name: Run PHP tests
+        working-directory: student
+        run: vendor/bin/phpunit
