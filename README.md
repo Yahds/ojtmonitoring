@@ -46,7 +46,7 @@ You need **Docker Desktop** (which includes Docker Compose).
    ```
    docker compose up -d
    ```
-   The first start creates the database from `db/schema.sql` and fills it with demo data from `db/seed.sql`.
+   The first start builds the database by running the Flyway migrations in `db/migrations/`, then adds demo data from `db/demo-data/`.
 4. Open:
    - Adviser and department head: http://localhost:8080/ojt-login-page/
    - Student: http://localhost:8080/student/
@@ -88,7 +88,7 @@ adviser/          Node.js app for advisers and the department head
   middleware/     login, role and CSRF checks
   tests/          Jest + SuperTest tests
 student/          PHP app for students
-db/               schema.sql and seed.sql
+db/               Flyway migrations (migrations/) & demo data (demo-data/)
 nginx/            reverse proxy config
 ```
 

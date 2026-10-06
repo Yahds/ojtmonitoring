@@ -12,14 +12,13 @@ services:
       - PORT=8080
       - SESSION_SECRET=${SESSION_SECRET}
     depends_on:
-      database:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     volumes:
       - student_uploads:/var/www/uploads:ro
+
   database:
-    build:
-      context: ./db
-      dockerfile: Dockerfile
+    image: mysql:8.0
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
@@ -34,6 +33,21 @@ services:
       timeout: 5s
       retries: 10
 
+  migrate:
+    image: flyway/flyway:13.9.0-alpine
+    command: migrate
+    environment:
+      - FLYWAY_URL=jdbc:mysql://database:3306/${MYSQL_DATABASE}?allowPublicKeyRetrieval=true
+      - FLYWAY_USER=${MYSQL_USER}
+      - FLYWAY_PASSWORD=${MYSQL_PASSWORD}
+      - FLYWAY_LOCATIONS=filesystem:/flyway/migrations,filesystem:/flyway/demo-data
+    volumes:
+      - ./db/migrations:/flyway/migrations:ro
+      - ./db/demo-data:/flyway/demo-data:ro
+    depends_on:
+      database:
+        condition: service_healthy
+
   student-php:
     build:
       context: ./student
@@ -45,8 +59,8 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
     depends_on:
-      database:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     volumes:
       - student_uploads:/var/www/uploads
 
@@ -60,7 +74,7 @@ services:
     depends_on:
       - adviser-node
       - student-php
-      
+
 volumes:
   db_data:
   student_uploads:

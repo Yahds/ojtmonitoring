@@ -57,10 +57,16 @@ jobs:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: adviser/package-lock.json
-      - name: Load schema and seed
-        run: |
-          mysql -h 127.0.0.1 -u root -proot ojt < db/schema.sql
-          mysql -h 127.0.0.1 -u root -proot ojt < db/seed.sql
+      - name: Run migrations
+        run: >
+          docker run --rm --network host
+          -v ${{ github.workspace }}/db/migrations:/flyway/migrations
+          -v ${{ github.workspace }}/db/demo-data:/flyway/demo-data
+          flyway/flyway:13.9.0-alpine
+          -url="jdbc:mysql://127.0.0.1:3306/ojt?allowPublicKeyRetrieval=true"
+          -user=ojt_app -password=ojt_app_ci
+          -locations=filesystem:/flyway/migrations,filesystem:/flyway/demo-data
+          migrate
       - name: Install deps
         working-directory: adviser
         run: npm ci
