@@ -16,15 +16,27 @@ async function deleteTestAdviser(adviserID) {
     await pool.query('DELETE FROM advisers WHERE adviserID = ?', [adviserID]);
 }
 
+// reads the CSRF token from the hidden form field of a page
+async function csrfTokenFrom(agent, url) {
+    const res = await agent.get(url);
+    const match = res.text.match(/name="csrf_token" value="([0-9a-f]{64})"/);
+    if (!match) {
+        throw new Error(`no CSRF token found on ${url} (status ${res.status})`);
+    }
+    return match[1];
+}
+
 // logs in and returns an agent that remembers session cookie
 async function loginAs(app, email) {
     const agent = request.agent(app);
+    const csrfToken = await csrfTokenFrom(agent, '/ojt-login-page/');
     await agent
         .post('/ojt-login-page')
         .type('form')
-        .send({ adviserEmail: email, password: TEST_PASSWORD });
+        .send({ adviserEmail: email, password: TEST_PASSWORD, csrf_token: csrfToken });
     return agent;
 }
 
-module.exports = { TEST_PASSWORD, createTestAdviser, deleteTestAdviser, loginAs };
+module.exports = { TEST_PASSWORD, createTestAdviser, deleteTestAdviser, loginAs, csrfTokenFrom };
+
 

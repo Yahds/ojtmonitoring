@@ -1,7 +1,7 @@
 const app = require('../app');
 const { closeDatabase } = require('../db');
 const { pool } = require('../db/pool');
-const { createTestAdviser, deleteTestAdviser, loginAs } = require('./helpers/auth');
+const { createTestAdviser, deleteTestAdviser, loginAs, csrfTokenFrom } = require('./helpers/auth');
 
 // in the seed, intern 300 (Maria Santos) belongs to adviser 1, not the test adviser
 const OTHER_INTERN_ID = 300;
@@ -9,6 +9,7 @@ const OTHER_INTERN_NAME = 'Maria Santos';
 
 let adviser;
 let agent;
+let csrfToken;
 
 async function requirementsOf(internId) {
     const [rows] = await pool.query(
@@ -21,6 +22,7 @@ async function requirementsOf(internId) {
 beforeAll(async () => {
     adviser = await createTestAdviser('owner');
     agent = await loginAs(app, adviser.email);
+    csrfToken = await csrfTokenFrom(agent, '/ojt-dashboard/');
 });
 
 afterAll(async () => {
@@ -35,7 +37,7 @@ describe("an adviser cannot use another adviser's intern", () => {
         const res = await agent
             .post('/update-intern-remarks')
             .type('form')
-            .send({ internId: OTHER_INTERN_ID, remarks: Array(7).fill('changed by another adviser') });
+            .send({ internId: OTHER_INTERN_ID, remarks: Array(7).fill('changed by another adviser'), csrf_token: csrfToken });
 
         expect(res.status).toBe(404);
         expect(await requirementsOf(OTHER_INTERN_ID)).toEqual(before);
@@ -47,7 +49,7 @@ describe("an adviser cannot use another adviser's intern", () => {
         const res = await agent
             .post('/ojt-dashboard/postrequirement')
             .type('form')
-            .send({ 'intern-id': OTHER_INTERN_ID, 'existing-requirement-dropdown': 1 });
+            .send({ 'intern-id': OTHER_INTERN_ID, 'existing-requirement-dropdown': 1, csrf_token: csrfToken });
 
         expect(res.status).toBe(404);
         expect(await requirementsOf(OTHER_INTERN_ID)).toEqual(before);

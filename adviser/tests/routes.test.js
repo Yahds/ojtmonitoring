@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../app');
+const { csrfTokenFrom } = require('./helpers/auth');
 const { closeDatabase } = require('../db');
 
 afterAll(async () => {
@@ -24,10 +25,12 @@ describe('route smoke tests', () => {
     });
 
     test('POST /ojt-login-page with wrong credentials is rejected', async () => {
-        const res = await request(app)
+        const agent = request.agent(app);
+        const csrfToken = await csrfTokenFrom(agent, '/ojt-login-page/');
+        const res = await agent
             .post('/ojt-login-page')
             .type('form')
-            .send({ adviserEmail: 'nobody@example.com', password: 'wrong' });
+            .send({ adviserEmail: 'nobody@example.com', password: 'wrong', csrf_token: csrfToken });
         expect(res.status).toBe(401);
     });
 
@@ -59,7 +62,9 @@ describe('route smoke tests', () => {
     ];
 
     test.each(protectedRoutes)('%s %s redirects to login when not authenticated', async (method, url) => {
-        const res = await request(app)[method](url);
+        const agent = request.agent(app);
+        const csrfToken = await csrfTokenFrom(agent, '/ojt-login-page/');
+        const res = await agent[method](url).set('X-CSRF-Token', csrfToken);
         expect(res.status).toBe(302);
         expect(res.headers.location).toBe('/ojt-login-page');
     });

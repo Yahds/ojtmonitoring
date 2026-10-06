@@ -42,7 +42,7 @@ app.use('/ojt-dashboard', publicFiles(path.join(__dirname, 'ojt-monitoring-files
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 
-const { provideCsrfToken } = require('./middleware/csrf');
+const { provideCsrfToken, verifyCsrf } = require('./middleware/csrf');
 const adminRoutes = require('./routes/admin');
 const internRoutes = require('./routes/interns');
 const authRoutes = require('./routes/auth');
@@ -52,6 +52,7 @@ const reportRoutes = require('./routes/reports');
 const requirementRoutes = require('./routes/requirements');
 
 app.use(provideCsrfToken);
+app.use(verifyCsrf);
 app.use(adminRoutes);
 app.use(internRoutes);
 app.use(authRoutes);

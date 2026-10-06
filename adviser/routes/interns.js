@@ -26,8 +26,6 @@ router.get('/ojt-dashboard/enroll', requireAuth, async (req, res) => {
 
 router.post('/update-intern-remarks', requireAuth, async (req, res) => {
     const { internId, remarks } = req.body;
-    console.log(req.body)
-    console.log('Received Update Intern Remarks Request - Intern ID:', internId, 'Remarks:', remarks);
 
     try {
         if (!(await isAdvisersIntern(internId, req.session.adviserID))) {
