@@ -47,7 +47,7 @@ test('a new announcement is saved under the logged-in adviser, even if the form 
 
     const rows = await findAnnouncements(subject);
     expect(rows).toHaveLength(1);
-    expect(rows[0].senderid).toBe(String(adviser.adviserID));
+    expect(rows[0].senderid).toBe(adviser.adviserID);
 });
 
 test("cannot delete another adviser's announcement", async () => {
