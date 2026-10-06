@@ -6,7 +6,7 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async (req, res) => {
+router.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async (req, res, next) => {
     try {
         const internName = req.params.internName;
         console.log('Fetching reports for intern:', internName);
@@ -39,12 +39,11 @@ router.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async
             assignedRequirements
         });
     } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
+        next(error);
     }
 });
 
-router.get("/ojt-dashboard/requirements-review/:internId", requireAuth, async (req, res) => {
+router.get("/ojt-dashboard/requirements-review/:internId", requireAuth, async (req, res, next) => {
     try {
         const internId = req.params.internId;
 
@@ -64,12 +63,11 @@ router.get("/ojt-dashboard/requirements-review/:internId", requireAuth, async (r
             assignedRequirements, internId
         });
     } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
+        next(error);
     }
 });
 
-router.post("/ojt-dashboard/requirements-review/:internId", requireAuth, async (req, res) => {
+router.post("/ojt-dashboard/requirements-review/:internId", requireAuth, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const { reqid, decision, remarks } = req.body;
@@ -82,12 +80,11 @@ router.post("/ojt-dashboard/requirements-review/:internId", requireAuth, async (
 
         res.redirect(`/ojt-dashboard/requirements-review/${internId}`);
     } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
+        next(error);
     }
 });
 
-router.get("/ojt-dashboard/requirement-file/:internId/:reqid", requireAuth, async (req, res) => {
+router.get("/ojt-dashboard/requirement-file/:internId/:reqid", requireAuth, async (req, res, next) => {
     try {
         const { internId, reqid } = req.params;
         const filePath = await fetchRequirementFile(internId, reqid, req.session.adviserID);
@@ -104,12 +101,11 @@ router.get("/ojt-dashboard/requirement-file/:internId/:reqid", requireAuth, asyn
             }
         });
     } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
+        next(error);
     }
 });
 
-router.get("/fetch-unassigned-requirements/:internName", requireAuth, async (req, res) => {
+router.get("/fetch-unassigned-requirements/:internName", requireAuth, async (req, res, next) => {
     try {
         const internIdResult = await fetchInternId(req.params.internName, req.session.adviserID);
         if (internIdResult.length === 0) {
@@ -119,14 +115,13 @@ router.get("/fetch-unassigned-requirements/:internName", requireAuth, async (req
         const unassignedRequirements = await fetchUnassignedRequirements(internIdResult[0].internid);
         res.json(unassignedRequirements);
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 
 
 
-router.post('/ojt-dashboard/postrequirement', requireAuth, async (req, res) => {
+router.post('/ojt-dashboard/postrequirement', requireAuth, async (req, res, next) => {
     const existingRequirementId = req.body['existing-requirement-dropdown'];
     const newRequirementName = req.body['new-requirement-name'];
     const internId = req.body['intern-id'];
@@ -151,8 +146,7 @@ router.post('/ojt-dashboard/postrequirement', requireAuth, async (req, res) => {
 
         res.redirect('/ojt-dashboard');
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 

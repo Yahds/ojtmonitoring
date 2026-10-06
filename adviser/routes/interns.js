@@ -7,7 +7,7 @@ const router = express.Router();
 
 //GET REQUESTS
 
-router.get('/ojt-dashboard/enroll', requireAuth, async (req, res) => {
+router.get('/ojt-dashboard/enroll', requireAuth, async (req, res, next) => {
     try{
         const adviser = await fetchAdviser(req.session.adviserID);
         const interns = await fetchInternsByAdviser(req.session.adviserID);
@@ -17,14 +17,13 @@ router.get('/ojt-dashboard/enroll', requireAuth, async (req, res) => {
             res.redirect('/ojt-login-page');
         }
     } catch (error) {
-        console.error('Error loading enroll advisers page:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 
 //POST REQUESTS
 
-router.post('/update-intern-remarks', requireAuth, async (req, res) => {
+router.post('/update-intern-remarks', requireAuth, async (req, res, next) => {
     const { internId, remarks } = req.body;
 
     try {
@@ -34,12 +33,11 @@ router.post('/update-intern-remarks', requireAuth, async (req, res) => {
         await updateInternRemarks(internId, remarks);
         res.json({ message: 'Remarks updated successfully' });
     } catch (error) {
-        console.error('Error updating intern remarks:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 
-router.post('/ojt-dashboard/enroll', requireAuth, async (req, res) => {
+router.post('/ojt-dashboard/enroll', requireAuth, async (req, res, next) => {
     const studentID = req.body['studentID'];
     const name = req.body['name'];
     const course = req.body['course'];
@@ -52,12 +50,11 @@ router.post('/ojt-dashboard/enroll', requireAuth, async (req, res) => {
         await enrollIntern(student, req.session.adviserID, password);
         res.redirect('/ojt-dashboard');
     } catch (error){
-        console.error('Error enrolling student: ', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 
-router.post('/ojt-dashboard/deploy', requireAuth, async (req, res) => {
+router.post('/ojt-dashboard/deploy', requireAuth, async (req, res, next) => {
     try {
         const internID = req.body.internID;
         const result = await deployIntern(internID, req.session.adviserID);
@@ -66,8 +63,7 @@ router.post('/ojt-dashboard/deploy', requireAuth, async (req, res) => {
         }
         res.redirect('/ojt-dashboard/enroll');
     } catch (error) {
-        console.error('Error deploying intern:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 

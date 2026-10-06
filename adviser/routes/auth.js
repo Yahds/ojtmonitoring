@@ -5,7 +5,7 @@ const { requireAuth } = require('../middleware/auth');
 const router = express.Router();
 
 // run node app.js then access http://localhost:8080/ojt-login-page/
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
     try {
         if (req.session.isLoggedIn) {
             return res.redirect('/ojt-dashboard');
@@ -14,13 +14,12 @@ router.get("/", async (req, res) => {
         const students = await fetchStudents();
         res.render('ojt-login-page/', { students })
     } catch (error) {
-        console.error('Error:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 
 // run node app.js then access http://localhost:8080/ojt-login-page/
-router.get("/ojt-login-page", async (req, res) => {
+router.get("/ojt-login-page", async (req, res, next) => {
     try {
         if (req.session.isLoggedIn) {
             return res.redirect('/ojt-dashboard');
@@ -29,15 +28,14 @@ router.get("/ojt-login-page", async (req, res) => {
         const students = await fetchStudents();
         res.render('ojt-login-page/index', { students })
     } catch (error) {
-        console.error('Error:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 
-router.get('/logout', requireAuth, (req, res) => {
+router.get('/logout', requireAuth, (req, res, next) => {
     req.session.destroy(err => {
         if (err) {
-            console.log("A problem occured while logging out: " + err.message)
+            return next(err);
         }
         console.log("pakilog out")
         res.redirect('/ojt-login-page');
@@ -45,7 +43,7 @@ router.get('/logout', requireAuth, (req, res) => {
 });
 
 // handling of the post requst (authenticating advisor in login)
-router.post("/ojt-login-page", async (req, res) => {
+router.post("/ojt-login-page", async (req, res, next) => {
     const { adviserEmail, password } = req.body;
 
     try {
@@ -53,8 +51,7 @@ router.post("/ojt-login-page", async (req, res) => {
         if (adviser) {
             req.session.regenerate((err) => {
                 if (err) {
-                    console.error('Error starting a new session:', err.message);
-                    return res.status(500).send('Warning: Internal Server Error');
+                    return next(err);
                 }
                 req.session.adviserID = adviser.adviserID;
                 req.session.isLoggedIn = true;
@@ -68,8 +65,7 @@ router.post("/ojt-login-page", async (req, res) => {
             res.status(401).send('false'); // Send back a simple 'false' string
         }
     } catch (error) {
-        console.error('Error authenticating adviser:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 

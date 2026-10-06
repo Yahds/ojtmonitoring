@@ -50,6 +50,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const journalRoutes = require('./routes/journals');
 const reportRoutes = require('./routes/reports');
 const requirementRoutes = require('./routes/requirements');
+const { handleErrors } = require('./middleware/errorHandler');
 
 app.use(provideCsrfToken);
 app.use(verifyCsrf);
@@ -60,6 +61,7 @@ app.use(dashboardRoutes);
 app.use(journalRoutes);
 app.use(reportRoutes);
 app.use(requirementRoutes);
+app.use(handleErrors);
 
 if (require.main === module) {
     app.listen(port, () => {

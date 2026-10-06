@@ -4,7 +4,7 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard", requireAuth, async (req, res) => {
+router.get("/ojt-dashboard", requireAuth, async (req, res, next) => {
     try {
         const adviser = await fetchAdviser(req.session.adviserID);
         const interns = await fetchInterns(req.session.adviserID);
@@ -48,12 +48,11 @@ router.get("/ojt-dashboard", requireAuth, async (req, res) => {
         }
 
     } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error")
+        next(error);
     }
 });
 
-router.post('/ojt-dashboard/postannouncement', requireAuth, async (req, res) => {
+router.post('/ojt-dashboard/postannouncement', requireAuth, async (req, res, next) => {
     const sender = req.session.adviserID;
     const recipient = req.body.recipient;
     const subject = req.body['subject-text'];
@@ -64,12 +63,11 @@ router.post('/ojt-dashboard/postannouncement', requireAuth, async (req, res) => 
         await insertAnnouncement(sender, recipient, subject, description);
         res.redirect('/ojt-dashboard');
     } catch (error) {
-        console.error('Error inserting announcement: ', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 
-router.post('/ojt-dashboard/deleteannouncement', requireAuth, async (req, res) => {
+router.post('/ojt-dashboard/deleteannouncement', requireAuth, async (req, res, next) => {
     const announcementid = req.body['announcementid'];
 
     try {
@@ -79,13 +77,12 @@ router.post('/ojt-dashboard/deleteannouncement', requireAuth, async (req, res) =
         }
         res.redirect('/ojt-dashboard');
     } catch (error) {
-        console.error('Error deleting announcement: ', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 })
 
 // note: added it here for now since it only needs adviser info like dashboard 
-router.get("/ojt-about-us", requireAuth, async (req, res) => {
+router.get("/ojt-about-us", requireAuth, async (req, res, next) => {
     try {
         const adviser = await fetchAdviser(req.session.adviserID);
         if (adviser) {
@@ -95,8 +92,7 @@ router.get("/ojt-about-us", requireAuth, async (req, res) => {
             res.redirect('/ojt-login-page');
         }
     } catch (error) {
-        console.error('Error loading about-us page:', error.message);
-        res.status(500).send('Warning: Internal Server Error');
+        next(error);
     }
 });
 

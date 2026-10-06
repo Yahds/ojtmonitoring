@@ -5,7 +5,7 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res) => {
+router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const weeklyReports = await fetchWeeklyReportsForReview(internId, req.session.adviserID);
@@ -14,12 +14,11 @@ router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async 
         });
         res.render('ojt-dashboard/views/weekly-reports-review', { weeklyReports, internId });
     } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
+        next(error);
     }
 });
 
-router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res) => {
+router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const { reportid, decision, remark } = req.body;
@@ -27,12 +26,11 @@ router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async
         await updateWeeklyReportReview(reportid, req.session.adviserID, decision, remark);
         res.redirect(`/ojt-dashboard/weekly-reports-review/${internId}`);
     } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
+        next(error);
     }
 });
 
-router.get("/ojt-dashboard/weekly-report-file/:reportId", requireAuth, async (req, res) => {
+router.get("/ojt-dashboard/weekly-report-file/:reportId", requireAuth, async (req, res, next) => {
     try {
         const reportId = req.params.reportId;
         const filePath = await fetchWeeklyReportFileForAdviser(reportId, req.session.adviserID);
@@ -40,8 +38,7 @@ router.get("/ojt-dashboard/weekly-report-file/:reportId", requireAuth, async (re
         const safePath = path.join('/var/www/uploads', path.basename(filePath));
         res.sendFile(safePath, (err) => { if (err) { console.error('Error sending file:', err.message); if (!res.headersSent) res.status(404).send("File not found"); } });
     } catch (error) {
-        console.error('Error', error);
-        res.status(500).send("Warning: Internal Server Error");
+        next(error);
     }
 });
 
