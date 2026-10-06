@@ -37,17 +37,30 @@ async function updateInternRemarks(internId, remarks) {
     }
 }
 
-async function insertIntern(studentid, adviserid, password, status) {
+async function enrollIntern(student, adviserID, password) {
+    const connection = await pool.getConnection();
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const [result] = await pool.query(
-            "INSERT INTO interns (password, adviserid, studentid, status) VALUES (?, ?, ?, ?)",
-            [hashedPassword, adviserid, studentid, status]
+        await connection.beginTransaction();
+        await connection.query(
+            'INSERT INTO students (studentID, studentName, course, year, classcode) VALUES (?, ?, ?, ?, ?)',
+            [student.id, student.name, student.course, student.year, student.classcode]
         );
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [result] = await connection.query(
+            "INSERT INTO interns (password, adviserid, studentid, status) VALUES (?, ?, ?, 'ENROLLED')",
+            [hashedPassword, adviserID, student.id]
+        );
+        await connection.query(
+            "INSERT INTO internrequirements (internid, reqid, status, remarks) SELECT ?, reqid, 'PENDING', '' FROM requirements",
+            [result.insertId]
+        );
+        await connection.commit();
         return result.insertId;
     } catch (error) {
-        console.error('Error executing query:', error.message);
+        await connection.rollback();
         throw error;
+    } finally {
+        connection.release();
     }
 }
 
@@ -99,7 +112,7 @@ async function isAdvisersIntern(internId, adviserID) {
 module.exports = {
     deployIntern,
     updateInternRemarks,
-    insertIntern,
+    enrollIntern,
     fetchInterns,
     fetchInternsByAdviser,
     fetchInternId,

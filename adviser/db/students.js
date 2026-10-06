@@ -11,17 +11,4 @@ async function fetchStudents() {
     }
 }
 
-async function insertStudent(studentID, name, course, year, classcode) {
-    try {
-        await pool.query(
-            "INSERT INTO students (studentID, studentName, course, year, classcode) VALUES (?, ?, ?, ?, ?)",
-            [studentID, name, course, year, classcode]
-        );
-        return studentID;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
-module.exports = { fetchStudents, insertStudent };
+module.exports = { fetchStudents };

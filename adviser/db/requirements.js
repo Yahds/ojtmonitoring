@@ -1,15 +1,5 @@
 const { pool } = require('./pool');
 
-async function fetchAllRequirements() {
-    try {
-        const [rows] = await pool.query(`SELECT * FROM requirements;`);
-        return rows;
-    } catch (error) {
-        console.error('Error executing query:', error.message);
-        throw error;
-    }
-}
-
 async function fetchUnassignedRequirements(internID) {
     try {
         const [requirements] = await pool.query(`
@@ -116,7 +106,6 @@ async function insertInternRequirement(internid, reqid) {
 }
 
 module.exports = {
-    fetchAllRequirements,
     fetchUnassignedRequirements,
     fetchRequirementsForReview,
     fetchRequirementFile,

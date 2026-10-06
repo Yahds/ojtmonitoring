@@ -1,6 +1,6 @@
 const express = require('express');
-const { insertInternRequirement, fetchInternsByAdviser, fetchAllRequirements, fetchAdviser,
-    updateInternRemarks, insertStudent, insertIntern, deployIntern, isAdvisersIntern } = require('../db');
+const { fetchInternsByAdviser, fetchAdviser, enrollIntern,
+    updateInternRemarks, deployIntern, isAdvisersIntern } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -48,12 +48,8 @@ router.post('/ojt-dashboard/enroll', requireAuth, async (req, res) => {
     const password = req.body['password'];
 
     try {
-        await insertStudent(studentID, name, course, year, classcode);
-        const internid = await insertIntern(studentID, req.session.adviserID, password, "ENROLLED")
-        const requirements = await fetchAllRequirements();
-        for (const requirement of requirements){
-            await insertInternRequirement(internid, requirement.reqid);
-        }
+        const student = { id: studentID, name, course, year, classcode };
+        await enrollIntern(student, req.session.adviserID, password);
         res.redirect('/ojt-dashboard');
     } catch (error){
         console.error('Error enrolling student: ', error.message);
