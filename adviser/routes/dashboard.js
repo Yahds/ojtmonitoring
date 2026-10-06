@@ -54,7 +54,7 @@ router.get("/ojt-dashboard", requireAuth, async (req, res) => {
 });
 
 router.post('/ojt-dashboard/postannouncement', requireAuth, async (req, res) => {
-    const sender = req.body['sender'];
+    const sender = req.session.adviserID;
     const recipient = req.body.recipient;
     const subject = req.body['subject-text'];
     const description = req.body['description-text'];
@@ -73,7 +73,10 @@ router.post('/ojt-dashboard/deleteannouncement', requireAuth, async (req, res) =
     const announcementid = req.body['announcementid'];
 
     try {
-        await deleteAnnouncement(announcementid);
+        const deleted = await deleteAnnouncement(announcementid, req.session.adviserID);
+        if (deleted === 0) {
+            return res.status(404).send('Announcement not found');
+        }
         res.redirect('/ojt-dashboard');
     } catch (error) {
         console.error('Error deleting announcement: ', error.message);

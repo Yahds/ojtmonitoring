@@ -232,7 +232,6 @@ form(action='/ojt-dashboard/postannouncement' id="recipient-form" method='POST')
             .horizontal-gray-ruler
             .title DESCRIPTION
             textarea#description-text-area.content-holder-description(name='description-text' cols='30' rows='10')
-            input(type="hidden" name="sender", value=adviser.adviserID)
             input(type="hidden" name="recipient", value="0")
             input.create-post-button(id="submitbutton" type="submit" value="SUBMIT") 
   
