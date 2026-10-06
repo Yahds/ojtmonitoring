@@ -8,8 +8,7 @@ const router = express.Router();
 router.get("/", async (req, res) => {
     try {
         if (req.session.isLoggedIn) {
-
-            res.redirect('/ojt-dashboard');
+            return res.redirect('/ojt-dashboard');
         }
 
         const students = await fetchStudents();
@@ -24,8 +23,7 @@ router.get("/", async (req, res) => {
 router.get("/ojt-login-page", async (req, res) => {
     try {
         if (req.session.isLoggedIn) {
-
-            res.redirect('/ojt-dashboard');
+            return res.redirect('/ojt-dashboard');
         }
 
         const students = await fetchStudents();
