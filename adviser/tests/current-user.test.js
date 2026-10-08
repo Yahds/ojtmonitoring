@@ -1,0 +1,28 @@
+const { displayName, navFor } = require('../middleware/currentUser');
+
+describe('displayName', () => {
+    test('turns "Last, First" into "First Last"', () => {
+        expect(displayName('Stevens, Amelia')).toBe('Amelia Stevens');
+    });
+
+    test('leaves a name without a comma as it is', () => {
+        expect(displayName('Amelia Stevens')).toBe('Amelia Stevens');
+    });
+});
+
+describe('navFor', () => {
+    const current = (role, path) => navFor(role, path).filter(link => link.current).map(link => link.label);
+
+    test('an adviser on a review page sees Interns as the current page', () => {
+        expect(current('adviser', '/ojt-dashboard/requirements-review/5')).toEqual(['Interns']);
+    });
+
+    test('Dashboard is current only on the dashboard itself', () => {
+        expect(current('adviser', '/ojt-dashboard')).toEqual(['Dashboard']);
+        expect(current('adviser', '/ojt-dashboard/')).toEqual(['Dashboard']);
+    });
+
+    test('a dept head gets the dept head links', () => {
+        expect(navFor('dept_head', '/ojt-admin').map(link => link.label)).toEqual(['Overview', 'Advisers', 'About us']);
+    });
+});

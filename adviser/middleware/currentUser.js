@@ -1,0 +1,48 @@
+const ROLE_LABELS = { adviser: 'Adviser', dept_head: 'Dept head' };
+
+const NAV = {
+    adviser: [
+        { href: '/ojt-dashboard', label: 'Dashboard', exact: true },
+        { href: '/ojt-dashboard/enroll', label: 'Interns', also: ['/ojt-dashboard/requirements-review', '/ojt-dashboard/weekly-reports-review', '/ojt-dashboard/journals-review'] },
+        { href: '/ojt-about-us', label: 'About us' },
+    ],
+    dept_head: [
+        { href: '/ojt-admin', label: 'Overview', exact: true },
+        { href: '/ojt-admin/advisers', label: 'Advisers' },
+        { href: '/ojt-about-us', label: 'About us' },
+    ],
+};
+
+function displayName(name) {
+    if (!name.includes(',')) {
+        return name.trim();
+    }
+    const [last, first] = name.split(',');
+    return `${first.trim()} ${last.trim()}`;
+}
+
+function isCurrent(link, path) {
+    if (link.exact) {
+        return path === link.href;
+    }
+    return [link.href, ...(link.also || [])].some(prefix => path.startsWith(prefix));
+}
+
+function navFor(role, rawPath) {
+    const path = rawPath.replace(/\/+$/, '') || '/';
+    return (NAV[role] || NAV.adviser).map(link => ({ ...link, current: isCurrent(link, path) }));
+}
+
+// gives every page the logged-in user and the sidebar links
+function currentUser(req, res, next) {
+    if (req.session.isLoggedIn) {
+        res.locals.user = {
+            name: displayName(req.session.name || ''),
+            roleLabel: ROLE_LABELS[req.session.role] || 'Adviser',
+        };
+        res.locals.nav = navFor(req.session.role, req.path);
+    }
+    next();
+}
+
+module.exports = { currentUser, displayName, navFor };

@@ -55,6 +55,7 @@ router.post("/ojt-login-page", async (req, res, next) => {
                 req.session.adviserID = adviser.adviserID;
                 req.session.isLoggedIn = true;
                 req.session.role = adviser.role;
+                req.session.name = adviser.adviserName;
                 if (adviser.role === 'dept_head') {
                     return res.redirect('/ojt-admin');
                 }
