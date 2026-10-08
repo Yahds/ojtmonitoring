@@ -1,41 +1,43 @@
-meta(charset='UTF-8')
-meta(name='viewport' content='width=device-width, initial-scale=1.0')
-title Manage Advisers
-style.
-  body { font-family: system-ui, sans-serif; margin: 0; background: #eceae3; color: #2b2a33; }
-  .navbar { display: flex; align-items: center; justify-content: space-between; background: #0d0464; color: #fff; padding: 12px 20px; border-bottom: 3px solid #e1ad0f; }
-  .nav-logo { font-weight: 700; letter-spacing: .03em; }
-  main { padding: 24px; max-width: 900px; }
-  h1 { color: #0d0464; }
-  a.back { color: #0d0464; text-decoration: none; font-weight: 600; }
-  table { width: 100%; border-collapse: collapse; background: #fff; margin: 16px 0; }
-  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eee; }
-  th { background: #f4f3fb; color: #0d0464; }
-  form.add { background: #fff; padding: 16px; border-radius: 8px; display: grid; gap: 10px; max-width: 420px; }
-  form.add input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-  form.add button { background: #0d0464; color: #fff; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-header
-  nav.navbar
-    .nav-logo SAINT LOUIS UNIVERSITY
-    .nav-name #{adviser.adviserName.split(' ').reverse().join(' ').replace(',', '')} · Department Head
-main
-  a.back(href='/ojt-admin') ← Back to admin
-  h1 Manage Advisers
-  table
-    tr
-      th Name
-      th Email
-    each a in advisers
-      tr
-        td #{a.adviserName}
-        td #{a.adviserEmail}
+extends ../../layouts/main
+
+block content
+  h1.page-title Advisers
+
+  section.card
+    .card-head
+      h2 Advisers in your department
+      a.btn.btn-create.btn-sm(href='#add-adviser') Add adviser
     if advisers.length === 0
-      tr
-        td(colspan='2') No advisers yet.
-  h2 Add an adviser
-  form.add(action='/ojt-admin/advisers' method='POST')
-    input(type='hidden' name='csrf_token' value=csrfToken)
-    input(type='text' name='name' placeholder='Name (e.g. Cruz, Maria)' required)
-    input(type='email' name='email' placeholder='Email' required)
-    input(type='password' name='password' placeholder='Temporary password' required)
-    button(type='submit') Add adviser
+      .empty
+        b No advisers yet
+        | Add the first adviser with the form below.
+    else
+      .table-wrap
+        table
+          thead
+            tr
+              th Name
+              th Email
+          tbody
+            each a in advisers
+              tr
+                td= a.adviserName
+                td= a.adviserEmail
+
+  section.card.card-pad#add-adviser
+    h2.section-title Add an adviser
+    form.form(action='/ojt-admin/advisers' method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      .field
+        label(for='name') Full name
+        input.input#name(type='text' name='name' placeholder='Cruz, Maria' required)
+        span.help Last name, then first name.
+      .field
+        label(for='email') Email
+        input.input#email(type='email' name='email' autocomplete='off' required)
+      .field
+        label(for='password') Temporary password
+        input.input#password(type='text' name='password' autocomplete='off' required)
+        span.help The adviser logs in with this. Share it with them privately.
+      .btn-row
+        button.btn.btn-create(type='submit') Add adviser
