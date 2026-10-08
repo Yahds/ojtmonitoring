@@ -18,8 +18,13 @@ const ROUTES = [
     'GET /journals/file'       => 'actions/download-journal.php',
 ];
 
+// "/requirements/?reqid=3" -> "/requirements"
+function normalizePath(string $uri): string
+{
+    return rtrim(parse_url($uri, PHP_URL_PATH) ?? '/', '/') ?: '/';
+}
+
 function routeFor(string $method, string $uri): ?string
 {
-    $path = rtrim(parse_url($uri, PHP_URL_PATH) ?? '/', '/') ?: '/';
-    return ROUTES[$method . ' ' . $path] ?? null;
+    return ROUTES[$method . ' ' . normalizePath($uri)] ?? null;
 }
