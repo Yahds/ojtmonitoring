@@ -1,55 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login Page</title>
-        <link rel="stylesheet" href="/student/css/login.css">
-    </head>
-    <body>
-        <div class="login-box"> 
-            <div class="blue-box">
-                <div class="login-details-box">
-                    <h1>Log in</h1>
-                    <hr>
-                    <h3>Intern</h3>
-                    <p>Dive into this learning journey, ask lots, and soak it all in.</p>
-                </div>
-            </div>
-            <div class="white-box">
-                <div class="slu-logo-box">
-                    <img src="/student/ojt-images/slu-logo.png" class="slu-logo">
-                </div>
-                <div class="login-fields-box">
-                    <form action="/student/login" method="POST">
-                        <label for="email" >IDNumber</label>
-                        <input type="text" id="email" name="id">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password">
-                        <label class="checkbox-container">Show Password
-                            <input type="checkbox" id="showPassword">
-                            <span class="checkmark"></span>
-                        </label>
-                    <input type="submit" value="Log in" class="login-button">
-                    </form>
-                </div>
-            </div>
+<?php
+// the student login page; actions/login.php shows it again after a failed login
+if (isset($_SESSION['internid'])) {
+    redirect('/');
+}
+$title = 'Log in';
+require __DIR__ . '/../views/head.php';
+?>
+<body>
+<div class="login-wrap">
+    <section class="login-art">
+        <div class="brand"><img src="/assets/img/slu-logo.png" alt="" width="40">SLU OJT Portal</div>
+        <div>
+            <p class="art-title">Track your OJT from start to finish.</p>
+            <p>Submit requirements, log your weekly hours, upload monthly journals and see your adviser's remarks.</p>
         </div>
-        <script>
-            let checkbox = document.getElementById('showPassword');
-            let passwordInput = document.getElementById('password');
+        <p class="art-foot">Saint Louis University · School of Accountancy, Management, Computing and Information Studies</p>
+    </section>
 
-            checkbox.addEventListener('change', function() {
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-            } else {
-                passwordInput.type = 'password';
-            }
-            });
-        </script>
-    </body>
+    <main class="login-form" id="main">
+        <img class="login-logo" src="/assets/img/slu-logo.png" alt="Saint Louis University">
+        <h1>Log in</h1>
+        <p class="lead">For interns</p>
+        <?php if (!empty($error)): ?>
+            <div class="flash flash-error" role="alert"><?= e($error) ?></div>
+        <?php endif; ?>
+        <form class="form" action="/student/login" method="post">
+            <?= csrf_field() ?>
+            <div class="field">
+                <label for="student-id">Student ID</label>
+                <input class="input" id="student-id" name="id" inputmode="numeric" autocomplete="username" value="<?= e($studentId ?? '') ?>" required autofocus>
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <div class="pw">
+                    <input class="input" id="password" type="password" name="password" autocomplete="current-password" required<?= !empty($error) ? ' aria-invalid="true"' : '' ?>>
+                    <button class="btn btn-outline btn-sm" type="button" data-toggle-password="password" aria-pressed="false">Show</button>
+                </div>
+            </div>
+            <button class="btn btn-primary big-btn" type="submit">Log in</button>
+        </form>
+        <p class="muted"><a href="/">Not an intern? Go back</a></p>
+    </main>
+</div>
+<script src="/assets/js/show-password.js" defer></script>
+</body>
 </html>
-
-
-
-

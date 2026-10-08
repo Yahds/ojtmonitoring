@@ -4,17 +4,7 @@ $nav = navFor($_SESSION['status'] ?? '', normalizePath($_SERVER['REQUEST_URI']))
 $flash = takeFlash();
 $name = displayName($_SESSION['studentName'] ?? '');
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e(isset($title) ? $title . ' · ' : '') ?>SLU OJT Portal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&display=swap">
-    <link rel="stylesheet" href="/assets/css/app.css">
-</head>
+<?php require __DIR__ . '/head.php'; ?>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="navbar">
