@@ -2,7 +2,7 @@ extends ../../layouts/main
 
 block content
   p.crumb
-    a(href='/ojt-dashboard/enroll') Interns
+    a(href='/adviser/interns') Interns
     |  / Requirements
   h1.page-title
     | Requirements
@@ -27,11 +27,11 @@ block content
             |  #{req.intern_remarks}
         if req.file_path
           p
-            a(href=`/ojt-dashboard/requirement-file/${internId}/${req.reqid}`) View submitted file
+            a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/file`) View submitted file
         if req.status === 'PENDING'
           p.meta Waiting for the intern to submit.
         else
-          form.form(action=`/ojt-dashboard/requirements-review/${internId}` method='POST')
+          form.form(action=`/adviser/interns/${internId}/requirements` method='POST')
             input(type='hidden' name='csrf_token' value=csrfToken)
             input(type='hidden' name='reqid' value=req.reqid)
             .field

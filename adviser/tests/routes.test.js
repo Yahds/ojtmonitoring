@@ -8,27 +8,29 @@ afterAll(async () => {
 });
 
 describe('route smoke tests', () => {
-    test('GET /ojt-login-page serves the login page (public)', async () => {
-        const res = await request(app).get('/ojt-login-page/');
+    test('GET /adviser/login serves the login page (public)', async () => {
+        const res = await request(app).get('/adviser/login');
         expect(res.status).toBe(200);
     });
 
-    test('GET /ojt-dashboard redirects to login when not authenticated (protected)', async () => {
-        const res = await request(app).get('/ojt-dashboard/');
+    test('GET /adviser/dashboard redirects to login when not authenticated (protected)', async () => {
+        const res = await request(app).get('/adviser/dashboard');
         expect(res.status).toBe(302);
-        expect(res.headers.location).toBe('/ojt-login-page');
+        expect(res.headers.location).toBe('/adviser/login');
     });
 
-    test('GET / serves the login page (public)', async () => {
+    test('GET / shows the landing page with both logins (public)', async () => {
         const res = await request(app).get('/');
         expect(res.status).toBe(200);
+        expect(res.text).toContain('href="/student/"');
+        expect(res.text).toContain('href="/adviser/login"');
     });
 
-    test('POST /ojt-login-page with wrong credentials is rejected', async () => {
+    test('POST /adviser/login with wrong credentials is rejected', async () => {
         const agent = request.agent(app);
-        const csrfToken = await csrfTokenFrom(agent, '/ojt-login-page/');
+        const csrfToken = await csrfTokenFrom(agent, '/adviser/login');
         const res = await agent
-            .post('/ojt-login-page')
+            .post('/adviser/login')
             .type('form')
             .send({ adviserEmail: 'nobody@example.com', password: 'wrong', csrf_token: csrfToken });
         expect(res.status).toBe(401);
@@ -36,37 +38,37 @@ describe('route smoke tests', () => {
 
     // every protected route sends logged-out user to login page
     const protectedRoutes = [
-        ['get', '/ojt-admin'],
-        ['get', '/ojt-admin/advisers'],
-        ['post', '/ojt-admin/advisers'],
-        ['get', '/ojt-dashboard/enroll'],
-        ['post', '/ojt-dashboard/enroll'],
-        ['post', '/ojt-dashboard/deploy'],
-        ['post', '/update-intern-remarks'],   
-        ['get', '/ojt-dashboard/journals-review/1'],
-        ['post', '/ojt-dashboard/journals-review/1'],
-        ['get', '/ojt-dashboard/journal-file/1'],
-        ['get', '/ojt-dashboard/weekly-reports-review/1'],
-        ['post', '/ojt-dashboard/weekly-reports-review/1'],
-        ['get', '/ojt-dashboard/weekly-report-file/1'],
-        ['get', '/ojt-dashboard/requirements-reports/someone'],
-        ['get', '/ojt-dashboard/requirements-review/1'],
-        ['post', '/ojt-dashboard/requirements-review/1'],
-        ['get', '/ojt-dashboard/requirement-file/1/1'],
-        ['get', '/fetch-unassigned-requirements/1'],
-        ['post', '/ojt-dashboard/postrequirement'],
-        ['post', '/ojt-dashboard/postannouncement'],
-        ['post', '/ojt-dashboard/deleteannouncement'],
-        ['get', '/ojt-about-us/'],
-        ['get', '/logout'],
+        ['get', '/adviser/admin'],
+        ['get', '/adviser/admin/advisers'],
+        ['post', '/adviser/admin/advisers'],
+        ['get', '/adviser/interns'],
+        ['post', '/adviser/interns'],
+        ['post', '/adviser/interns/1/deploy'],
+        ['post', '/adviser/intern-remarks'],   
+        ['get', '/adviser/interns/1/journals'],
+        ['post', '/adviser/interns/1/journals'],
+        ['get', '/adviser/journals/1/file'],
+        ['get', '/adviser/interns/1/weekly-reports'],
+        ['post', '/adviser/interns/1/weekly-reports'],
+        ['get', '/adviser/weekly-reports/1/file'],
+        ['get', '/adviser/requirements-reports/someone'],
+        ['get', '/adviser/interns/1/requirements'],
+        ['post', '/adviser/interns/1/requirements'],
+        ['get', '/adviser/interns/1/requirements/1/file'],
+        ['get', '/adviser/unassigned-requirements/1'],
+        ['post', '/adviser/assign-requirement'],
+        ['post', '/adviser/announcements'],
+        ['post', '/adviser/announcements/delete'],
+        ['get', '/adviser/about'],
+        ['get', '/adviser/logout'],
     ];
 
     test.each(protectedRoutes)('%s %s redirects to login when not authenticated', async (method, url) => {
         const agent = request.agent(app);
-        const csrfToken = await csrfTokenFrom(agent, '/ojt-login-page/');
+        const csrfToken = await csrfTokenFrom(agent, '/adviser/login');
         const res = await agent[method](url).set('X-CSRF-Token', csrfToken);
         expect(res.status).toBe(302);
-        expect(res.headers.location).toBe('/ojt-login-page');
+        expect(res.headers.location).toBe('/adviser/login');
     });
 
     // static folders should serve stylesheets and images only
@@ -87,7 +89,7 @@ describe('route smoke tests', () => {
         '/ojt-about-us/index.pug',
         '/ojt-login-page/hash.js',
         '/ojt-dashboard/upload.js',
-        '/ojt-dashboard/postannouncement.js',
+        '/adviser/announcements.js',
         '/ojt-about-us/about-us.html',
     ])('does not serve the file %s', async (url) => {
         const res = await request(app).get(url);
@@ -95,7 +97,7 @@ describe('route smoke tests', () => {
     });
 
     test('the login page form includes a CSRF token', async () => {
-        const res = await request(app).get('/ojt-login-page/');
+        const res = await request(app).get('/adviser/login');
         expect(res.text).toMatch(/name="csrf_token" value="[0-9a-f]{64}"/);
     });
 

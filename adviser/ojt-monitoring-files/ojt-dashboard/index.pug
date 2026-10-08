@@ -17,14 +17,14 @@ main.container
   aside.left-nav
     ol
       li
-        a(href='/ojt-dashboard') DASHBOARD
+        a(href='/adviser/dashboard') DASHBOARD
       li 
-        a(href='/ojt-dashboard/enroll') ENROLL INTERN
+        a(href='/adviser/interns') ENROLL INTERN
       li
-        a(href='/ojt-about-us') ABOUT US
+        a(href='/adviser/about') ABOUT US
       li
         a(href="#") 
-        form(action='/logout' method="GET" id="logout-form")
+        form(action='/adviser/logout' method="GET" id="logout-form")
           input(id="logoutbutton" type="submit" value="LOG OUT")
 
             
@@ -191,7 +191,7 @@ main.container
               .gray-horizontal-divider
 
               
-              form(action="/ojt-dashboard/deleteannouncement"  id="confirmation-form" method='POST') 
+              form(action="/adviser/announcements/delete"  id="confirmation-form" method='POST') 
                 input(type='hidden' name='csrf_token' value=csrfToken)
                 #popUpConfirmation.modalConfirmation(action='submit')
                   .content
@@ -212,7 +212,7 @@ main.container
                           
         button.create-post-button(type='button')
           a(href='#announcement-pop-up') CREATE POST
-form(action='/ojt-dashboard/postannouncement' id="recipient-form" method='POST')
+form(action='/adviser/announcements' id="recipient-form" method='POST')
   input(type='hidden' name='csrf_token' value=csrfToken)
   #announcement-pop-up.modal(action='submit')
     .content
@@ -270,7 +270,7 @@ form(action='/ojt-dashboard/postannouncement' id="recipient-form" method='POST')
               input(type='checkbox' name="recipient" value=intern.studentname)  
 
 
-form(action='/ojt-dashboard/postrequirement' id="requirement-form" method='POST')
+form(action='/adviser/assign-requirement' id="requirement-form" method='POST')
   input(type='hidden' name='csrf_token' value=csrfToken)
   #requirement-pop-up.modal
     .content
@@ -610,7 +610,7 @@ script.
             // Update report links with the selected intern's name
             updateReportLinksInternName(internName);
             // Fetch and display intern's daily report
-            fetchAndDisplayData(`/ojt-dashboard/requirements-reports/${internName}`, internName, 'requirements');
+            fetchAndDisplayData(`/adviser/requirements-reports/${internName}`, internName, 'requirements');
         });
     });
 
@@ -774,7 +774,7 @@ script.
   }
 
   function updateRequirementsDropdown(internId) {
-    fetch(`/fetch-unassigned-requirements/${internId}`)
+    fetch(`/adviser/unassigned-requirements/${internId}`)
         .then(response => response.json())
         .then(data => {
             const dropdown = document.querySelector('select[name="existing-requirement-dropdown"]');
@@ -856,7 +856,7 @@ script.
       if (internId && remarksChanged) {
           $.ajax({
               type: 'POST',
-              url: '/update-intern-remarks',
+              url: '/adviser/intern-remarks',
               data: { internId: internId, remarks: updatedRemarks, csrf_token: document.querySelector('input[name="csrf_token"]').value },
               success: function(response) {
                   remarksChanged = false;

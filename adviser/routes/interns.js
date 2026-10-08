@@ -7,14 +7,14 @@ const router = express.Router();
 
 //GET REQUESTS
 
-router.get('/ojt-dashboard/enroll', requireAdviser, async (req, res, next) => {
+router.get('/interns', requireAdviser, async (req, res, next) => {
     try{
         const adviser = await fetchAdviser(req.session.adviserID);
         const interns = await fetchInternsByAdviser(req.session.adviserID);
         if(adviser){
             res.render('ojt-dashboard/views/interns', { title: 'Interns', interns })
         } else {
-            res.redirect('/ojt-login-page');
+            res.redirect('/adviser/login');
         }
     } catch (error) {
         next(error);
@@ -23,7 +23,7 @@ router.get('/ojt-dashboard/enroll', requireAdviser, async (req, res, next) => {
 
 //POST REQUESTS
 
-router.post('/update-intern-remarks', requireAdviser, async (req, res, next) => {
+router.post('/intern-remarks', requireAdviser, async (req, res, next) => {
     const { internId, remarks } = req.body;
 
     try {
@@ -37,7 +37,7 @@ router.post('/update-intern-remarks', requireAdviser, async (req, res, next) => 
     }
 });
 
-router.post('/ojt-dashboard/enroll', requireAdviser, async (req, res, next) => {
+router.post('/interns', requireAdviser, async (req, res, next) => {
     const studentID = req.body['studentID'];
     const name = req.body['name'];
     const course = req.body['course'];
@@ -49,22 +49,22 @@ router.post('/ojt-dashboard/enroll', requireAdviser, async (req, res, next) => {
         const student = { id: studentID, name, course, year, classcode };
         await enrollIntern(student, req.session.adviserID, password);
         req.flash('success', `${name} enrolled.`);
-        res.redirect('/ojt-dashboard/enroll');
+        res.redirect('/adviser/interns');
     } catch (error){
         next(error);
     }
 });
 
-router.post('/ojt-dashboard/deploy', requireAdviser, async (req, res, next) => {
+router.post('/interns/:internId/deploy', requireAdviser, async (req, res, next) => {
     try {
-        const internID = req.body.internID;
+        const internID = req.params.internId;
         const result = await deployIntern(internID, req.session.adviserID);
         if (result.affectedRows === 0) {
             req.flash('error', 'Cannot deploy yet. The intern needs a chosen company and an approved endorsement letter.');
-            return res.redirect('/ojt-dashboard/enroll');
+            return res.redirect('/adviser/interns');
         }
         req.flash('success', 'Intern deployed.');
-        res.redirect('/ojt-dashboard/enroll');
+        res.redirect('/adviser/interns');
     } catch (error) {
         next(error);
     }

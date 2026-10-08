@@ -4,7 +4,7 @@ const { requireAuth, requireAdviser } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard", requireAdviser, async (req, res, next) => {
+router.get("/dashboard", requireAdviser, async (req, res, next) => {
     try {
         const adviser = await fetchAdviser(req.session.adviserID);
         const interns = await fetchInterns(req.session.adviserID);
@@ -44,7 +44,7 @@ router.get("/ojt-dashboard", requireAdviser, async (req, res, next) => {
                 unassignedRequirementsMap
             });
         } else {
-            res.redirect('/ojt-login-page');
+            res.redirect('/adviser/login');
         }
 
     } catch (error) {
@@ -52,7 +52,7 @@ router.get("/ojt-dashboard", requireAdviser, async (req, res, next) => {
     }
 });
 
-router.post('/ojt-dashboard/postannouncement', requireAdviser, async (req, res, next) => {
+router.post('/announcements', requireAdviser, async (req, res, next) => {
     const sender = req.session.adviserID;
     const recipient = req.body.recipient;
     const subject = req.body['subject-text'];
@@ -60,13 +60,13 @@ router.post('/ojt-dashboard/postannouncement', requireAdviser, async (req, res, 
 
     try {
         await insertAnnouncement(sender, recipient, subject, description);
-        res.redirect('/ojt-dashboard');
+        res.redirect('/adviser/dashboard');
     } catch (error) {
         next(error);
     }
 });
 
-router.post('/ojt-dashboard/deleteannouncement', requireAdviser, async (req, res, next) => {
+router.post('/announcements/delete', requireAdviser, async (req, res, next) => {
     const announcementid = req.body['announcementid'];
 
     try {
@@ -74,21 +74,21 @@ router.post('/ojt-dashboard/deleteannouncement', requireAdviser, async (req, res
         if (deleted === 0) {
             return res.status(404).send('Announcement not found');
         }
-        res.redirect('/ojt-dashboard');
+        res.redirect('/adviser/dashboard');
     } catch (error) {
         next(error);
     }
 })
 
 // note: added it here for now since it only needs adviser info like dashboard 
-router.get("/ojt-about-us", requireAuth, async (req, res, next) => {
+router.get("/about", requireAuth, async (req, res, next) => {
     try {
         const adviser = await fetchAdviser(req.session.adviserID);
         if (adviser) {
            
             res.render('ojt-about-us/index', { adviser })
         } else {
-            res.redirect('/ojt-login-page');
+            res.redirect('/adviser/login');
         }
     } catch (error) {
         next(error);

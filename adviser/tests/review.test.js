@@ -9,7 +9,7 @@ let csrfToken;
 beforeAll(async () => {
     adviser = await createTestAdviser('review');
     agent = await loginAs(app, adviser.email);
-    csrfToken = await csrfTokenFrom(agent, '/ojt-dashboard/enroll');
+    csrfToken = await csrfTokenFrom(agent, '/adviser/interns');
 });
 
 afterAll(async () => {
@@ -18,9 +18,9 @@ afterAll(async () => {
 });
 
 test.each([
-    ['requirements', '/ojt-dashboard/requirements-review/1'],
-    ['weekly reports', '/ojt-dashboard/weekly-reports-review/1'],
-    ['journals', '/ojt-dashboard/journals-review/1'],
+    ['requirements', '/adviser/interns/1/requirements'],
+    ['weekly reports', '/adviser/interns/1/weekly-reports'],
+    ['journals', '/adviser/interns/1/journals'],
 ])('%s: an invalid decision sends the adviser back with an error', async (_label, url) => {
     const res = await agent.post(url).type('form').send({ decision: 'MAYBE', csrf_token: csrfToken });
     expect(res.status).toBe(302);

@@ -22,7 +22,7 @@ async function requirementsOf(internId) {
 beforeAll(async () => {
     adviser = await createTestAdviser('owner');
     agent = await loginAs(app, adviser.email);
-    csrfToken = await csrfTokenFrom(agent, '/ojt-dashboard/');
+    csrfToken = await csrfTokenFrom(agent, '/adviser/dashboard');
 });
 
 afterAll(async () => {
@@ -35,7 +35,7 @@ describe("an adviser cannot use another adviser's intern", () => {
         const before = await requirementsOf(OTHER_INTERN_ID);
 
         const res = await agent
-            .post('/update-intern-remarks')
+            .post('/adviser/intern-remarks')
             .type('form')
             .send({ internId: OTHER_INTERN_ID, remarks: Array(7).fill('changed by another adviser'), csrf_token: csrfToken });
 
@@ -47,7 +47,7 @@ describe("an adviser cannot use another adviser's intern", () => {
         const before = await requirementsOf(OTHER_INTERN_ID);
 
         const res = await agent
-            .post('/ojt-dashboard/postrequirement')
+            .post('/adviser/assign-requirement')
             .type('form')
             .send({ 'intern-id': OTHER_INTERN_ID, 'existing-requirement-dropdown': 1, csrf_token: csrfToken });
 
@@ -56,15 +56,15 @@ describe("an adviser cannot use another adviser's intern", () => {
     });
 
     test.each([
-        '/fetch-unassigned-requirements/',
-        '/ojt-dashboard/requirements-reports/',
+        '/adviser/unassigned-requirements/',
+        '/adviser/requirements-reports/',
     ])('cannot look them up by name at %s', async (path) => {
         const res = await agent.get(path + encodeURIComponent(OTHER_INTERN_NAME));
         expect(res.status).toBe(404);
     });
 
     test('cannot approve or reject their requirements', async () => {
-        const url = `/ojt-dashboard/requirements-review/${OTHER_INTERN_ID}`;
+        const url = `/adviser/interns/${OTHER_INTERN_ID}/requirements`;
         const before = await requirementsOf(OTHER_INTERN_ID);
 
         const res = await agent

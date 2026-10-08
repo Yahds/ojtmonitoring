@@ -6,7 +6,7 @@ const { homeFor } = require('../middleware/currentUser');
 const router = express.Router();
 
 // the login page, logged-in users go straight to their home page
-router.get(["/", "/ojt-login-page"], (req, res) => {
+router.get('/login', (req, res) => {
     if (req.session.isLoggedIn) {
         return res.redirect(homeFor(req.session.role));
     }
@@ -18,12 +18,12 @@ router.get('/logout', requireAuth, (req, res, next) => {
         if (err) {
             return next(err);
         }
-        res.redirect('/ojt-login-page');
+        res.redirect('/adviser/login');
     });
 });
 
 // handling of the post requst (authenticating advisor in login)
-router.post("/ojt-login-page", async (req, res, next) => {
+router.post('/login', async (req, res, next) => {
     const { adviserEmail, password } = req.body;
 
     try {

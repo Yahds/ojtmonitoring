@@ -3,7 +3,7 @@ function requireAuth(req, res, next) {
     if (req.session.isLoggedIn) {
         return next();
     }
-    return res.redirect('/ojt-login-page');
+    return res.redirect('/adviser/login');
 }
 
 // allows one role or a list of roles
@@ -11,7 +11,7 @@ function requireRole(roles) {
     const allowed = [].concat(roles);
     return function (req, res, next) {
         if (!req.session.isLoggedIn) {
-            return res.redirect('/ojt-login-page');
+            return res.redirect('/adviser/login');
         }
         if (!allowed.includes(req.session.role)) {
             return res.status(403).render('error', {

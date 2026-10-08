@@ -28,7 +28,7 @@ async function findAnnouncements(subject) {
 beforeAll(async () => {
     adviser = await createTestAdviser('announce');
     agent = await loginAs(app, adviser.email);
-    csrfToken = await csrfTokenFrom(agent, '/ojt-dashboard/');
+    csrfToken = await csrfTokenFrom(agent, '/adviser/dashboard');
 });
 
 afterAll(async () => {
@@ -41,7 +41,7 @@ test('a new announcement is saved under the logged-in adviser, even if the form 
     const subject = `${TAG} fake sender`;
 
     await agent
-        .post('/ojt-dashboard/postannouncement')
+        .post('/adviser/announcements')
         .type('form')
         .send({ sender: OTHER_ADVISER_ID, recipient: '0', 'subject-text': subject, 'description-text': 'hi', csrf_token: csrfToken });
 
@@ -54,7 +54,7 @@ test("cannot delete another adviser's announcement", async () => {
     const subject = `${TAG} not mine`;
     const id = await createAnnouncement(OTHER_ADVISER_ID, subject);
 
-    const res = await agent.post('/ojt-dashboard/deleteannouncement').type('form').send({ announcementid: id, csrf_token: csrfToken });
+    const res = await agent.post('/adviser/announcements/delete').type('form').send({ announcementid: id, csrf_token: csrfToken });
 
     expect(res.status).toBe(404);
     expect(await findAnnouncements(subject)).toHaveLength(1);
@@ -64,7 +64,7 @@ test('can delete their own announcement', async () => {
     const subject = `${TAG} mine`;
     const id = await createAnnouncement(adviser.adviserID, subject);
 
-    const res = await agent.post('/ojt-dashboard/deleteannouncement').type('form').send({ announcementid: id, csrf_token: csrfToken });
+    const res = await agent.post('/adviser/announcements/delete').type('form').send({ announcementid: id, csrf_token: csrfToken });
 
     expect(res.status).toBe(302);
     expect(await findAnnouncements(subject)).toHaveLength(0);
@@ -74,7 +74,7 @@ test("cannot send an announcement to another adviser's intern", async () => {
     const subject = `${TAG} other intern`;
 
     const res = await agent
-        .post('/ojt-dashboard/postannouncement')
+        .post('/adviser/announcements')
         .type('form')
         .send({ sender: adviser.adviserID, recipient: ['0', OTHER_INTERN_NAME], 'subject-text': subject, 'description-text': 'testing', csrf_token: csrfToken });
 

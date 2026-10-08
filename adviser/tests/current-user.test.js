@@ -14,22 +14,22 @@ describe('navFor', () => {
     const current = (role, path) => navFor(role, path).filter(link => link.current).map(link => link.label);
 
     test('an adviser on a review page sees Interns as the current page', () => {
-        expect(current('adviser', '/ojt-dashboard/requirements-review/5')).toEqual(['Interns']);
+        expect(current('adviser', '/adviser/interns/5/requirements')).toEqual(['Interns']);
     });
 
     test('Dashboard is current only on the dashboard itself', () => {
-        expect(current('adviser', '/ojt-dashboard')).toEqual(['Dashboard']);
-        expect(current('adviser', '/ojt-dashboard/')).toEqual(['Dashboard']);
+        expect(current('adviser', '/adviser/dashboard')).toEqual(['Dashboard']);
+        expect(current('adviser', '/adviser/dashboard')).toEqual(['Dashboard']);
     });
 
     test('a dept head gets the dept head links', () => {
-        expect(navFor('dept_head', '/ojt-admin').map(link => link.label)).toEqual(['Overview', 'Advisers', 'Interns', 'About us']);
+        expect(navFor('dept_head', '/adviser/admin').map(link => link.label)).toEqual(['Overview', 'Advisers', 'Interns', 'About us']);
     });
 });
 
 describe('homeFor', () => {
     test('sends a dept head to the overview and an adviser to the dashboard', () => {
-        expect(homeFor('dept_head')).toBe('/ojt-admin');
-        expect(homeFor('adviser')).toBe('/ojt-dashboard');
+        expect(homeFor('dept_head')).toBe('/adviser/admin');
+        expect(homeFor('adviser')).toBe('/adviser/dashboard');
     });
 });

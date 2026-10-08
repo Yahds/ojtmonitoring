@@ -29,9 +29,9 @@ async function csrfTokenFrom(agent, url) {
 // logs in and returns an agent that remembers session cookie
 async function loginAs(app, email) {
     const agent = request.agent(app);
-    const csrfToken = await csrfTokenFrom(agent, '/ojt-login-page/');
+    const csrfToken = await csrfTokenFrom(agent, '/adviser/login');
     await agent
-        .post('/ojt-login-page')
+        .post('/adviser/login')
         .type('form')
         .send({ adviserEmail: email, password: TEST_PASSWORD, csrf_token: csrfToken });
     return agent;

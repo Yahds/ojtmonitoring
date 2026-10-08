@@ -14,7 +14,7 @@ let csrfToken;
 beforeAll(async () => {
     adviser = await createTestAdviser('enroll');
     agent = await loginAs(app, adviser.email);
-    csrfToken = await csrfTokenFrom(agent, '/ojt-dashboard/enroll');
+    csrfToken = await csrfTokenFrom(agent, '/adviser/interns');
 });
 
 afterAll(async () => {
@@ -28,7 +28,7 @@ afterAll(async () => {
 
 test('enrolling saves the student, the intern and all 7 requirements', async () => {
     const res = await agent
-        .post('/ojt-dashboard/enroll')
+        .post('/adviser/interns')
         .type('form')
         .send({ studentID: NEW_STUDENT_ID, name: 'Test Enroll', course: 'BSCS', year: '4', classcode: 'T1', password: 'pw123', csrf_token: csrfToken });
 
@@ -41,7 +41,7 @@ test('enrolling saves the student, the intern and all 7 requirements', async () 
 
 test('a failed enroll saves nothing', async () => {
     const res = await agent
-        .post('/ojt-dashboard/enroll')
+        .post('/adviser/interns')
         .type('form')
         .send({ studentID: FAILED_STUDENT_ID, name: 'Test Failed', course: 'BSCS', year: '4', classcode: 'T1', csrf_token: csrfToken });
 
@@ -54,15 +54,15 @@ test('a failed enroll saves nothing', async () => {
 
 test('after enrolling, the interns page shows a success message once', async () => {
     const res = await agent
-        .post('/ojt-dashboard/enroll')
+        .post('/adviser/interns')
         .type('form')
         .send({ studentID: FLASH_STUDENT_ID, name: 'Test Flash', course: 'BSIT', year: '4', classcode: 'T1', password: 'pw123', csrf_token: csrfToken });
-    expect(res.headers.location).toBe('/ojt-dashboard/enroll');
+    expect(res.headers.location).toBe('/adviser/interns');
 
-    const page = await agent.get('/ojt-dashboard/enroll');
+    const page = await agent.get('/adviser/interns');
     expect(page.text).toContain('Test Flash enrolled.');
 
-    const again = await agent.get('/ojt-dashboard/enroll');
+    const again = await agent.get('/adviser/interns');
     expect(again.text).not.toContain('class="flash');
 });
 
@@ -70,13 +70,13 @@ test('deploying an intern who is not ready shows an error instead of a blank pag
     const [[intern]] = await pool.query('SELECT internid FROM interns WHERE studentid = ?', [FLASH_STUDENT_ID]);
 
     const res = await agent
-        .post('/ojt-dashboard/deploy')
+        .post(`/adviser/interns/${intern.internid}/deploy`)
         .type('form')
-        .send({ internID: intern.internid, csrf_token: csrfToken });
+        .send({ csrf_token: csrfToken });
     expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/ojt-dashboard/enroll');
+    expect(res.headers.location).toBe('/adviser/interns');
 
-    const page = await agent.get('/ojt-dashboard/enroll');
+    const page = await agent.get('/adviser/interns');
     expect(page.text).toContain('Cannot deploy yet.');
 });
 

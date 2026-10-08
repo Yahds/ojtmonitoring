@@ -24,7 +24,7 @@ test('unknown page shows the 404 page', async () => {
 });
 
 test('adviser who opens a dept head page sees the 403 page', async () => {
-    const res = await agent.get('/ojt-admin');
+    const res = await agent.get('/adviser/admin');
     expect(res.status).toBe(403);
     expect(res.text).toContain('You do not have access to this page');
 });
