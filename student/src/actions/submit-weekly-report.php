@@ -1,61 +1,32 @@
 <?php
+// saves a weekly report: the week number, hours, what the intern did, and the signed file
 requireDeployed();
-
-$db = new DAO();
-
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    redirect('/weekly-reports');
-}
-
 verify_csrf();
 
-$internID = $_SESSION['internid'];
-$weeknumber = $_POST['weeknumber'] ?? null;
-$hours = $_POST['hours'] ?? null;
-$workdescription = $_POST['workdescription'] ?? '';
+$week = wholeNumberIn($_POST['weeknumber'] ?? null, 1, 52);
+$hours = wholeNumberIn($_POST['hours'] ?? null, 1, 168);
+$description = trim($_POST['workdescription'] ?? '');
+$file = $_FILES['report_file'] ?? null;
 
-if (!$weeknumber || !$hours) {
+if ($week === null) {
+    $error = 'Please enter a week number from 1 to 52.';
+} elseif ($hours === null) {
+    $error = 'Please enter the hours you worked, from 1 to 168.';
+} elseif (mb_strlen($description) > 500) {
+    $error = 'Please keep the work description within 500 characters.';
+} elseif ($file === null || $file['error'] === UPLOAD_ERR_NO_FILE) {
+    $error = 'Please attach your supervisor-signed weekly report.';
+} else {
+    $error = uploadError($file);
+}
+
+if ($error !== null) {
+    flash('error', $error);
     redirect('/weekly-reports');
 }
 
-$filePath = null;
+$fileName = saveUpload($file, 'weekly');
+(new DAO())->submitWeeklyReport($_SESSION['internid'], $week, $hours, $description, $fileName);
 
-if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] === UPLOAD_ERR_OK) {
-    $file = $_FILES['report_file'];
-
-    if ($file['size'] > 5 * 1024 * 1024) {
-        exit('File too large. Maximum size is 5MB.');
-    }
-
-    $allowed = [
-        'application/pdf' => 'pdf',
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'application/msword' => 'doc',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
-    ];
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mime = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
-
-    if (!isset($allowed[$mime])) {
-        exit('File type not allowed. Use PDF, JPG, PNG, DOC, or DOCX.');
-    }
-
-    $ext = $allowed[$mime];
-    $safeName = 'week_' . $internID . '_' . $weeknumber . '_' . time() . '.' . $ext;
-
-    if (!move_uploaded_file($file['tmp_name'], '/var/www/uploads/' . $safeName)) {
-        exit('Could not save the file.');
-    }
-
-    $filePath = $safeName;
-}
-
-if ($filePath === null) {
-    exit('Please attach the supervisor-signed weekly report.');
-}
-
-$db->submitWeeklyReport($internID, $weeknumber, $hours, $workdescription, $filePath);
-
+flash('success', "Your week $week report has been submitted for your adviser's review.");
 redirect('/weekly-reports');

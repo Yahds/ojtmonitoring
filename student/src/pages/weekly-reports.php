@@ -1,85 +1,71 @@
-<?php 
-    requireDeployed();
-    $db = new DAO();
-    $reports = $db->getWeeklyReports($_SESSION['internid']);
+<?php
+requireDeployed();
+$db = new DAO();
+$reports = $db->getWeeklyReports($_SESSION['internid']);
+$adviser = displayName($db->getInternProfile($_SESSION['internid'])['adviserName']);
+$nextWeek = $reports ? max(array_column($reports, 'weeknumber')) + 1 : 1;
+$title = 'Weekly reports';
+require __DIR__ . '/../views/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OJT Portal — Weekly Reports</title>
-    <link rel="stylesheet" href="/student/css/requirements.css">
-    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
-</head>
-<body id="main">
-    <header>
-        <nav class="navbar">
-            <div class="nav-logo">SAINT LOUIS UNIVERSITY</div>
-            <div class="nav-name"> <?php echo htmlspecialchars($_SESSION['studentName'])?></div>
-            <div class="nav-item">
-                <img src="../images/jannsen.png" alt="Profile" class="profile-image">
-            </div>
-        </nav>
-    </header>
-    <main class="container">
-        <aside class="left-nav">
-            <ol>
-                <li><a href="/student/dashboard">DASHBOARD</a></li>
-                <li><a href="/student/requirements">REQUIREMENTS</a></li>
-                <li><a href="/student/weekly-reports">WEEKLY REPORTS</a></li>
-                <li><a href="/student/journals">MONTHLY JOURNALS</a></li>
-                <li><a href="#">ABOUT US</a></li>
-            </ol>
-            <form action="/student/logout" method="post">
-                <input type="submit" value="Logout">
-            </form>
-        </aside>
-        <section>
-            <div class="intern-list-container">
-                <div class="table-label-filter">
-                    <div class="title">WEEKLY REPORTS</div>
-                </div>
+<h1 class="page-title">Weekly reports</h1>
+<p class="muted">Submit one report per week with your supervisor's signature. PDF, JPG, PNG, DOC or DOCX, up to 5 MB.</p>
 
-                <div class="requirement-card" style="background:#fff;border:1px solid #e0ddd4;border-radius:8px;padding:16px;margin-bottom:20px;">
-                    <strong style="color:#0D0464;font-size:16px;">Submit a weekly report</strong>
-                    <form action="/student/weekly-reports" method="POST" enctype="multipart/form-data" style="margin-top:10px;display:grid;gap:8px;max-width:420px;">
-                        <?php echo csrf_field(); ?>
-                        <label>Week number</label>
-                        <input type="number" name="weeknumber" min="1" required>
-                        <label>Hours worked this week</label>
-                        <input type="number" name="hours" min="0" required>
-                        <label>What you worked on</label>
-                        <textarea name="workdescription" rows="3" style="width:100%;box-sizing:border-box;"></textarea>
-                        <label>Supervisor-signed report (PDF, JPG, PNG, DOC, DOCX)</label>
-                        <input type="file" name="report_file" required>
-                        <button type="submit">Submit report</button>
-                    </form>
-                </div>
+<h2 class="section-title">Submit a report</h2>
+<section class="card card-pad">
+    <form class="form" action="/student/weekly-reports" method="post" enctype="multipart/form-data">
+        <?= csrf_field() ?>
+        <div class="field">
+            <label for="weeknumber">Week number</label>
+            <input class="input" id="weeknumber" type="number" name="weeknumber" min="1" max="52" value="<?= (int) $nextWeek ?>" required>
+        </div>
+        <div class="field">
+            <label for="hours">Hours worked this week</label>
+            <input class="input" id="hours" type="number" name="hours" min="1" max="168" required>
+        </div>
+        <div class="field">
+            <label for="workdescription">What you worked on <span class="muted">(optional)</span></label>
+            <textarea class="input" id="workdescription" name="workdescription" rows="3" maxlength="500"></textarea>
+        </div>
+        <div class="field">
+            <label for="report_file">Supervisor-signed report</label>
+            <input class="input" id="report_file" type="file" name="report_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-create btn-sm" type="submit">Submit report</button>
+        </div>
+    </form>
+</section>
 
-                <?php foreach ($reports as $report): ?>
-                    <div class="requirement-card" style="background:#fff;border:1px solid #e0ddd4;border-radius:8px;padding:16px;margin-bottom:14px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <strong style="color:#0D0464;font-size:16px;">Week <?php echo (int)$report['weeknumber']; ?> — <?php echo (int)$report['hours']; ?> hrs</strong>
-                            <span style="font-weight:600;"><?php echo htmlspecialchars($report['status']); ?></span>
-                        </div>
-                        <?php if (!empty($report['workdescription'])): ?>
-                            <p style="margin:8px 0;"><?php echo htmlspecialchars($report['workdescription']); ?></p>
-                        <?php endif; ?>
-                        <?php if (!empty($report['file_path'])): ?>
-                            <p style="margin:8px 0;">File:<a href="/student/weekly-reports/file?reportid=<?php echo (int)$report['reportid']; ?>">view</a></p>
-                        <?php endif; ?>
-                        <?php if (!empty($report['remark'])): ?>
-                            <p style="color:#8a6d0f;margin:8px 0;"><em>Adviser: <?php echo htmlspecialchars($report['remark']); ?></em></p>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-
-                <?php if (empty($reports)): ?>
-                    <p>No weekly reports submitted yet.</p>
+<h2 class="section-title">Your reports · <?= count($reports) ?></h2>
+<section class="card">
+    <?php if (!$reports): ?>
+        <div class="empty"><b>No reports yet</b>Your submitted weekly reports and your adviser's remarks will show up here.</div>
+    <?php endif; ?>
+    <?php foreach ($reports as $report): ?>
+        <article class="item">
+            <div class="item-head">
+                <h3>Week <?= (int) $report['weeknumber'] ?> · <?= (int) $report['hours'] ?> hrs</h3>
+                <?php if ($report['status'] === 'APPROVED'): ?>
+                    <span class="tag tag-ok">Approved</span>
+                <?php elseif ($report['status'] === 'REJECTED'): ?>
+                    <span class="tag tag-bad">Needs changes</span>
+                <?php else: ?>
+                    <span class="tag tag-warn">Waiting for review</span>
                 <?php endif; ?>
             </div>
-        </section>
-    </main>
-</body>
-</html>
+            <p class="meta">
+                Submitted <?= e($report['datesubmitted']) ?>
+                <?php if ($report['file_path']): ?>
+                    · <a href="/student/weekly-reports/file?reportid=<?= (int) $report['reportid'] ?>">View your file</a>
+                <?php endif; ?>
+            </p>
+            <?php if ($report['workdescription']): ?>
+                <p class="note"><?= e($report['workdescription']) ?></p>
+            <?php endif; ?>
+            <?php if ($report['remark']): ?>
+                <div class="remark"><?= e($adviser) ?>: “<?= e($report['remark']) ?>”</div>
+            <?php endif; ?>
+        </article>
+    <?php endforeach; ?>
+</section>
+<?php require __DIR__ . '/../views/footer.php'; ?>

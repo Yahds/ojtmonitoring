@@ -10,6 +10,7 @@ require_once __DIR__ . '/flash.php';
 require_once __DIR__ . '/nav.php';
 require_once __DIR__ . '/summary.php';
 require_once __DIR__ . '/uploads.php';
+require_once __DIR__ . '/validate.php';
 
 function redirect(string $path): never
 {
