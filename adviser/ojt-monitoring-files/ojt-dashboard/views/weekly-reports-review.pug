@@ -1,51 +1,37 @@
-meta(charset='UTF-8')
-meta(name='viewport' content='width=device-width, initial-scale=1.0')
-title Review Weekly Reports
-style.
-  body { font-family: system-ui, sans-serif; margin: 0; background: #eceae3; color: #2b2a33; }
-  .navbar { display: flex; align-items: center; justify-content: space-between; background: #0d0464; color: #fff; padding: 12px 20px; border-bottom: 3px solid #e1ad0f; }
-  .nav-logo { font-weight: 700; letter-spacing: .03em; }
-  main { padding: 24px; max-width: 640px; margin: 0 auto; }
-  h1 { color: #0d0464; }
-  a.back { color: #0d0464; text-decoration: none; font-weight: 600; }
-  .req-card { background: #fff; border: 1px solid #e0ddd4; border-radius: 8px; padding: 16px; margin-bottom: 14px; }
-  .req-head { display: flex; justify-content: space-between; align-items: center; }
-  .req-name { color: #0d0464; font-size: 16px; font-weight: 700; }
-  .status { font-weight: 600; }
-  .review-form { margin-top: 10px; display: grid; gap: 8px; }
-  .review-form textarea { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-  .actions { display: flex; gap: 8px; }
-  button.approve { background: #024708; color: #fff; border: none; border-radius: 6px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
-  button.reject { background: #8a1f1f; color: #fff; border: none; border-radius: 6px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
-header
-  nav.navbar
-    .nav-logo SAINT LOUIS UNIVERSITY
-main
-  a.back(href='/ojt-dashboard') ← Back to dashboard
-  if weeklyReports.length
-    h1 Weekly Reports — #{weeklyReports[0].studentName}
-  else
-    h1 Weekly Reports
-  each report in weeklyReports
-    .req-card
-      .req-head
-        .req-name Week #{report.weeknumber} — #{report.hours} hrs
-        .status #{report.status}
-      if report.datesubmitted
-        p Submitted: #{report.datesubmitted}
-      if report.workdescription
-        p #{report.workdescription}
-      if report.file_path
-        p
-          | Supervisor-signed file:&nbsp;
-          a(href=`/ojt-dashboard/weekly-report-file/${report.reportid}`) view
-      form.review-form(action=`/ojt-dashboard/weekly-reports-review/${internId}` method='POST')
-        input(type='hidden' name='csrf_token' value=csrfToken)
-        input(type='hidden' name='reportid' value=report.reportid)
-        label Adviser remark
-        textarea(name='remark' rows='2')= report.remark
-        .actions
-          button.approve(type='submit' name='decision' value='APPROVED') Approve
-          button.reject(type='submit' name='decision' value='REJECTED') Reject
-  if weeklyReports.length === 0
-    p No weekly reports submitted yet for this intern.
+extends ../../layouts/main
+
+block content
+  p.crumb
+    a(href='/ojt-dashboard/enroll') Interns
+    |  / Weekly reports
+  h1.page-title
+    | Weekly reports
+    if weeklyReports.length
+      |  · #{weeklyReports[0].studentName}
+
+  section.card
+    if weeklyReports.length === 0
+      .empty
+        b No weekly reports yet
+        | Reports show up here once the intern submits them.
+    each report in weeklyReports
+      article.item
+        .item-head
+          h3 Week #{report.weeknumber} · #{report.hours} hours
+          span.tag(class={ APPROVED: 'tag-ok', REJECTED: 'tag-bad', SUBMITTED: 'tag-warn' }[report.status])= report.status
+        if report.datesubmitted
+          p.meta Submitted #{report.datesubmitted}
+        if report.workdescription
+          p.note= report.workdescription
+        if report.file_path
+          p
+            a(href=`/ojt-dashboard/weekly-report-file/${report.reportid}`) View signed report
+        form.form(action=`/ojt-dashboard/weekly-reports-review/${internId}` method='POST')
+          input(type='hidden' name='csrf_token' value=csrfToken)
+          input(type='hidden' name='reportid' value=report.reportid)
+          .field
+            label(for=`remark-${report.reportid}`) Your remark
+            textarea.input(id=`remark-${report.reportid}` name='remark' rows='2')= report.remark
+          .btn-row
+            button.btn.btn-create.btn-sm(type='submit' name='decision' value='APPROVED') Approve
+            button.btn.btn-reject.btn-sm(type='submit' name='decision' value='REJECTED') Reject

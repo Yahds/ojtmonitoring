@@ -22,9 +22,20 @@ router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async
     try {
         const internId = req.params.internId;
         const { reportid, decision, remark } = req.body;
-        if (decision !== 'APPROVED' && decision !== 'REJECTED') return res.status(400).send("Invalid decision");
-        await updateWeeklyReportReview(reportid, req.session.adviserID, decision, remark);
-        res.redirect(`/ojt-dashboard/weekly-reports-review/${internId}`);
+        const backTo = `/ojt-dashboard/weekly-reports-review/${internId}`;
+
+        if (decision !== 'APPROVED' && decision !== 'REJECTED') {
+            req.flash('error', 'Choose Approve or Reject.');
+            return res.redirect(backTo);
+        }
+
+        const result = await updateWeeklyReportReview(reportid, req.session.adviserID, decision, remark);
+        if (result.affectedRows === 0) {
+            req.flash('error', 'That weekly report was not found.');
+        } else {
+            req.flash('success', decision === 'APPROVED' ? 'Weekly report approved.' : 'Weekly report rejected.');
+        }
+        res.redirect(backTo);
     } catch (error) {
         next(error);
     }

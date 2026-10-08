@@ -62,14 +62,20 @@ router.post("/ojt-dashboard/requirements-review/:internId", requireAuth, async (
     try {
         const internId = req.params.internId;
         const { reqid, decision, remarks } = req.body;
+        const backTo = `/ojt-dashboard/requirements-review/${internId}`;
 
         if (decision !== 'APPROVED' && decision !== 'REJECTED') {
-            return res.status(400).send("Invalid decision");
+            req.flash('error', 'Choose Approve or Reject.');
+            return res.redirect(backTo);
         }
 
-        await updateRequirementReview(internId, reqid, req.session.adviserID, decision, remarks);
-
-        res.redirect(`/ojt-dashboard/requirements-review/${internId}`);
+        const result = await updateRequirementReview(internId, reqid, req.session.adviserID, decision, remarks);
+        if (result.affectedRows === 0) {
+            req.flash('error', 'That requirement was not found.');
+        } else {
+            req.flash('success', decision === 'APPROVED' ? 'Requirement approved.' : 'Requirement rejected.');
+        }
+        res.redirect(backTo);
     } catch (error) {
         next(error);
     }
