@@ -6,3 +6,4 @@ services:
   student-php:
     volumes:
       - ./student:/app
+      - ./student:/var/www/html
