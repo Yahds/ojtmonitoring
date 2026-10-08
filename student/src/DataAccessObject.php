@@ -166,24 +166,20 @@ class DAO {
         return $statement->affected_rows;
     }
 
-    // used in updateCompany.php when intern has no company and needs to input the company information
-    // the company information is to be confirmed by the adviser or no
-    public function updateCompany($studentid, $companyName, $companyLocation) {
-        $query1 = "SELECT * FROM company WHERE companyname = ? AND companyaddress = ?";
-        $statement = $this->connection->prepare($query1);
-        $statement->bind_param("ss", $companyName, $companyLocation);
-        $statement->execute();
-        $row = $statement->get_result()->fetch_assoc();
-        $companyid = $row['companyid'];
-        
-        $query2 = "UPDATE interns SET companyid = ?, status = 'PENDING' WHERE interns.internid = ?";
-        $statement = $this->connection->prepare($query2);
-        $statement->bind_param("ii", $companyid, $studentid);
-        $statement->execute();
-
-        return $companyid;
+    // every company an intern can pick, sorted by name
+    public function getCompanies() {
+        $result = $this->connection->query("SELECT companyid, companyname, companyaddress FROM company ORDER BY companyname");
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
+    // saves the intern's chosen company; a deployed (ACTIVE) intern cannot change it
+    public function chooseCompany($internID, $companyID) {
+        $query = "UPDATE interns SET companyid = ?, status = 'PENDING' WHERE internid = ? AND status <> 'ACTIVE'";
+        $statement = $this->connection->prepare($query);
+        $statement->bind_param("ii", $companyID, $internID);
+        $statement->execute();
+        $statement->close();
+    }
 
     public function getCompanyID($studentid) {
         $query = "SELECT * from interns where studentid = ?";
@@ -191,13 +187,6 @@ class DAO {
         $statement->bind_param("i", $studentid);
         $statement->execute();
         $result = $statement->get_result();
-        return $result;
-    }
-
-    // retrieve company details
-    public function getCompanyData() {
-        $query = "SELECT companyname, companyaddress FROM company";
-        $result = $this->connection->query($query);
         return $result;
     }
     
@@ -257,7 +246,7 @@ class DAO {
     }
 
     public function getInternProfile($internID) {
-        $query = "SELECT s.studentName, s.course, s.classcode, c.companyname, a.adviserName, a.adviserEmail
+        $query = "SELECT s.studentName, s.course, s.classcode, i.companyid, c.companyname, a.adviserName, a.adviserEmail
                   FROM interns i
                   JOIN students s ON s.studentID = i.studentid
                   JOIN advisers a ON a.adviserID = i.adviserid

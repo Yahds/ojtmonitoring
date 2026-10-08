@@ -1,244 +1,57 @@
-<?php 
-    requireLogin();
-    if ($_SESSION['status'] === 'ACTIVE') {
-        redirect('/dashboard');
-    }
-    $db = new DAO();
-    $requirements = $db->getRequirements($_SESSION['internid']);
+<?php
+requireLogin();
+if ($_SESSION['status'] === 'ACTIVE') {
+    redirect('/dashboard');
+}
+$db = new DAO();
+$profile = $db->getInternProfile($_SESSION['internid']);
+$companies = $db->getCompanies();
+$summary = summarize($db->getRequirements($_SESSION['internid']), []);
+$todoCount = count($summary['todo']);
+$title = 'Choose company';
+require __DIR__ . '/../views/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OJT Portal</title>
-    <link rel="stylesheet" href="/student/css/chooseCompany.css">
-    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
-    <style>
-       .main-dashboard .intern-details .details .intern-name {
-            font-size: 30px;
-            font-weight: bold;
-            margin-top: 20px;
-            color: #0D0464;
-            text-align: center;
-        }
+<h1 class="page-title">Welcome, <?= e(displayName($profile['studentName'])) ?></h1>
+<p class="muted">To be deployed, select your company and complete your requirements. Your adviser reviews both.</p>
 
-        .company-msg-box{
-            display: flex;
-            justify-content: center;
-            height: 100%;
-            align-items: center;
-        }
+<h2 class="section-title">Step 1 · Company</h2>
+<section class="card card-pad">
+    <?php if ($profile['companyname']): ?>
+        <div class="item-head">
+            <p><b><?= e($profile['companyname']) ?></b></p>
+            <span class="tag tag-warn">Waiting for approval</span>
+        </div>
+        <p class="muted">Your adviser will confirm this company. You can still change it until then.</p>
+    <?php endif; ?>
+    <form class="form" action="/student/choose-company" method="post">
+        <?= csrf_field() ?>
+        <div class="field">
+            <label for="companyid"><?= $profile['companyname'] ? 'Change company' : 'Company where you were accepted' ?></label>
+            <select class="input" id="companyid" name="companyid" required>
+                <option value="">Select a company</option>
+                <?php foreach ($companies as $company): ?>
+                    <option value="<?= (int) $company['companyid'] ?>" <?= (int) $company['companyid'] === (int) $profile['companyid'] ? 'selected' : '' ?>>
+                        <?= e($company['companyname']) ?> · <?= e($company['companyaddress']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-create btn-sm" type="submit">Save company</button>
+        </div>
+    </form>
+</section>
 
-        .dashboard-slu-logo {
-            width: 10px;
-            margin-left: 0px;
-            animation-name: floating;
-            animation-duration: 1s;
-            animation-iteration-count: infinite;
-            animation-timing-function: ease-in-out;
-            margin-left: 0px;
-            margin-top: 5px;
-        }
-
-        @keyframes floating {
-            0% {
-                transform: translate(0, 0px);
-            }
-
-            50% {
-                transform: translate(0, 15px);
-            }
-
-            100% {
-                transform: translate(0, -0px);
-            }
-        }
-
-        .company-msg-box .dashboard-slu-logo{
-            display: flex;
-            justify-content: center;
-            
-        }
-
-        .company-under-review-msg-box p{
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 20px;
-            color: #0D0464;
-            text-align: center;
-            text-transform: uppercase;
-        }
-    </style>
-</head>
-<body id="main">
-    <header>
-        <nav class="navbar">
-            <div class="nav-logo">SAINT LOUIS UNIVERSITY</div>
-            <div class="nav-name">
-                <?php echo htmlspecialchars(isset($_SESSION['studentName']) ? $_SESSION['studentName'] : ''); ?>
-            </div>
-            <div class="nav-item">
-                <img src="#" alt="Profile" class="profile-image">
-            </div>
-        </nav>
-    </header>
-    <main class="container">
-        <aside class="left-nav">
-            <ol>
-                <li><a href="/student/dashboard">DASHBOARD</a></li>
-                <li><a href="/student/requirements">REQUIREMENTS</a></li>
-                <li><a href="#">ABOUT US</a></li>
-            </ol>
-
-            <img src="../" alt="">
-        </aside>
-        <section>
-        <div class="main-dashboard">
-                <div class="main-dashboard-content">
-                    <div class="main-dashboard-title">DASHBOARD</div>
-                    <div class="intern-details">
-                        <div class="bg-image">
-                            <div class="blue-shade">
-                                <img src="/student/ojt-images/maryheights.jpg" alt="maryheights">
-                            </div>
-                        </div>
-                        <?php
-                            if ($_SESSION['status'] == "PENDING" && $_SESSION['companyid'] != null) {
-                                echo '<div class="details">';
-                                echo '    <div class="intern-name">';
-                                echo '        ' . htmlspecialchars(isset($_SESSION['studentName']) ? $_SESSION['studentName'] : '');
-                                echo '    </div>';
-                                echo '    <div class="yellow-horizontal bar"></div>';
-                                echo '    <div class="intern-title">INTERN</div>';
-                                echo '    <div class="company-msg-box">';
-                                echo '        <div class="dashboard-slu-logo">';
-                                echo '            <img src="/student/ojt-images/slu-logo.png" alt="slu logo">';
-                                echo '        </div>';
-                                echo '        <div class="company-under-review-msg-box">';
-                                echo '            <p>Congratulations! Your chosen company is under review.</p>';
-                                echo '            <p>Kindly wait for confirmation from your adviser.</p>';
-                                echo '        </div>';
-                                echo '    </div>';
-                                echo '</div>';
-                            }  else{
-                                echo '<div class="details" ' . ($_SESSION['status'] == "PENDING" && $_SESSION['companyid'] != null ? 'style="display:none;"' : '') . '>';
-                                echo '    <div class="intern-name">';
-                                echo '        ' . htmlspecialchars(isset($_SESSION['studentName']) ? $_SESSION['studentName'] : '');
-                                echo '    </div>';
-                                echo '    <div class="yellow-horizontal bar"></div>';
-                                echo '    <div class="intern-title">INTERN</div>';
-                                echo '    <div class="db-time-and-date">';
-                                echo '        <div class="dashboard-slu-logo">';
-                                echo '            <img src="/student/ojt-images/slu-logo.png" alt="slu logo">';
-                                echo '        </div>';
-                                echo '        <div class="dashboard-time">';
-                                echo '            <div class="time-text">TIME</div>';
-                                echo '            <div id="current-time">10:22:31 GMT+7</div>';
-                                echo '        </div>';
-                                echo '        <div class="dashboard-date">';
-                                echo '            <div class="date-text">DATE</div>';
-                                echo '            <div id="current-date">MONDAY, 20 NOVEMBER 2023</div>';
-                                echo '        </div>';
-                                echo '    </div>';
-                                echo '    <div class="chooseCompany-box">';
-                                echo '        <label for="dropdown" class="chooseCompany-title">COMPANY</label>';
-                                echo '        <div class="company-dropdown-box">';
-                                echo '            <select id="dropdown" name="companySelect" onchange="updateCompanyId()">';
-                                echo '                <option value=\'default\' data-view=\'default\'>Choose company here...</option>';
-
-                                $companyData = $db->getCompanyData();
-
-                                if ($companyData->num_rows > 0) {
-                                    $row = $companyData->fetch_assoc();
-                                    do {
-                                        $companyName = $row['companyname'];
-                                        $companyAddress = $row['companyaddress'];
-                                        $optionValue = htmlspecialchars("$companyName - $companyAddress");
-                                        echo "                <option value='$optionValue' data-view='company'>$optionValue</option>";
-                                    } while ($row = $companyData->fetch_assoc());
-                                } else {
-                                    echo "                <option value='default' data-view='default'>Choose company here...</option>";
-                                }
-
-                                echo '            </select>';
-                                echo '        </div>';
-                                echo '        <div id="companyData" style="display: none;"></div>';
-                                echo '    </div>';
-                                echo '</div>';
-                                echo '</div>';
-                            }
-                        ?>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-    <script>
-
-        // Displays the current time with respect to UTC+8 time zone
-        function updateCurrentTime() {
-            var now = new Date();
-            var hours = now.getUTCHours() + 8;
-            var minutes = now.getUTCMinutes();
-            var seconds = now.getUTCSeconds();
-            // Adjust hours to wrap around 24
-            hours = hours % 24;
-            // Format minutes and seconds to always be two digits
-            minutes = minutes < 10 ? '0' + minutes : minutes;
-            seconds = seconds < 10 ? '0' + seconds : seconds;
-            var currentTimeString = hours + ':' + minutes + ':' + seconds + ' UTC+8';
-            document.getElementById('current-time').textContent = currentTimeString;
-        }
-
-        setInterval(updateCurrentTime, 1000);
-        updateCurrentTime();
-
-        // Displays current date from device
-        function updateCurrentDate() {
-            var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            var currentDate = new Date().toLocaleDateString('en-US', options);
-            document.getElementById('current-date').textContent = currentDate;
-        }
-        updateCurrentDate();
-
-        // update the companyid of the intern using the selected company in the dropdown
-        function updateCompanyId() {
-            var dropdown = document.getElementById('dropdown');
-            var selectedOption = dropdown.options[dropdown.selectedIndex].value;
-
-            if (selectedOption !== 'default') {
-                console.log('Selected Option:', selectedOption);
-                var [companyName, companyAddress] = selectedOption.split(' - ');
-                console.log('Company Name:', companyName);
-                console.log('Company Address:', companyAddress);
-
-                var xhr = new XMLHttpRequest();
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        var companyId = xhr.responseText;
-                        displaySuccessMessage('Company information updated successfully.');
-                    } else {
-                    console.error('Failed to update Company ID.');
-                    }
-                };
-
-                var data = 'companyName=' + encodeURIComponent(companyName) +
-                        '&companyLocation=' + encodeURIComponent(companyAddress) +
-                        '&csrf_token=' + encodeURIComponent('<?php echo csrf_token(); ?>');
-
-                xhr.open('POST', '/student/choose-company', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                console.log('Data:', data);
-                xhr.send(data);
-            }
-        }
-
-        function displaySuccessMessage(message) {
-                alert(message);
-                location.reload();
-        }
-
-    </script>
-</body>
-</html>
+<h2 class="section-title">Step 2 · Requirements</h2>
+<section class="card card-pad">
+    <p>
+        <b><?= $summary['requirementsApproved'] ?> of <?= $summary['requirementsTotal'] ?></b> requirements approved
+        <?php if ($todoCount > 0): ?>
+            · <?= $todoCount ?> <?= $todoCount === 1 ? 'needs' : 'need' ?> your action
+        <?php endif; ?>
+    </p>
+    <div class="btn-row">
+        <a class="btn btn-create btn-sm" href="/student/requirements">View requirements</a>
+    </div>
+</section>
+<?php require __DIR__ . '/../views/footer.php'; ?>

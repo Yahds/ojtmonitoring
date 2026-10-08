@@ -19,6 +19,5 @@ $_SESSION['studentName'] = $row['studentName'];
 $_SESSION['course'] = $row['course'];
 $_SESSION['year'] = $row['year'];
 $_SESSION['internid'] = $row['internid'];
-$_SESSION['companyid'] = $row['companyid'];
 $_SESSION['status'] = $row['status'];
 redirect('/');
