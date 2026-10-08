@@ -15,7 +15,9 @@ html(lang='en')
       .shell
         include ../partials/sidebar
         main.content#main
+          include ../partials/flash
           block content
     else
       main.content#main
+        include ../partials/flash
         block content
