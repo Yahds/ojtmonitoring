@@ -1,176 +1,113 @@
-<?php 
-    requireDeployed();
-    $db = new DAO();
+<?php
+requireDeployed();
+$db = new DAO();
+$profile = $db->getInternProfile($_SESSION['internid']);
+$summary = summarize($db->getRequirements($_SESSION['internid']), $db->getWeeklyReports($_SESSION['internid']));
+$announcements = $db->getAnnouncementsForIntern($_SESSION['internid']);
+$target = targetHoursFor($profile['course']);
+$adviser = displayName($profile['adviserName']);
+$todoCount = count($summary['todo']);
+$title = 'Dashboard';
+require __DIR__ . '/../views/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OJT Portal</title>    
-    <link rel="stylesheet" href="/student/css/dashboard.css">
-    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
-</head>
-<body id="main">
-    <!--Header-->
-    <header>
-        <nav class="navbar">
-            <div class="nav-logo">SAINT LOUIS UNIVERSITY</div>
-            <div class="nav-name"> <?php echo htmlspecialchars($_SESSION['studentName'])?></div>
-            <div class="nav-item">
-                <img src="/student/ojt-images/jannsen.png" alt="Profile" class="profile-image">
-            </div>
-        </nav>
-    </header>
-
-    <!--Main Container-->
-    <main class="container">
-    
-    <!--Side Bar-->
-    <aside class="left-nav">
-            <ol>
-                <?php 
-                    echo "<li><a href='/student/dashboard'>DASHBOARD</a></li>";
-                    echo "<li><a href='/student/requirements'>REQUIREMENTS</a></li>";
-                    echo "<li><a href='/student/weekly-reports'>WEEKLY REPORTS</a></li>";
-                    echo "<li><a href='/student/journals'>MONTHLY JOURNALS</a></li>";
-                    echo "<li><a href='#'>ABOUT US</a></li>";
-                ?>
-            </ol>
-
-            <!--Logout Button-->
-            <img src="../" alt="">
-            <form action="/student/logout" method="post">
-                <input type="submit" value="Logout">
-            </form>
-        </aside>
-
-        <!--Middle Content-->
-        <section class="section">
-
-            <div class="main-dashboard">
-                <div class="main-dashboard-content">
-
-                    <div class="main-dashboard-title">DASHBOARD</div>
-
-                        <div class="intern-details">
-                        <div class="bg-image">
-                            <div class="blue-shade">
-                                <img src="/student/ojt-images/maryheights.jpg" alt="maryheights">
-                            </div>
-                        </div>
-                        
-                        <div class="details">
-
-                            <div class="top-div">
-                                <div class="dashboard-slu-logo">
-                                    <img src="/student/ojt-images/slu-logo.png" alt="slu logo">
-                                </div>
-
-                                <div>
-                                    <div class="adviser-name"><?php echo htmlspecialchars($_SESSION["studentName"])?></div>
-                                    <p class="intern-p">Intern</p>
-
-                                    <p>COMPANY</p>
-                                    <?php
-                                        // Fetch the company name based on companyid 
-                                        $companyId = $_SESSION['companyid'];
-                                        $companyInfo = $db->getCompanyInfoById($companyId);
-                                        echo "<div class='company-name'>" . htmlspecialchars($companyInfo['companyname']) . "</div>";
-                                    ?>
-                                </div>
-                                    
-                                <div class="total-hours">
-                                    <div class="circle">
-                                        <?php
-                                        $internID = $_SESSION['internid'];
-                                        $totalHours = $db->getTotalHours($internID);
-
-                                        // Display the total hours 
-                                        echo "<p>$totalHours</p>";
-                                        ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+<div class="dash">
+    <div class="dash-main">
+        <section class="card hero">
+            <div class="hero-banner" role="img" aria-label="Saint Louis University campus"></div>
+            <div class="hero-body">
+                <img src="/assets/img/slu-logo.png" alt="Saint Louis University crest">
+                <div>
+                    <h1 class="hero-name"><?= e(displayName($profile['studentName'])) ?></h1>
+                    <div class="hero-divider"></div>
+                    <div class="hero-meta">
+                        Intern · <?= e($profile['course']) ?> · Section <?= e($profile['classcode']) ?> · <?= e($profile['companyname'] ?? 'No company yet') ?>
                     </div>
-
-                    <div class="date-and-time">
-                        <div class="db-time-and-date">
-
-                            <div class="dashboard-time-date">
-                                <div class="time-text-date">
-                                    TIME
-                                </div>
-                                    
-                                <p id="currentTime"></p>
-                                <p id="currentDate"></p>
-
-                                </div>
-                                        
-                                <div class="dashboard-location">
-                                    <div class="date-text">
-                                        LOCATION
-                                    </div>
-
-                                    <?php
-                                        // Fetch the company address based on companyid 
-                                        $companyId = $_SESSION['companyid'];
-                                        $companyInfo = $db->getCompanyInfoById($companyId);
-                                        echo "<div class='company-location'>". htmlspecialchars($companyInfo['companyaddress']) ."</div>";
-                                    ?>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                </div>
+                <div class="clock">
+                    <div><div class="k">Time</div><div class="v" id="clock-time">&nbsp;</div></div>
+                    <div><div class="k">Date</div><div class="v" id="clock-date">&nbsp;</div></div>
                 </div>
             </div>
         </section>
 
-        <!--Announcement Board-->
-        <section class="third-column">
-            <h2>Announcement Board</h2>
-            <div class="announcement-board">
-                <?php
-                // Fetch announcements for the logged-in intern based on their internid
-                $internID = $_SESSION['internid'];
-                $announcements = $db->getAnnouncementsForIntern($internID);
+        <section class="card">
+            <div class="card-head">
+                <h2>To do <span class="sub"><?= $todoCount ?> <?= $todoCount === 1 ? 'thing' : 'things' ?></span></h2>
+            </div>
+            <?php if ($todoCount === 0): ?>
+                <div class="empty"><b>You are all caught up</b>Nothing needs your action right now.</div>
+            <?php else: ?>
+                <ul class="todo">
+                    <?php foreach ($summary['todo'] as $requirement): ?>
+                        <li>
+                            <div>
+                                <?php if ($requirement->status === 'REJECTED'): ?>
+                                    <b><?= e($requirement->reqName) ?> needs changes</b>
+                                    <?php if ($requirement->remarks): ?>
+                                        <div class="remark"><?= e($adviser) ?>: “<?= e($requirement->remarks) ?>”</div>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <b><?= e($requirement->reqName) ?></b>
+                                    <span class="d">Not submitted yet</span>
+                                <?php endif; ?>
+                            </div>
+                            <a class="btn btn-outline btn-sm" href="/student/requirements">
+                                <?= $requirement->status === 'REJECTED' ? 'Upload new version' : 'Upload' ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </section>
 
-                if (!empty($announcements)) {
-                    foreach ($announcements as $announcement) {
-                        echo '<div class="announcement">';
-                        echo '<h3>' . htmlspecialchars($announcement['subject']) . '</h3>';
-                        echo '<p>Date: ' . $announcement['date'] . '</p>';
-                        echo '<p>' . htmlspecialchars($announcement['message']) . '</p>';
-                        echo '</div>';
-                    }
-                } else {
-                    echo '<p>No announcements found.</p>';
-                }
-                ?>
+        <section class="prog" aria-label="Progress">
+            <div class="card">
+                <div class="k">Approved hours</div>
+                <div class="big"><?= $summary['approvedHours'] ?><?php if ($target): ?> <small>/ <?= $target ?></small><?php endif; ?></div>
+                <?php if ($target): ?>
+                    <div class="bar"><span style="width: <?= min(100, round($summary['approvedHours'] / $target * 100)) ?>%"></span></div>
+                    <div class="d">
+                        <?= $summary['approvedHours'] >= $target ? 'Target reached' : ($target - $summary['approvedHours']) . ' hours to go' ?>
+                        · <?= $summary['waitingHours'] ?> hours waiting for review
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="card">
+                <div class="k">Weekly reports</div>
+                <div class="big"><?= $summary['reportsApproved'] ?> <small>approved</small></div>
+                <div class="d"><?= $summary['reportsWaiting'] ?> waiting for review</div>
+            </div>
+            <div class="card">
+                <div class="k">Requirements</div>
+                <div class="big"><?= $summary['requirementsApproved'] ?> <small>/ <?= $summary['requirementsTotal'] ?> approved</small></div>
+                <div class="d"><?= $summary['requirementsWaiting'] ?> waiting · <?= $summary['requirementsNeedChanges'] ?> need changes</div>
+            </div>
+        </section>
+    </div>
+
+    <aside class="dash-side" aria-label="Adviser and announcements">
+        <section class="card card-pad">
+            <h2 class="section-title">Your adviser</h2>
+            <div class="person">
+                <b><?= e($adviser) ?></b>
+                <span><?= e($profile['adviserEmail']) ?></span>
             </div>
         </section>
 
-    </main>
-</body>
-
-<script>
-    function updateDateTime() {
-      var currentDateTime = new Date();
-      var date = currentDateTime.toDateString();
-      var time = currentDateTime.toLocaleTimeString();
-      
-      document.getElementById("currentDate").innerHTML = date;
-      document.getElementById("currentTime").innerHTML = time;
-    }
-    
-    setInterval(updateDateTime, 1000);
-    
-    // Initialize the date and time
-    window.onload = function() {
-      updateDateTime();
-    };
-
-  </script>
-  
-</html>
+        <section class="card">
+            <div class="card-head"><h2>Announcements</h2></div>
+            <?php if (!$announcements): ?>
+                <div class="empty"><b>No announcements yet</b>Posts from your adviser will show up here.</div>
+            <?php endif; ?>
+            <?php foreach ($announcements as $announcement): ?>
+                <article class="item">
+                    <h3><?= e($announcement['subject']) ?></h3>
+                    <p class="meta"><?= e((string) $announcement['date']) ?></p>
+                    <p><?= e($announcement['message']) ?></p>
+                </article>
+            <?php endforeach; ?>
+        </section>
+    </aside>
+</div>
+<script src="/assets/js/clock.js" defer></script>
+<?php require __DIR__ . '/../views/footer.php'; ?>

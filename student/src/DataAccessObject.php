@@ -255,6 +255,22 @@ class DAO {
         $statement->close();
         return $announcements;
     }
+
+    public function getInternProfile($internID) {
+        $query = "SELECT s.studentName, s.course, s.classcode, c.companyname, a.adviserName, a.adviserEmail
+                  FROM interns i
+                  JOIN students s ON s.studentID = i.studentid
+                  JOIN advisers a ON a.adviserID = i.adviserid
+                  LEFT JOIN company c ON c.companyid = i.companyid
+                  WHERE i.internid = ?";
+        $statement = $this->connection->prepare($query);
+        $statement->bind_param("i", $internID);
+        $statement->execute();
+        $row = $statement->get_result()->fetch_assoc();
+        $statement->close();
+        return $row;
+    }
+
 }
 
 

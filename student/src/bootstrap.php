@@ -8,6 +8,7 @@ require_once __DIR__ . '/require-login.php';
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/flash.php';
 require_once __DIR__ . '/nav.php';
+require_once __DIR__ . '/summary.php';
 
 function redirect(string $path): never
 {

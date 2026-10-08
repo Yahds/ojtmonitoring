@@ -109,4 +109,12 @@ class StudentDataTest extends TestCase
     {
         $this->assertNull($this->dao->getInternStatus(999999));
     }
+
+        public function testProfileHasTheCompanyAndTheAdviser(): void
+    {
+        $profile = $this->dao->getInternProfile(self::MARIA);
+
+        $this->assertSame('Microsoft', $profile['companyname']);
+        $this->assertSame('Stevens, Amelia', $profile['adviserName']);
+    }
 }

@@ -176,3 +176,43 @@ th:last-child, td:last-child { padding-right: 24px; }
 .landing h1 { color: var(--navy); font-size: 26px; }
 .landing .lead { color: var(--muted); margin: 0 0 8px; }
 .landing-choices { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 340px; }
+
+/* ---------- student dashboard ---------- */
+.dash { display: grid; gap: 18px; }
+.dash-main, .dash-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.hero { overflow: hidden; }
+.hero-banner { height: 64px; background: url("/assets/img/maryheights.jpg") center 38% / cover; }
+.hero-body { display: grid; grid-template-columns: 1fr; gap: 16px; padding: 20px; }
+.hero-body img { width: 56px; }
+.hero-name { font-size: 22px; font-weight: 700; color: var(--navy); }
+.hero-divider { width: 64px; height: 3px; background: var(--gold); margin: 8px 0; border-radius: 2px; }
+.hero-meta { color: var(--muted); font-size: 14px; }
+.clock { display: flex; gap: 32px; }
+.clock .k, .prog .k { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.clock .v { font-size: 17px; font-weight: 700; color: var(--navy); }
+.card-head .sub { font-size: 13px; color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 8px; }
+.todo { list-style: none; margin: 0; padding: 0 12px 12px; }
+.todo li { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 12px; border-radius: 10px; }
+.todo li:hover { background: var(--soft); }
+.todo b { display: block; font-size: 14.5px; font-weight: 600; }
+.todo .d { font-size: 13px; color: var(--muted); }
+.remark { margin-top: 6px; font-size: 13.5px; background: #fbf6e9; border-left: 3px solid var(--gold); padding: 6px 10px; border-radius: 4px; }
+.prog { display: grid; gap: 16px; }
+.prog .card { padding: 18px 20px; }
+.prog .big { font-size: 30px; font-weight: 800; color: var(--navy); line-height: 1.15; }
+.prog .big small { font-size: 15px; color: var(--muted); font-weight: 600; }
+.prog .d { font-size: 13px; color: var(--muted); }
+.bar { height: 8px; margin: 10px 0 6px; border-radius: 99px; background: #ebebef; overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--navy); border-radius: 99px; }
+.person b { display: block; margin-top: 6px; }
+.person span { font-size: 13.5px; color: var(--muted); }
+
+@media (min-width: 700px) {
+  .hero-body { grid-template-columns: 64px 1fr auto; align-items: center; gap: 20px; padding: 20px 28px 22px; }
+  .hero-body img { width: 64px; }
+  .hero-name { font-size: 26px; }
+  .prog { grid-template-columns: 1.4fr 1fr 1fr; }
+}
+@media (min-width: 1200px) {
+  .dash { grid-template-columns: 1fr 320px; align-items: start; }
+}
