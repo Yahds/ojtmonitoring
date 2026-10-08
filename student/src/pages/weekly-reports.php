@@ -1,5 +1,5 @@
 <?php 
-    requireDeployed();;
+    requireDeployed();
     $db = new DAO();
     $reports = $db->getWeeklyReports($_SESSION['internid']);
 ?>
