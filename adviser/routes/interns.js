@@ -12,7 +12,7 @@ router.get('/ojt-dashboard/enroll', requireAuth, async (req, res, next) => {
         const adviser = await fetchAdviser(req.session.adviserID);
         const interns = await fetchInternsByAdviser(req.session.adviserID);
         if(adviser){
-            res.render('ojt-dashboard/views/interns', {adviser, interns})
+            res.render('ojt-dashboard/views/interns', { title: 'Interns', interns })
         } else {
             res.redirect('/ojt-login-page');
         }
@@ -48,7 +48,8 @@ router.post('/ojt-dashboard/enroll', requireAuth, async (req, res, next) => {
     try {
         const student = { id: studentID, name, course, year, classcode };
         await enrollIntern(student, req.session.adviserID, password);
-        res.redirect('/ojt-dashboard');
+        req.flash('success', `${name} enrolled.`);
+        res.redirect('/ojt-dashboard/enroll');
     } catch (error){
         next(error);
     }
@@ -58,9 +59,11 @@ router.post('/ojt-dashboard/deploy', requireAuth, async (req, res, next) => {
     try {
         const internID = req.body.internID;
         const result = await deployIntern(internID, req.session.adviserID);
-        if (result.affectedRows == 0) {
-            return res.status(400).send('Cannot deploy: the intern must have a chosen company and an approved endorsement');
+        if (result.affectedRows === 0) {
+            req.flash('error', 'Cannot deploy yet. The intern needs a chosen company and an approved endorsement letter.');
+            return res.redirect('/ojt-dashboard/enroll');
         }
+        req.flash('success', 'Intern deployed.');
         res.redirect('/ojt-dashboard/enroll');
     } catch (error) {
         next(error);
