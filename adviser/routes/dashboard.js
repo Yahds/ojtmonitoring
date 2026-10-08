@@ -44,7 +44,7 @@ router.get("/ojt-dashboard", requireAdviser, async (req, res, next) => {
                 unassignedRequirementsMap
             });
         } else {
-            res.redirect('/ojt-login-page');
+            res.redirect('/adviser/login');
         }
 
     } catch (error) {
@@ -88,7 +88,7 @@ router.get("/ojt-about-us", requireAuth, async (req, res, next) => {
            
             res.render('ojt-about-us/index', { adviser })
         } else {
-            res.redirect('/ojt-login-page');
+            res.redirect('/adviser/login');
         }
     } catch (error) {
         next(error);

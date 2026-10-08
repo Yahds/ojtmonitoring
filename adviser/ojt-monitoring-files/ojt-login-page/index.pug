@@ -18,7 +18,7 @@ block page
       include ../partials/flash
       if error
         .flash.flash-error(role='alert')= error
-      form.form(action='/ojt-login-page' method='POST')
+      form.form(action='/adviser/login' method='POST')
         input(type='hidden' name='csrf_token' value=csrfToken)
         .field
           label(for='email') Email

@@ -27,7 +27,7 @@ test('a logged-in adviser can open the dashboard', async () => {
     expect(res.status).toBe(200);
 });
 
-test.each(['/', '/ojt-login-page/'])('logged-in GET %s redirects to the dashboard without loading the login page', async (url) => {
+test.each(['/', '/adviser/login'])('logged-in GET %s redirects to the dashboard without loading the login page', async (url) => {
     const agent = await loginAs(app, adviser.email);
     fetchStudentsCalls.mockClear();
 
@@ -44,11 +44,11 @@ test('logging again in the same browser starts a new session', async () => {
     const form = { adviserEmail: adviser.email, password: TEST_PASSWORD };
     const sessionId = (res) => res.headers['set-cookie'][0].split(';')[0];
 
-    const firstToken = await csrfTokenFrom(agent, '/ojt-login-page/');
-    const first = await agent.post('/ojt-login-page').type('form').send({ ...form, csrf_token: firstToken });
+    const firstToken = await csrfTokenFrom(agent, '/adviser/login');
+    const first = await agent.post('/adviser/login').type('form').send({ ...form, csrf_token: firstToken });
 
     const secondToken = await csrfTokenFrom(agent, '/ojt-dashboard/');
-    const second = await agent.post('/ojt-login-page').type('form').send({ ...form, csrf_token: secondToken });
+    const second = await agent.post('/adviser/login').type('form').send({ ...form, csrf_token: secondToken });
 
     expect(second.headers['set-cookie']).toBeDefined();
     expect(sessionId(second)).not.toBe(sessionId(first));
@@ -64,10 +64,10 @@ test('dept head is sent to the overview, not the adviser dashboard', async () =>
 
 test('wrong password shows the login page again with a general error', async () => {
     const agent = request.agent(app);
-    const csrfToken = await csrfTokenFrom(agent, '/ojt-login-page/');
+    const csrfToken = await csrfTokenFrom(agent, '/adviser/login');
 
     const res = await agent
-        .post('/ojt-login-page')
+        .post('/adviser/login')
         .type('form')
         .send({ adviserEmail: adviser.email, password: 'wrong-password', csrf_token: csrfToken });
 

@@ -18,7 +18,7 @@ afterAll(async () => {
 
 test('logging in without a CSRF token is rejected', async () => {
     const res = await request(app)
-        .post('/ojt-login-page')
+        .post('/adviser/login')
         .type('form')
         .send({ adviserEmail: adviser.email, password: TEST_PASSWORD });
     expect(res.status).toBe(403);

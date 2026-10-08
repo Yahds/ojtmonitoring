@@ -8,27 +8,29 @@ afterAll(async () => {
 });
 
 describe('route smoke tests', () => {
-    test('GET /ojt-login-page serves the login page (public)', async () => {
-        const res = await request(app).get('/ojt-login-page/');
+    test('GET /adviser/login serves the login page (public)', async () => {
+        const res = await request(app).get('/adviser/login');
         expect(res.status).toBe(200);
     });
 
     test('GET /ojt-dashboard redirects to login when not authenticated (protected)', async () => {
         const res = await request(app).get('/ojt-dashboard/');
         expect(res.status).toBe(302);
-        expect(res.headers.location).toBe('/ojt-login-page');
+        expect(res.headers.location).toBe('/adviser/login');
     });
 
-    test('GET / serves the login page (public)', async () => {
+    test('GET / shows the landing page with both logins (public)', async () => {
         const res = await request(app).get('/');
         expect(res.status).toBe(200);
+        expect(res.text).toContain('href="/student/"');
+        expect(res.text).toContain('href="/adviser/login"');
     });
 
-    test('POST /ojt-login-page with wrong credentials is rejected', async () => {
+    test('POST /adviser/login with wrong credentials is rejected', async () => {
         const agent = request.agent(app);
-        const csrfToken = await csrfTokenFrom(agent, '/ojt-login-page/');
+        const csrfToken = await csrfTokenFrom(agent, '/adviser/login');
         const res = await agent
-            .post('/ojt-login-page')
+            .post('/adviser/login')
             .type('form')
             .send({ adviserEmail: 'nobody@example.com', password: 'wrong', csrf_token: csrfToken });
         expect(res.status).toBe(401);
@@ -58,15 +60,15 @@ describe('route smoke tests', () => {
         ['post', '/ojt-dashboard/postannouncement'],
         ['post', '/ojt-dashboard/deleteannouncement'],
         ['get', '/ojt-about-us/'],
-        ['get', '/logout'],
+        ['get', '/adviser/logout'],
     ];
 
     test.each(protectedRoutes)('%s %s redirects to login when not authenticated', async (method, url) => {
         const agent = request.agent(app);
-        const csrfToken = await csrfTokenFrom(agent, '/ojt-login-page/');
+        const csrfToken = await csrfTokenFrom(agent, '/adviser/login');
         const res = await agent[method](url).set('X-CSRF-Token', csrfToken);
         expect(res.status).toBe(302);
-        expect(res.headers.location).toBe('/ojt-login-page');
+        expect(res.headers.location).toBe('/adviser/login');
     });
 
     // static folders should serve stylesheets and images only
@@ -95,7 +97,7 @@ describe('route smoke tests', () => {
     });
 
     test('the login page form includes a CSRF token', async () => {
-        const res = await request(app).get('/ojt-login-page/');
+        const res = await request(app).get('/adviser/login');
         expect(res.text).toMatch(/name="csrf_token" value="[0-9a-f]{64}"/);
     });
 

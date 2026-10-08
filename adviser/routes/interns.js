@@ -14,7 +14,7 @@ router.get('/ojt-dashboard/enroll', requireAdviser, async (req, res, next) => {
         if(adviser){
             res.render('ojt-dashboard/views/interns', { title: 'Interns', interns })
         } else {
-            res.redirect('/ojt-login-page');
+            res.redirect('/adviser/login');
         }
     } catch (error) {
         next(error);

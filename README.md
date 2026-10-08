@@ -48,7 +48,7 @@ You need **Docker Desktop** (which includes Docker Compose).
    ```
    The first start builds the database by running the Flyway migrations in `db/migrations/`, then adds demo data from `db/demo-data/`.
 4. Open:
-   - Adviser and department head: http://localhost:8080/ojt-login-page/
+   - Adviser and department head: http://localhost:8080/adviser/login
    - Student: http://localhost:8080/student/
 
 ### Demo logins
