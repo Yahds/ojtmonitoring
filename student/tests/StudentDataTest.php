@@ -27,6 +27,7 @@ class StudentDataTest extends TestCase
         $this->db->query("DELETE FROM weeklyreports WHERE internid = " . self::JOSE);
         $this->db->query("DELETE FROM journals WHERE internid = " . self::JOSE);
         $this->db->query("DELETE FROM weeklyreports WHERE file_path = 'test-maria-report.pdf'");
+        $this->db->query("UPDATE interns SET status = 'PENDING' WHERE internid = " . self::JOSE);
         $this->db->close();
     }
 
@@ -97,4 +98,15 @@ class StudentDataTest extends TestCase
         $this->assertNull($this->dao->getWeeklyReportFile(self::JOSE, $mariasReportId));
     }
 
+    public function testInternStatusIsReadFromTheDatabase(): void
+    {
+        $this->db->query("UPDATE interns SET status = 'ACTIVE' WHERE internid = " . self::JOSE);
+
+        $this->assertSame('ACTIVE', $this->dao->getInternStatus(self::JOSE));
+    }
+
+    public function testAnInternThatDoesNotExistHasNoStatus(): void
+    {
+        $this->assertNull($this->dao->getInternStatus(999999));
+    }
 }

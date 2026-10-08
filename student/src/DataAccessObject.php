@@ -29,6 +29,15 @@ class DAO {
         return false;
     }
 
+    public function getInternStatus($internID) {
+        $statement = $this->connection->prepare("SELECT status FROM interns WHERE internid = ?");
+        $statement->bind_param("i", $internID);
+        $statement->execute();
+        $row = $statement->get_result()->fetch_assoc();
+        $statement->close();
+        return $row ? $row['status'] : null;
+    }
+
     public function getRequirementFile($internID, $reqID) {
         $query = "SELECT file_path FROM internrequirements WHERE internid = ? AND reqid = ?";
         $statement = $this->connection->prepare($query);

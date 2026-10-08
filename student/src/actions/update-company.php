@@ -1,5 +1,8 @@
 <?php
 requireLogin();
+if ($_SESSION['status'] === 'ACTIVE') {
+    redirect('/dashboard');
+}
 $db = new DAO();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {

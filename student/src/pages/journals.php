@@ -1,5 +1,5 @@
 <?php 
-    requireLogin();
+    requireDeployed();
     $db = new DAO();
     $journals = $db->getMonthlyJournals($_SESSION['internid']);
 ?>
