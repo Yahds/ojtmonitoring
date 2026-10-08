@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Login Page</title>
-        <link rel="stylesheet" href="css/login.css">
+        <link rel="stylesheet" href="/student/css/login.css">
     </head>
     <body>
         <div class="login-box"> 
@@ -18,10 +18,10 @@
             </div>
             <div class="white-box">
                 <div class="slu-logo-box">
-                    <img src="ojt-images/slu-logo.png" class="slu-logo">
+                    <img src="/student/ojt-images/slu-logo.png" class="slu-logo">
                 </div>
                 <div class="login-fields-box">
-                    <form action="./includes/loginController.php" method="POST">
+                    <form action="/student/login" method="POST">
                         <label for="email" >IDNumber</label>
                         <input type="text" id="email" name="id">
                         <label for="password">Password</label>

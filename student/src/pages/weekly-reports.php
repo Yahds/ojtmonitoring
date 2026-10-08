@@ -1,7 +1,5 @@
 <?php 
-    require_once __DIR__ . '/../includes/requireLogin.php';
-    require_once __DIR__ . '/../includes/csrf.php';
-    include("../includes/DataAccessObject.php");
+    requireLogin();
     $db = new DAO();
     $reports = $db->getWeeklyReports($_SESSION['internid']);
 ?>
@@ -11,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OJT Portal — Weekly Reports</title>
-    <link rel="stylesheet" href="../css/requirements.css">
+    <link rel="stylesheet" href="/student/css/requirements.css">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
 </head>
 <body id="main">
@@ -27,13 +25,13 @@
     <main class="container">
         <aside class="left-nav">
             <ol>
-                <li><a href="../dashboard.php">DASHBOARD</a></li>
-                <li><a href="./requirements.php">REQUIREMENTS</a></li>
-                <li><a href="./weeklyReports.php">WEEKLY REPORTS</a></li>
-                <li><a href="./monthlyJournals.php">MONTHLY JOURNALS</a></li>
+                <li><a href="/student/dashboard">DASHBOARD</a></li>
+                <li><a href="/student/requirements">REQUIREMENTS</a></li>
+                <li><a href="/student/weekly-reports">WEEKLY REPORTS</a></li>
+                <li><a href="/student/journals">MONTHLY JOURNALS</a></li>
                 <li><a href="#">ABOUT US</a></li>
             </ol>
-            <form action="../includes/logoutController.php" method="post">
+            <form action="/student/logout" method="post">
                 <input type="submit" value="Logout">
             </form>
         </aside>
@@ -45,7 +43,7 @@
 
                 <div class="requirement-card" style="background:#fff;border:1px solid #e0ddd4;border-radius:8px;padding:16px;margin-bottom:20px;">
                     <strong style="color:#0D0464;font-size:16px;">Submit a weekly report</strong>
-                    <form action="../includes/submitWeeklyReport.php" method="POST" enctype="multipart/form-data" style="margin-top:10px;display:grid;gap:8px;max-width:420px;">
+                    <form action="/student/weekly-reports" method="POST" enctype="multipart/form-data" style="margin-top:10px;display:grid;gap:8px;max-width:420px;">
                         <?php echo csrf_field(); ?>
                         <label>Week number</label>
                         <input type="number" name="weeknumber" min="1" required>
@@ -69,7 +67,7 @@
                             <p style="margin:8px 0;"><?php echo htmlspecialchars($report['workdescription']); ?></p>
                         <?php endif; ?>
                         <?php if (!empty($report['file_path'])): ?>
-                            <p style="margin:8px 0;">File:<a href="../includes/downloadWeeklyReport.php?reportid=<?php echo (int)$report['reportid']; ?>">view</a></p>
+                            <p style="margin:8px 0;">File:<a href="/student/weekly-reports/file?reportid=<?php echo (int)$report['reportid']; ?>">view</a></p>
                         <?php endif; ?>
                         <?php if (!empty($report['remark'])): ?>
                             <p style="color:#8a6d0f;margin:8px 0;"><em>Adviser: <?php echo htmlspecialchars($report['remark']); ?></em></p>

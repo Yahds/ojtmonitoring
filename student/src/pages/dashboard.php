@@ -1,6 +1,5 @@
 <?php 
-    require_once __DIR__ . '/includes/requireLogin.php';
-    include("./includes/DataAccessObject.php");
+    requireLogin();
     $db = new DAO();
 ?>
 <!DOCTYPE html>
@@ -9,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OJT Portal</title>    
-    <link rel="stylesheet" href="./css/dashboard.css">
+    <link rel="stylesheet" href="/student/css/dashboard.css">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
 </head>
 <body id="main">
@@ -19,7 +18,7 @@
             <div class="nav-logo">SAINT LOUIS UNIVERSITY</div>
             <div class="nav-name"> <?php echo htmlspecialchars($_SESSION['studentName'])?></div>
             <div class="nav-item">
-                <img src="./ojt-images/jannsen.png" alt="Profile" class="profile-image">
+                <img src="/student/ojt-images/jannsen.png" alt="Profile" class="profile-image">
             </div>
         </nav>
     </header>
@@ -31,17 +30,17 @@
     <aside class="left-nav">
             <ol>
                 <?php 
-                    echo "<li><a href='dashboard.php'>DASHBOARD</a></li>";
-                    echo "<li><a href='views/requirements.php'>REQUIREMENTS</a></li>";
-                    echo "<li><a href='views/weeklyReports.php'>WEEKLY REPORTS</a></li>";
-                    echo "<li><a href='views/monthlyJournals.php'>MONTHLY JOURNALS</a></li>";
+                    echo "<li><a href='/student/dashboard'>DASHBOARD</a></li>";
+                    echo "<li><a href='/student/requirements'>REQUIREMENTS</a></li>";
+                    echo "<li><a href='/student/weekly-reports'>WEEKLY REPORTS</a></li>";
+                    echo "<li><a href='/student/journals'>MONTHLY JOURNALS</a></li>";
                     echo "<li><a href='#'>ABOUT US</a></li>";
                 ?>
             </ol>
 
             <!--Logout Button-->
             <img src="../" alt="">
-            <form action="./includes/logoutController.php" method="post">
+            <form action="/student/logout" method="post">
                 <input type="submit" value="Logout">
             </form>
         </aside>
@@ -57,7 +56,7 @@
                         <div class="intern-details">
                         <div class="bg-image">
                             <div class="blue-shade">
-                                <img src="./ojt-images/maryheights.jpg" alt="maryheights">
+                                <img src="/student/ojt-images/maryheights.jpg" alt="maryheights">
                             </div>
                         </div>
                         
@@ -65,7 +64,7 @@
 
                             <div class="top-div">
                                 <div class="dashboard-slu-logo">
-                                    <img src="./ojt-images/slu-logo.png" alt="slu logo">
+                                    <img src="/student/ojt-images/slu-logo.png" alt="slu logo">
                                 </div>
 
                                 <div>

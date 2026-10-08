@@ -1,7 +1,5 @@
 <?php 
-    require_once __DIR__ . '/../includes/requireLogin.php';
-    require_once __DIR__ . '/../includes/csrf.php';
-    include("../includes/DataAccessObject.php");
+    requireLogin();
     $db = new DAO();
     $requirements = $db->getRequirements($_SESSION['internid']);
 ?>
@@ -11,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OJT Portal</title>
-    <link rel="stylesheet" href="../css/chooseCompany.css">
+    <link rel="stylesheet" href="/student/css/chooseCompany.css">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
     <style>
        .main-dashboard .intern-details .details .intern-name {
@@ -85,8 +83,8 @@
     <main class="container">
         <aside class="left-nav">
             <ol>
-                <li><a href="../dashboard.php">DASHBOARD</a></li>
-                <li><a href="requirements.php">REQUIREMENTS</a></li>
+                <li><a href="/student/dashboard">DASHBOARD</a></li>
+                <li><a href="/student/requirements">REQUIREMENTS</a></li>
                 <li><a href="#">ABOUT US</a></li>
             </ol>
 
@@ -99,7 +97,7 @@
                     <div class="intern-details">
                         <div class="bg-image">
                             <div class="blue-shade">
-                                <img src="../ojt-images/maryheights.jpg" alt="maryheights">
+                                <img src="/student/ojt-images/maryheights.jpg" alt="maryheights">
                             </div>
                         </div>
                         <?php
@@ -112,7 +110,7 @@
                                 echo '    <div class="intern-title">INTERN</div>';
                                 echo '    <div class="company-msg-box">';
                                 echo '        <div class="dashboard-slu-logo">';
-                                echo '            <img src="../ojt-images/slu-logo.png" alt="slu logo">';
+                                echo '            <img src="/student/ojt-images/slu-logo.png" alt="slu logo">';
                                 echo '        </div>';
                                 echo '        <div class="company-under-review-msg-box">';
                                 echo '            <p>Congratulations! Your chosen company is under review.</p>';
@@ -129,7 +127,7 @@
                                 echo '    <div class="intern-title">INTERN</div>';
                                 echo '    <div class="db-time-and-date">';
                                 echo '        <div class="dashboard-slu-logo">';
-                                echo '            <img src="../ojt-images/slu-logo.png" alt="slu logo">';
+                                echo '            <img src="/student/ojt-images/slu-logo.png" alt="slu logo">';
                                 echo '        </div>';
                                 echo '        <div class="dashboard-time">';
                                 echo '            <div class="time-text">TIME</div>';
@@ -226,7 +224,7 @@
                         '&companyLocation=' + encodeURIComponent(companyAddress) +
                         '&csrf_token=' + encodeURIComponent('<?php echo csrf_token(); ?>');
 
-                xhr.open('POST', '../includes/updateCompany.php', true);
+                xhr.open('POST', '/student/choose-company', true);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                 console.log('Data:', data);
                 xhr.send(data);

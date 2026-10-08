@@ -1,30 +1,27 @@
 <?php
-require_once __DIR__ . '/requireLogin.php';
-require_once __DIR__ . '/csrf.php';
-include("DataAccessObject.php");
+requireLogin();
 
 $db = new DAO();
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header('Location: ../views/monthlyJournals.php');
-    exit();
+    redirect('/weekly-reports');
 }
 
 verify_csrf();
 
 $internID = $_SESSION['internid'];
-$monthnumber = $_POST['monthnumber'] ?? null;
-$notes = $_POST['notes'] ?? '';
+$weeknumber = $_POST['weeknumber'] ?? null;
+$hours = $_POST['hours'] ?? null;
+$workdescription = $_POST['workdescription'] ?? '';
 
-if (!$monthnumber) {
-    header('Location: ../views/monthlyJournals.php');
-    exit();
+if (!$weeknumber || !$hours) {
+    redirect('/weekly-reports');
 }
 
 $filePath = null;
 
-if (isset($_FILES['journal_file']) && $_FILES['journal_file']['error'] === UPLOAD_ERR_OK) {
-    $file = $_FILES['journal_file'];
+if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] === UPLOAD_ERR_OK) {
+    $file = $_FILES['report_file'];
 
     if ($file['size'] > 5 * 1024 * 1024) {
         exit('File too large. Maximum size is 5MB.');
@@ -46,7 +43,7 @@ if (isset($_FILES['journal_file']) && $_FILES['journal_file']['error'] === UPLOA
     }
 
     $ext = $allowed[$mime];
-    $safeName = 'journal_' . $internID . '_' . $monthnumber . '_' . time() . '.' . $ext;
+    $safeName = 'week_' . $internID . '_' . $weeknumber . '_' . time() . '.' . $ext;
 
     if (!move_uploaded_file($file['tmp_name'], '/var/www/uploads/' . $safeName)) {
         exit('Could not save the file.');
@@ -56,10 +53,9 @@ if (isset($_FILES['journal_file']) && $_FILES['journal_file']['error'] === UPLOA
 }
 
 if ($filePath === null) {
-    exit('Please attach your monthly journal file.');
+    exit('Please attach the supervisor-signed weekly report.');
 }
 
-$db->submitJournal($internID, $monthnumber, $notes, $filePath);
+$db->submitWeeklyReport($internID, $weeknumber, $hours, $workdescription, $filePath);
 
-header('Location: ../views/monthlyJournals.php');
-exit();
+redirect('/weekly-reports');

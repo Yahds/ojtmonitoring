@@ -1,7 +1,5 @@
 <?php
-require_once __DIR__ . '/requireLogin.php';
-require_once __DIR__ . '/csrf.php';
-include("DataAccessObject.php");
+requireLogin();
 $db = new DAO();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {

@@ -1,5 +1,5 @@
 <?php
-include("classes.php");
+require_once __DIR__ . '/classes.php';
 class DAO {
     private $connection;
 

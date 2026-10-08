@@ -1,6 +1,4 @@
 <?php
-    include("./DataAccessObject.php");
-    session_start();
     $db = new DAO();
 
     if (isset($_POST['id'])) {
@@ -20,16 +18,15 @@
             $_SESSION['status'] = $row['status'];
 
             if ($_SESSION['status'] != "ACTIVE") {
-                header('Location: ../views/chooseCompany.php');
+                redirect('/choose-company');
             } else {
-                header('Location: ../index.php');
+                redirect('/dashboard');
             }
             exit();
             
         }
     }
 
-    header('Location: ../login.html');
-    exit();
+    redirect('/login');
     
 

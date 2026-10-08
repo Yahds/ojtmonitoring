@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__ . '/../includes/DataAccessObject.php';
+require_once __DIR__ . '/../src/DataAccessObject.php';
 
 class StudentDataTest extends TestCase
 {

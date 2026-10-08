@@ -1,31 +1,26 @@
 <?php
-require_once __DIR__ . '/requireLogin.php';
-require_once __DIR__ . '/csrf.php';
-include("DataAccessObject.php");
+requireLogin();
 
 $db = new DAO();
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header('Location: ../views/weeklyReports.php');
-    exit();
+    redirect('/journals');
 }
 
 verify_csrf();
 
 $internID = $_SESSION['internid'];
-$weeknumber = $_POST['weeknumber'] ?? null;
-$hours = $_POST['hours'] ?? null;
-$workdescription = $_POST['workdescription'] ?? '';
+$monthnumber = $_POST['monthnumber'] ?? null;
+$notes = $_POST['notes'] ?? '';
 
-if (!$weeknumber || !$hours) {
-    header('Location: ../views/weeklyReports.php');
-    exit();
+if (!$monthnumber) {
+    redirect('/journals');
 }
 
 $filePath = null;
 
-if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] === UPLOAD_ERR_OK) {
-    $file = $_FILES['report_file'];
+if (isset($_FILES['journal_file']) && $_FILES['journal_file']['error'] === UPLOAD_ERR_OK) {
+    $file = $_FILES['journal_file'];
 
     if ($file['size'] > 5 * 1024 * 1024) {
         exit('File too large. Maximum size is 5MB.');
@@ -47,7 +42,7 @@ if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] === UPLOAD_
     }
 
     $ext = $allowed[$mime];
-    $safeName = 'week_' . $internID . '_' . $weeknumber . '_' . time() . '.' . $ext;
+    $safeName = 'journal_' . $internID . '_' . $monthnumber . '_' . time() . '.' . $ext;
 
     if (!move_uploaded_file($file['tmp_name'], '/var/www/uploads/' . $safeName)) {
         exit('Could not save the file.');
@@ -57,10 +52,9 @@ if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] === UPLOAD_
 }
 
 if ($filePath === null) {
-    exit('Please attach the supervisor-signed weekly report.');
+    exit('Please attach your monthly journal file.');
 }
 
-$db->submitWeeklyReport($internID, $weeknumber, $hours, $workdescription, $filePath);
+$db->submitJournal($internID, $monthnumber, $notes, $filePath);
 
-header('Location: ../views/weeklyReports.php');
-exit();
+redirect('/journals');

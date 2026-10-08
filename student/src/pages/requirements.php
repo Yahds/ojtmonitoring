@@ -1,7 +1,5 @@
 <?php 
-    require_once __DIR__ . '/../includes/requireLogin.php';
-    require_once __DIR__ . '/../includes/csrf.php';
-    include("../includes/DataAccessObject.php");
+    requireLogin();
     $db = new DAO();
     $requirements = $db->getRequirements($_SESSION['internid']);
 ?>
@@ -11,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OJT Portal</title>
-    <link rel="stylesheet" href="../css/requirements.css">
+    <link rel="stylesheet" href="/student/css/requirements.css">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
 </head>
 <body id="main">
@@ -30,12 +28,12 @@
                 
                 <?php 
                 if ($_SESSION['companyid'] == null) {
-                    echo "<li><a href='./chooseCompany.php'>DASHBOARD</a></li>";
+                    echo "<li><a href='/student/choose-company'>DASHBOARD</a></li>";
                 } else {
-                    echo "<li><a href='../dashboard.php'>DASHBOARD</a></li>";
-                    echo "<li><a href='./requirements.php'>REQUIREMENTS</a></li>";
-                    echo "<li><a href='./weeklyReports.php'>WEEKLY REPORTS</a></li>";
-                    echo "<li><a href='./monthlyJournals.php'>MONTHLY JOURNALS</a></li>";
+                    echo "<li><a href='/student/dashboard'>DASHBOARD</a></li>";
+                    echo "<li><a href='/student/requirements'>REQUIREMENTS</a></li>";
+                    echo "<li><a href='/student/weekly-reports'>WEEKLY REPORTS</a></li>";
+                    echo "<li><a href='/student/journals'>MONTHLY JOURNALS</a></li>";
                     echo "<li><a href='#'>ABOUT US</a></li>";
                 }
                 ?>
@@ -43,7 +41,7 @@
             </ol>
 
             <img src="../" alt="">
-            <form action="../includes/logoutController.php" method="post">
+            <form action="/student/logout" method="post">
                 <input type="submit" value="Logout">
             </form>
         </aside>
@@ -66,11 +64,11 @@
 
                         <?php if (!empty($requirement->filePath)): ?>
                             <p style="margin:8px 0;">Submitted file:
-                                <a href="../includes/downloadRequirement.php?reqid=<?php echo (int)$requirement->reqID; ?>">view</a>
+                                <a href="/student/requirements/file?reqid=<?php echo (int)$requirement->reqID; ?>">view</a>
                             </p>
                         <?php endif; ?>
 
-                        <form action="../includes/submitRequirement.php" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
+                        <form action="/student/requirements" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
                             <input type="hidden" name="reqid" value="<?php echo (int)$requirement->reqID; ?>">
                             <?php echo csrf_field(); ?>
                             <label>Your remarks</label>

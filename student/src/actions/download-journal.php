@@ -1,18 +1,17 @@
 <?php
-require_once __DIR__ . '/requireLogin.php';
-include("DataAccessObject.php");
+requireLogin();
 
 $db = new DAO();
 
 $internID = $_SESSION['internid'];
-$reportID = $_GET['reportid'] ?? null;
+$journalID = $_GET['journalid'] ?? null;
 
-if (!$reportID) {
+if (!$journalID) {
     http_response_code(400);
     exit('Bad request');
 }
 
-$filePath = $db->getWeeklyReportFile($internID, $reportID);
+$filePath = $db->getMonthlyJournalFile($internID, $journalID);
 if (!$filePath) {
     http_response_code(404);
     exit('File not found');

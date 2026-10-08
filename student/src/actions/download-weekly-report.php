@@ -1,24 +1,23 @@
 <?php
-require_once __DIR__ . '/requireLogin.php';
-include("DataAccessObject.php");
+requireLogin();
 
 $db = new DAO();
 
-$internID = $_SESSION['internid'];         
-$reqID = $_GET['reqid'] ?? null;
+$internID = $_SESSION['internid'];
+$reportID = $_GET['reportid'] ?? null;
 
-if (!$reqID) {
+if (!$reportID) {
     http_response_code(400);
     exit('Bad request');
 }
 
-$filePath = $db->getRequirementFile($internID, $reqID);
+$filePath = $db->getWeeklyReportFile($internID, $reportID);
 if (!$filePath) {
     http_response_code(404);
     exit('File not found');
 }
 
-$fullPath = '/var/www/uploads/' . basename($filePath);  
+$fullPath = '/var/www/uploads/' . basename($filePath);
 if (!is_file($fullPath)) {
     http_response_code(404);
     exit('File not found');

@@ -6,6 +6,6 @@
     <title>Document</title>
 </head>
 <body>
-    <img src="ojt-images/user_not_found.jpg" height="200px" width="200px">
+    <img src="/student/ojt-images/user_not_found.jpg" height="200px" width="200px">
 </body>
 </html>

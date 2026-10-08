@@ -1,12 +1,9 @@
 <?php
-require_once __DIR__ . '/requireLogin.php';
-require_once __DIR__ . '/csrf.php';
-include("DataAccessObject.php");
+requireLogin();
 $db = new DAO();
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header('Location: ../views/requirements.php');
-    exit();
+    redirect('/requirements');
 }
 
 verify_csrf(); 
@@ -16,8 +13,7 @@ $reqID = $_POST['reqid'] ?? null;
 $internRemarks = $_POST['intern_remarks'] ?? '';
 
 if (!$reqID) {
-    header('Location: ../views/requirements.php');
-    exit();
+    redirect('/requirements');
 }
 
 $filePath = null;
@@ -56,5 +52,4 @@ if (isset($_FILES['requirement_file']) && $_FILES['requirement_file']['error'] =
 
 $db->submitRequirement($internID, $reqID, $internRemarks, $filePath);
 
-header('Location: ../views/requirements.php');
-exit();
+redirect('/requirements');
