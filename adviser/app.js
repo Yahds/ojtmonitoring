@@ -60,7 +60,7 @@ app.use(verifyCsrf);
 app.use(currentUser);
 app.use(flash);
 app.use(homeRoutes);
-app.use(adminRoutes);
+app.use('/adviser', adminRoutes);
 app.use('/adviser', internRoutes);
 app.use('/adviser', authRoutes);
 app.use('/adviser', dashboardRoutes);

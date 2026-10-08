@@ -38,9 +38,9 @@ describe('route smoke tests', () => {
 
     // every protected route sends logged-out user to login page
     const protectedRoutes = [
-        ['get', '/ojt-admin'],
-        ['get', '/ojt-admin/advisers'],
-        ['post', '/ojt-admin/advisers'],
+        ['get', '/adviser/admin'],
+        ['get', '/adviser/admin/advisers'],
+        ['post', '/adviser/admin/advisers'],
         ['get', '/adviser/interns'],
         ['post', '/adviser/interns'],
         ['post', '/adviser/interns/1/deploy'],

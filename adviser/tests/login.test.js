@@ -59,7 +59,7 @@ test('dept head is sent to the overview, not the adviser dashboard', async () =>
 
     const res = await agent.get('/');
     expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/ojt-admin');
+    expect(res.headers.location).toBe('/adviser/admin');
 });
 
 test('wrong password shows the login page again with a general error', async () => {

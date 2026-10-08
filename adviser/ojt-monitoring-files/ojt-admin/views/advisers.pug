@@ -26,7 +26,7 @@ block content
 
   section.card.card-pad#add-adviser
     h2.section-title Add an adviser
-    form.form(action='/ojt-admin/advisers' method='POST')
+    form.form(action='/adviser/admin/advisers' method='POST')
       input(type='hidden' name='csrf_token' value=csrfToken)
       .field
         label(for='name') Full name

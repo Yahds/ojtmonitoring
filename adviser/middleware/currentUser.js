@@ -12,8 +12,8 @@ const NAV = {
         { href: '/adviser/about', label: 'About us' },
     ],
     dept_head: [
-        { href: '/ojt-admin', label: 'Overview', exact: true },
-        { href: '/ojt-admin/advisers', label: 'Advisers' },
+        { href: '/adviser/admin', label: 'Overview', exact: true },
+        { href: '/adviser/admin/advisers', label: 'Advisers' },
         INTERNS_LINK,
         { href: '/adviser/about', label: 'About us' },
     ],
@@ -40,7 +40,7 @@ function navFor(role, rawPath) {
 }
 
 function homeFor(role) {
-    return role === 'dept_head' ? '/ojt-admin' : '/adviser/dashboard';
+    return role === 'dept_head' ? '/adviser/admin' : '/adviser/dashboard';
 }
 
 // gives every page the logged-in user and the sidebar links
