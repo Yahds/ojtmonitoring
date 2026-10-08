@@ -5,7 +5,7 @@ $flash = takeFlash();
 $name = displayName($_SESSION['studentName'] ?? '');
 ?>
 <?php require __DIR__ . '/head.php'; ?>
-<body>
+<body class="has-tabbar">
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="navbar">
     <a class="nav-logo" href="/student/">SLU OJT Portal</a>
