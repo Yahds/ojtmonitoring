@@ -35,6 +35,7 @@ test.each([
 test('a form sent with the right CSRF token gets past the check', async () => {
     const csrfToken = await csrfTokenFrom(agent, '/ojt-dashboard/');
     const res = await agent.post('/ojt-dashboard/deploy').type('form').send({ csrf_token: csrfToken });
-    // 400 comes from the deploy route itself (no intern was given), so the CSRF check let it through
-    expect(res.status).toBe(400);
+    // a redirect back to the interns page comes from the deploy route itself, so the CSRF check let it through
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('/ojt-dashboard/enroll');
 });

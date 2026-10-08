@@ -1,0 +1,2 @@
+if flash
+  .flash(class=`flash-${flash.type}` role=(flash.type === 'error' ? 'alert' : 'status'))= flash.text

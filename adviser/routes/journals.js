@@ -1,11 +1,11 @@
 const express = require('express');
 const path = require('path');
 const { fetchJournalsForReview, updateJournalReview, fetchJournalFileForAdviser } = require('../db');
-const { requireAuth } = require('../middleware/auth');
+const { requireAdviser } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard/journals-review/:internId", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard/journals-review/:internId", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const journals = await fetchJournalsForReview(internId, req.session.adviserID);
@@ -18,19 +18,30 @@ router.get("/ojt-dashboard/journals-review/:internId", requireAuth, async (req, 
     }
 });
 
-router.post("/ojt-dashboard/journals-review/:internId", requireAuth, async (req, res, next) => {
+router.post("/ojt-dashboard/journals-review/:internId", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const { journalid, decision, remark } = req.body;
-        if (decision !== 'APPROVED' && decision !== 'REJECTED') return res.status(400).send("Invalid decision");
-        await updateJournalReview(journalid, req.session.adviserID, decision, remark);
-        res.redirect(`/ojt-dashboard/journals-review/${internId}`);
+        const backTo = `/ojt-dashboard/journals-review/${internId}`;
+
+        if (decision !== 'APPROVED' && decision !== 'REJECTED') {
+            req.flash('error', 'Choose Approve or Reject.');
+            return res.redirect(backTo);
+        }
+
+        const result = await updateJournalReview(journalid, req.session.adviserID, decision, remark);
+        if (result.affectedRows === 0) {
+            req.flash('error', 'That journal was not found.');
+        } else {
+            req.flash('success', decision === 'APPROVED' ? 'Journal approved.' : 'Journal rejected.');
+        }
+        res.redirect(backTo);
     } catch (error) {
         next(error);
     }
 });
 
-router.get("/ojt-dashboard/journal-file/:journalId", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard/journal-file/:journalId", requireAdviser, async (req, res, next) => {
     try {
         const journalId = req.params.journalId;
         const filePath = await fetchJournalFileForAdviser(journalId, req.session.adviserID);

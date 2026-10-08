@@ -2,7 +2,7 @@ const { pool } = require('./pool');
 const bcrypt = require('bcrypt');
 
 async function authenticateAdviser(adviserEmail, password) {
-    const [rows] = await pool.query("SELECT adviserID, adviserEmail, password, role FROM advisers WHERE adviserEmail = ? LIMIT 1", [adviserEmail]);
+    const [rows] = await pool.query("SELECT adviserID, adviserEmail, adviserName, password, role FROM advisers WHERE adviserEmail = ? LIMIT 1", [adviserEmail]);
 
     if (rows.length === 1) {
         const adviser = rows[0];

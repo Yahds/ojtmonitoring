@@ -1,0 +1,5 @@
+nav.sidebar(aria-label='Main')
+  each link in nav
+    a(href=link.href aria-current=(link.current ? 'page' : undefined))= link.label
+  form.logout-form(action='/logout' method='GET')
+    button.logout-btn(type='submit') Log out

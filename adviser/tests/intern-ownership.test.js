@@ -62,4 +62,19 @@ describe("an adviser cannot use another adviser's intern", () => {
         const res = await agent.get(path + encodeURIComponent(OTHER_INTERN_NAME));
         expect(res.status).toBe(404);
     });
+
+    test('cannot approve or reject their requirements', async () => {
+        const url = `/ojt-dashboard/requirements-review/${OTHER_INTERN_ID}`;
+        const before = await requirementsOf(OTHER_INTERN_ID);
+
+        const res = await agent
+            .post(url)
+            .type('form')
+            .send({ reqid: 4, decision: 'REJECTED', remarks: 'changed by another adviser', csrf_token: csrfToken });
+        expect(res.headers.location).toBe(url);
+
+        const page = await agent.get(url);
+        expect(page.text).toContain('That requirement was not found.');
+        expect(await requirementsOf(OTHER_INTERN_ID)).toEqual(before);
+    });
 });

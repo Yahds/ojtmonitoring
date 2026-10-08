@@ -1,0 +1,10 @@
+extends layouts/main
+
+block content
+  section.card.error-page
+    img(src='/assets/img/slu-logo.png' alt='')
+    h1= heading
+    p= message
+    if errorId
+      p.muted Error code: #{errorId}
+    a.btn.btn-primary(href=(user ? user.home : '/ojt-login-page')) Go to home page

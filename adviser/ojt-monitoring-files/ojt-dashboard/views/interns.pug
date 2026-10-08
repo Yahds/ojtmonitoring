@@ -1,68 +1,73 @@
-meta(charset='UTF-8')
-meta(name='viewport' content='width=device-width, initial-scale=1.0')
-title Enroll Intern
-style.
-  body { font-family: system-ui, sans-serif; margin: 0; background: #eceae3; color: #2b2a33; }
-  .navbar { display: flex; align-items: center; justify-content: space-between; background: #0d0464; color: #fff; padding: 12px 20px; border-bottom: 3px solid #e1ad0f; }
-  .nav-logo { font-weight: 700; letter-spacing: .03em; }
-  main { padding: 24px; max-width: 480px; }
-  h1 { color: #0d0464; }
-  a.back { color: #0d0464; text-decoration: none; font-weight: 600; }
-  form.enroll { background: #fff; padding: 16px; border-radius: 8px; display: grid; gap: 10px; margin-top: 16px; }
-  form.enroll label { font-size: 13px; font-weight: 600; color: #555; }
-  form.enroll input, form.enroll select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
-  form.enroll button { background: #0d0464; color: #fff; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-header
-  nav.navbar
-    .nav-logo SAINT LOUIS UNIVERSITY
-    .nav-name #{adviser.adviserName.split(' ').reverse().join(' ').replace(',', '')} · Adviser
-main
-  a.back(href='/ojt-dashboard') ← Back to dashboard
-  
-  h1 Enroll Intern
-  form.enroll(action='/ojt-dashboard/enroll' method='POST')
-    input(type='hidden' name='csrf_token' value=csrfToken)
-    label Student ID (SLU number)
-    input(type='text' name='studentID' required)
-    label Full name
-    input(type='text' name='name' placeholder='e.g. Torres, Sam' required)
-    label Course
-    select(name='course' required)
-      option(value='') — select —
-      option(value='BSIT') BSIT
-      option(value='BSCS') BSCS
-    label Year
-    input(type='text' name='year' placeholder='e.g. 4' required)
-    label Class code
-    input(type='text' name='classcode' required)
-    label Temporary password
-    input(type='text' name='password' required)
-    button(type='submit') Enroll intern
-    h2 Interns
-  table
-    tr
-      th Name
-      th Course
-      th Company
-      th Status
-      th Requirements
-      th Action
-    each i in interns
-      tr
-        td #{i.studentName}
-        td #{i.course}
-        td #{i.companyname || '—'}
-        td #{i.status}
-        td
-          a(href=`/ojt-dashboard/requirements-review/${i.internid}`) Review
-          a(href=`/ojt-dashboard/weekly-reports-review/${i.internid}`) Reports
-          a(href=`/ojt-dashboard/journals-review/${i.internid}`) Journals
-        td
-          if i.status === 'PENDING'
-            form(action='/ojt-dashboard/deploy' method='POST')
-              input(type='hidden' name='csrf_token' value=csrfToken)
-              input(type='hidden' name='internID' value=i.internid)
-              button(type='submit') Deploy
+extends ../../layouts/main
+
+block content
+  h1.page-title Interns
+
+  section.card
+    .card-head
+      h2 My interns
+      a.btn.btn-create.btn-sm(href='#enroll') Enroll intern
     if interns.length === 0
-      tr
-        td(colspan='6') No interns yet.
+      .empty
+        b No interns yet
+        | Enroll your first intern with the form below.
+    else
+      .table-wrap
+        table
+          thead
+            tr
+              th Name
+              th Course
+              th Company
+              th Status
+              th Review
+              th Action
+          tbody
+            each i in interns
+              tr
+                td= i.studentName
+                td= i.course
+                td= i.companyname || '—'
+                td
+                  span.tag(class=(i.status === 'ACTIVE' ? 'tag-ok' : ''))= i.status
+                td
+                  .btn-row
+                    a(href=`/ojt-dashboard/requirements-review/${i.internid}`) Requirements
+                    a(href=`/ojt-dashboard/weekly-reports-review/${i.internid}`) Reports
+                    a(href=`/ojt-dashboard/journals-review/${i.internid}`) Journals
+                td
+                  if i.status === 'PENDING'
+                    form(action='/ojt-dashboard/deploy' method='POST')
+                      input(type='hidden' name='csrf_token' value=csrfToken)
+                      input(type='hidden' name='internID' value=i.internid)
+                      button.btn.btn-create.btn-sm(type='submit') Deploy
+
+  section.card.card-pad#enroll
+    h2.section-title Enroll an intern
+    form.form(action='/ojt-dashboard/enroll' method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      .field
+        label(for='studentID') Student ID
+        input.input#studentID(type='text' name='studentID' inputmode='numeric' required)
+      .field
+        label(for='name') Full name
+        input.input#name(type='text' name='name' placeholder='Torres, Sam' required)
+        span.help Last name, then first name.
+      .field
+        label(for='course') Course
+        select.input#course(name='course' required)
+          option(value='') Select a course
+          option(value='BSIT') BSIT
+          option(value='BSCS') BSCS
+      .field
+        label(for='year') Year
+        input.input#year(type='text' name='year' inputmode='numeric' placeholder='4' required)
+      .field
+        label(for='classcode') Class code
+        input.input#classcode(type='text' name='classcode' required)
+      .field
+        label(for='password') Temporary password
+        input.input#password(type='text' name='password' autocomplete='off' required)
+        span.help The student logs in with this. Share it with them privately.
+      .btn-row
+        button.btn.btn-create(type='submit') Enroll intern

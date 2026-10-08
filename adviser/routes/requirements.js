@@ -2,11 +2,11 @@ const express = require('express');
 const path = require('path');
 const { fetchInternId, fetchRequirementsForReview, updateRequirementReview, fetchRequirementFile,
     fetchUnassignedRequirements, insertNewRequirement, insertInternRequirement, isAdvisersIntern } = require('../db');
-const { requireAuth } = require('../middleware/auth');
+const { requireAdviser } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard/requirements-reports/:internName", requireAdviser, async (req, res, next) => {
     try {
         const internName = req.params.internName;
 
@@ -36,7 +36,7 @@ router.get("/ojt-dashboard/requirements-reports/:internName", requireAuth, async
     }
 });
 
-router.get("/ojt-dashboard/requirements-review/:internId", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard/requirements-review/:internId", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
 
@@ -58,24 +58,30 @@ router.get("/ojt-dashboard/requirements-review/:internId", requireAuth, async (r
     }
 });
 
-router.post("/ojt-dashboard/requirements-review/:internId", requireAuth, async (req, res, next) => {
+router.post("/ojt-dashboard/requirements-review/:internId", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const { reqid, decision, remarks } = req.body;
+        const backTo = `/ojt-dashboard/requirements-review/${internId}`;
 
         if (decision !== 'APPROVED' && decision !== 'REJECTED') {
-            return res.status(400).send("Invalid decision");
+            req.flash('error', 'Choose Approve or Reject.');
+            return res.redirect(backTo);
         }
 
-        await updateRequirementReview(internId, reqid, req.session.adviserID, decision, remarks);
-
-        res.redirect(`/ojt-dashboard/requirements-review/${internId}`);
+        const result = await updateRequirementReview(internId, reqid, req.session.adviserID, decision, remarks);
+        if (result.affectedRows === 0) {
+            req.flash('error', 'That requirement was not found.');
+        } else {
+            req.flash('success', decision === 'APPROVED' ? 'Requirement approved.' : 'Requirement rejected.');
+        }
+        res.redirect(backTo);
     } catch (error) {
         next(error);
     }
 });
 
-router.get("/ojt-dashboard/requirement-file/:internId/:reqid", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard/requirement-file/:internId/:reqid", requireAdviser, async (req, res, next) => {
     try {
         const { internId, reqid } = req.params;
         const filePath = await fetchRequirementFile(internId, reqid, req.session.adviserID);
@@ -96,7 +102,7 @@ router.get("/ojt-dashboard/requirement-file/:internId/:reqid", requireAuth, asyn
     }
 });
 
-router.get("/fetch-unassigned-requirements/:internName", requireAuth, async (req, res, next) => {
+router.get("/fetch-unassigned-requirements/:internName", requireAdviser, async (req, res, next) => {
     try {
         const internIdResult = await fetchInternId(req.params.internName, req.session.adviserID);
         if (internIdResult.length === 0) {
@@ -112,7 +118,7 @@ router.get("/fetch-unassigned-requirements/:internName", requireAuth, async (req
 
 
 
-router.post('/ojt-dashboard/postrequirement', requireAuth, async (req, res, next) => {
+router.post('/ojt-dashboard/postrequirement', requireAdviser, async (req, res, next) => {
     const existingRequirementId = req.body['existing-requirement-dropdown'];
     const newRequirementName = req.body['new-requirement-name'];
     const internId = req.body['intern-id'];

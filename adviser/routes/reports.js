@@ -1,11 +1,11 @@
 const express = require('express');
 const path = require('path');
 const { fetchWeeklyReportsForReview, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser } = require('../db');
-const { requireAuth } = require('../middleware/auth');
+const { requireAdviser } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const weeklyReports = await fetchWeeklyReportsForReview(internId, req.session.adviserID);
@@ -18,19 +18,30 @@ router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async 
     }
 });
 
-router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res, next) => {
+router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const { reportid, decision, remark } = req.body;
-        if (decision !== 'APPROVED' && decision !== 'REJECTED') return res.status(400).send("Invalid decision");
-        await updateWeeklyReportReview(reportid, req.session.adviserID, decision, remark);
-        res.redirect(`/ojt-dashboard/weekly-reports-review/${internId}`);
+        const backTo = `/ojt-dashboard/weekly-reports-review/${internId}`;
+
+        if (decision !== 'APPROVED' && decision !== 'REJECTED') {
+            req.flash('error', 'Choose Approve or Reject.');
+            return res.redirect(backTo);
+        }
+
+        const result = await updateWeeklyReportReview(reportid, req.session.adviserID, decision, remark);
+        if (result.affectedRows === 0) {
+            req.flash('error', 'That weekly report was not found.');
+        } else {
+            req.flash('success', decision === 'APPROVED' ? 'Weekly report approved.' : 'Weekly report rejected.');
+        }
+        res.redirect(backTo);
     } catch (error) {
         next(error);
     }
 });
 
-router.get("/ojt-dashboard/weekly-report-file/:reportId", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard/weekly-report-file/:reportId", requireAdviser, async (req, res, next) => {
     try {
         const reportId = req.params.reportId;
         const filePath = await fetchWeeklyReportFileForAdviser(reportId, req.session.adviserID);

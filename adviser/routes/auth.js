@@ -1,35 +1,16 @@
 const express = require('express');
-const { fetchStudents, authenticateAdviser } = require('../db');
+const { authenticateAdviser } = require('../db');
 const { requireAuth } = require('../middleware/auth');
+const { homeFor } = require('../middleware/currentUser');
 
 const router = express.Router();
 
-// run node app.js then access http://localhost:8080/ojt-login-page/
-router.get("/", async (req, res, next) => {
-    try {
-        if (req.session.isLoggedIn) {
-            return res.redirect('/ojt-dashboard');
-        }
-
-        const students = await fetchStudents();
-        res.render('ojt-login-page/', { students })
-    } catch (error) {
-        next(error);
+// the login page, logged-in users go straight to their home page
+router.get(["/", "/ojt-login-page"], (req, res) => {
+    if (req.session.isLoggedIn) {
+        return res.redirect(homeFor(req.session.role));
     }
-});
-
-// run node app.js then access http://localhost:8080/ojt-login-page/
-router.get("/ojt-login-page", async (req, res, next) => {
-    try {
-        if (req.session.isLoggedIn) {
-            return res.redirect('/ojt-dashboard');
-        }
-
-        const students = await fetchStudents();
-        res.render('ojt-login-page/index', { students })
-    } catch (error) {
-        next(error);
-    }
+    res.render('ojt-login-page/index', { title: 'Log in' });
 });
 
 router.get('/logout', requireAuth, (req, res, next) => {
@@ -55,13 +36,15 @@ router.post("/ojt-login-page", async (req, res, next) => {
                 req.session.adviserID = adviser.adviserID;
                 req.session.isLoggedIn = true;
                 req.session.role = adviser.role;
-                if (adviser.role === 'dept_head') {
-                    return res.redirect('/ojt-admin');
-                }
-                return res.redirect('/ojt-dashboard');
+                req.session.name = adviser.adviserName;
+                return res.redirect(homeFor(adviser.role));
             });
         } else {
-            res.status(401).send('false'); // Send back a simple 'false' string
+            res.status(401).render('ojt-login-page/index', {
+                title: 'Log in',
+                error: 'Your email or password is wrong. Try again.',
+                email: adviserEmail,
+            });
         }
     } catch (error) {
         next(error);

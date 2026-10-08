@@ -43,6 +43,8 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
 
 const { provideCsrfToken, verifyCsrf } = require('./middleware/csrf');
+const { currentUser } = require('./middleware/currentUser');
+const { flash } = require('./middleware/flash');
 const adminRoutes = require('./routes/admin');
 const internRoutes = require('./routes/interns');
 const authRoutes = require('./routes/auth');
@@ -50,10 +52,12 @@ const dashboardRoutes = require('./routes/dashboard');
 const journalRoutes = require('./routes/journals');
 const reportRoutes = require('./routes/reports');
 const requirementRoutes = require('./routes/requirements');
-const { handleErrors } = require('./middleware/errorHandler');
+const { notFound, handleErrors } = require('./middleware/errorHandler');
 
 app.use(provideCsrfToken);
 app.use(verifyCsrf);
+app.use(currentUser);
+app.use(flash);
 app.use(adminRoutes);
 app.use(internRoutes);
 app.use(authRoutes);
@@ -61,6 +65,7 @@ app.use(dashboardRoutes);
 app.use(journalRoutes);
 app.use(reportRoutes);
 app.use(requirementRoutes);
+app.use(notFound);
 app.use(handleErrors);
 
 if (require.main === module) {

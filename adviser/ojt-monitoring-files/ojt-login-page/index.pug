@@ -1,66 +1,33 @@
-meta(charset="UTF-8")
-meta(name="viewport", content="width=device-width,initial-scale=1")
-title Login Page
-link(rel="stylesheet" type="text/css" href="/ojt-login-page/styles.css")
-.login-box
-  .blue-box
-    .login-details-box
+extends ../layouts/main
+
+block page
+  .login-wrap
+    section.login-art
+      .brand
+        img(src='/assets/img/slu-logo.png' alt='' width='40')
+        | SLU OJT Portal
+      div
+        p.art-title On-the-job training, in one place.
+        p Submit and review requirements, weekly reports and journals for SAMCIS practicum.
+      p.art-foot Saint Louis University · School of Accountancy, Management, Computing and Information Studies
+
+    main.login-form#main
+      img.login-logo(src='/assets/img/slu-logo.png' alt='Saint Louis University')
       h1 Log in
-      hr
-      h3 Adviser
-      p Shaping skills and fostering growth.
-  .white-box
-    .slu-logo-box
-      img.slu-logo(src="/ojt-images/slu-logo.png")
-    form.login-fields-box#loginForm(method="POST")
-      input(type='hidden' name='csrf_token' value=csrfToken)
-      label(for="email") Email Address
-      input#email(type="text", name="adviserEmail")
-      label(for="password") Password
-      input#password(type="password", name="password")
-      label.checkbox-container
-        | Show Password
+      p.lead For advisers and the department head
+      include ../partials/flash
+      if error
+        .flash.flash-error(role='alert')= error
+      form.form(action='/ojt-login-page' method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        .field
+          label(for='email') Email
+          input.input#email(type='email' name='adviserEmail' value=email autocomplete='username' required autofocus)
+        .field
+          label(for='password') Password
+          .pw
+            input.input#password(type='password' name='password' autocomplete='current-password' required aria-invalid=(error ? 'true' : undefined))
+            button.btn.btn-outline.btn-sm(type='button' data-toggle-password='password' aria-pressed='false') Show
+        button.btn.btn-primary.big-btn(type='submit') Log in
 
-        input#showPasswordCheckbox(type="checkbox")
-        span.checkmark
-      button.login-button#loginButton(type="submit") Log in
-      
-script.
-  document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const showPasswordCheckbox = document.getElementById('showPasswordCheckbox');
-
-    loginForm.addEventListener('submit', function(e) {
-      e.preventDefault(); // Prevent default form submission
-
-      // Check if email or password fields are empty
-      if (!emailInput.value || !passwordInput.value) {
-        alert('Please enter both email and password.');
-        return;
-      }
-
-      fetch('/ojt-login-page', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `adviserEmail=${encodeURIComponent(emailInput.value)}&password=${encodeURIComponent(passwordInput.value)}&csrf_token=${encodeURIComponent(loginForm.elements.csrf_token.value)}`
-      })
-      .then(response => {
-        if (response.ok) {
-          window.location.href = '/ojt-dashboard';
-        } else {
-          alert('Invalid email or password. Please try again.');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-    });
-
-    showPasswordCheckbox.addEventListener('change', function() {
-      passwordInput.type = this.checked ? 'text' : 'password';
-    });
-  });
+  script(src='/assets/js/show-password.js' defer)
