@@ -1,8 +1,5 @@
 <?php
-if (isset($_SESSION['id'])) {
-    // unset($_SESSION['id']);
-    session_destroy();
-}
-
+// ends the session; needs the CSRF token so another site cannot log the intern out
+verify_csrf();
+session_destroy();
 redirect('/login');
-?>

@@ -180,49 +180,6 @@ class DAO {
         $statement->execute();
         $statement->close();
     }
-
-    public function getCompanyID($studentid) {
-        $query = "SELECT * from interns where studentid = ?";
-        $statement = $this->connection->prepare($query);
-        $statement->bind_param("i", $studentid);
-        $statement->execute();
-        $result = $statement->get_result();
-        return $result;
-    }
-    
-    // dashboard
-    // fetch the company information
-    public function getCompanyInfoById($companyId) {
-        $query = "SELECT companyname, companyaddress FROM company WHERE companyid = ?";
-        $statement = $this->connection->prepare($query);
-        $statement->bind_param("i", $companyId);
-        $statement->execute();
-        $result = $statement->get_result();
-    
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            return $row; // Return an associative array with companyname and companyaddress
-        } else {
-            return array("companyname" => "Unknown Company", "companyaddress" => "Unknown Address");
-        }
-    }
-
-    public function getTotalHours($internID) {
-        $query = "SELECT SUM(hours) AS total_hours FROM weeklyreports WHERE internid = ? AND status = 'APPROVED'";
-        $statement = $this->connection->prepare($query);
-        $statement->bind_param("i", $internID);
-        $statement->execute();
-        $result = $statement->get_result();
-    
-        $totalHours = 0;
-    
-        if ($row = $result->fetch_assoc()) {
-            $totalHours = $row['total_hours'];
-        }
-    
-        $statement->close();
-        return $totalHours;
-    }
     
     public function getAnnouncementsForIntern($internID) {
         $announcements = [];

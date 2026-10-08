@@ -53,14 +53,6 @@ class StudentDataTest extends TestCase
         $this->assertSame('my remark', $row['intern_remarks']);
     }
 
-    public function testTotalHoursOnlyCountsApprovedReports(): void
-    {
-        $this->db->query("INSERT INTO weeklyreports (internid, weeknumber, hours, status)
-                          VALUES (" . self::JOSE . ", 1, 8, 'APPROVED'), (" . self::JOSE . ", 2, 40, 'PENDING')");
-
-        $this->assertEquals(8, $this->dao->getTotalHours(self::JOSE));
-    }
-
     public function testAnnouncementsOnlyShowTheInternsOwn(): void
     {
         $announcements = $this->dao->getAnnouncementsForIntern(self::JOSE);
