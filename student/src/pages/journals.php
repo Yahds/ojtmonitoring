@@ -1,83 +1,61 @@
-<?php 
-    requireDeployed();
-    $db = new DAO();
-    $journals = $db->getMonthlyJournals($_SESSION['internid']);
+<?php
+requireDeployed();
+$db = new DAO();
+$journals = $db->getMonthlyJournals($_SESSION['internid']);
+$adviser = displayName($db->getInternProfile($_SESSION['internid'])['adviserName']);
+$nextMonth = $journals ? max(array_column($journals, 'monthnumber')) + 1 : 1;
+$title = 'Journals';
+require __DIR__ . '/../views/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OJT Portal — Monthly Journals</title>
-    <link rel="stylesheet" href="/student/css/requirements.css">
-    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
-</head>
-<body id="main">
-    <header>
-        <nav class="navbar">
-            <div class="nav-logo">SAINT LOUIS UNIVERSITY</div>
-            <div class="nav-name"> <?php echo htmlspecialchars($_SESSION['studentName'])?></div>
-            <div class="nav-item">
-                <img src="../images/jannsen.png" alt="Profile" class="profile-image">
+<h1 class="page-title">Monthly journals</h1>
+<p class="muted">Submit one journal for each month of your OJT. PDF, JPG, PNG, DOC or DOCX, up to 5 MB.</p>
+
+<h2 class="section-title">Submit a journal</h2>
+<section class="card card-pad">
+    <form class="form" action="/student/journals" method="post" enctype="multipart/form-data">
+        <?= csrf_field() ?>
+        <div class="field">
+            <label for="monthnumber">Month number</label>
+            <input class="input" id="monthnumber" type="number" name="monthnumber" min="1" max="12" value="<?= (int) min($nextMonth, 12) ?>" required>
+        </div>
+        <div class="field">
+            <label for="notes">Notes to your adviser <span class="muted">(optional)</span></label>
+            <textarea class="input" id="notes" name="notes" rows="4" maxlength="2000"></textarea>
+        </div>
+        <div class="field">
+            <label for="journal_file">Journal file</label>
+            <input class="input" id="journal_file" type="file" name="journal_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-create btn-sm" type="submit">Submit journal</button>
+        </div>
+    </form>
+</section>
+
+<h2 class="section-title">Your journals · <?= count($journals) ?></h2>
+<section class="card">
+    <?php if (!$journals): ?>
+        <div class="empty"><b>No journals yet</b>Your submitted journals and your adviser's remarks will show up here.</div>
+    <?php endif; ?>
+    <?php foreach ($journals as $journal): ?>
+        <article class="item">
+            <div class="item-head">
+                <h3>Month <?= (int) $journal['monthnumber'] ?></h3>
+                <?php $status = $journal['status']; require __DIR__ . '/../views/status-tag.php'; ?>
             </div>
-        </nav>
-    </header>
-    <main class="container">
-        <aside class="left-nav">
-            <ol>
-                <li><a href="/student/dashboard">DASHBOARD</a></li>
-                <li><a href="/student/requirements">REQUIREMENTS</a></li>
-                <li><a href="/student/weekly-reports">WEEKLY REPORTS</a></li>
-                <li><a href="/student/journals">MONTHLY JOURNALS</a></li>
-                <li><a href="#">ABOUT US</a></li>
-            </ol>
-            <form action="/student/logout" method="post">
-                <input type="submit" value="Logout">
-            </form>
-        </aside>
-        <section>
-            <div class="intern-list-container">
-                <div class="table-label-filter">
-                    <div class="title">MONTHLY JOURNALS</div>
-                </div>
-
-                <div class="requirement-card" style="background:#fff;border:1px solid #e0ddd4;border-radius:8px;padding:16px;margin-bottom:20px;">
-                    <strong style="color:#0D0464;font-size:16px;">Submit a monthly journal</strong>
-                    <form action="/student/journals" method="POST" enctype="multipart/form-data" style="margin-top:10px;display:grid;gap:8px;max-width:420px;">
-                        <?php echo csrf_field(); ?>
-                        <label>Month number</label>
-                        <input type="number" name="monthnumber" min="1" required>
-                        <label>Notes (optional)</label>
-                        <textarea name="notes" rows="6" style="width:100%;box-sizing:border-box;"></textarea>
-                        <label>Monthly journal file (required) — PDF, JPG, PNG, DOC, DOCX</label>
-                        <input type="file" name="journal_file" required>
-                        <button type="submit">Submit journal</button>
-                    </form>
-                </div>
-
-                <?php foreach ($journals as $journal): ?>
-                    <div class="requirement-card" style="background:#fff;border:1px solid #e0ddd4;border-radius:8px;padding:16px;margin-bottom:14px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <strong style="color:#0D0464;font-size:16px;">Month <?php echo (int)$journal['monthnumber']; ?></strong>
-                            <span style="font-weight:600;"><?php echo htmlspecialchars($journal['status']); ?></span>
-                        </div>
-                        <?php if (!empty($journal['file_path'])): ?>
-                            <p style="margin:8px 0;">File:<a href="/student/journals/file?journalid=<?php echo (int)$journal['journalid']; ?>">view</a></p>
-                        <?php endif; ?>
-                        <?php if (!empty($journal['notes'])): ?>
-                            <p style="margin:8px 0;"><?php echo nl2br(htmlspecialchars($journal['notes'])); ?></p>
-                        <?php endif; ?>
-                        <?php if (!empty($journal['remark'])): ?>
-                            <p style="color:#8a6d0f;margin:8px 0;"><em>Adviser: <?php echo htmlspecialchars($journal['remark']); ?></em></p>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-
-                <?php if (empty($journals)): ?>
-                    <p>No journals submitted yet.</p>
+            <p class="meta">
+                Submitted <?= e($journal['datesubmitted']) ?>
+                <?php if ($journal['file_path']): ?>
+                    · <a href="/student/journals/file?journalid=<?= (int) $journal['journalid'] ?>">View your file</a>
                 <?php endif; ?>
-            </div>
-        </section>
-    </main>
-</body>
-</html>
+            </p>
+            <?php if ($journal['notes']): ?>
+                <p class="note"><?= nl2br(e($journal['notes'])) ?></p>
+            <?php endif; ?>
+            <?php if ($journal['remark']): ?>
+                <div class="remark"><?= e($adviser) ?>: “<?= e($journal['remark']) ?>”</div>
+            <?php endif; ?>
+        </article>
+    <?php endforeach; ?>
+</section>
+<?php require __DIR__ . '/../views/footer.php'; ?>

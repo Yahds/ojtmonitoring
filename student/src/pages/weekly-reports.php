@@ -45,13 +45,7 @@ require __DIR__ . '/../views/header.php';
         <article class="item">
             <div class="item-head">
                 <h3>Week <?= (int) $report['weeknumber'] ?> · <?= (int) $report['hours'] ?> hrs</h3>
-                <?php if ($report['status'] === 'APPROVED'): ?>
-                    <span class="tag tag-ok">Approved</span>
-                <?php elseif ($report['status'] === 'REJECTED'): ?>
-                    <span class="tag tag-bad">Needs changes</span>
-                <?php else: ?>
-                    <span class="tag tag-warn">Waiting for review</span>
-                <?php endif; ?>
+                <?php $status = $report['status']; require __DIR__ . '/../views/status-tag.php'; ?>
             </div>
             <p class="meta">
                 Submitted <?= e($report['datesubmitted']) ?>
