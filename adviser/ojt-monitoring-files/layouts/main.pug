@@ -9,15 +9,16 @@ html(lang='en')
     link(rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&display=swap')
     link(rel='stylesheet' href='/assets/css/app.css')
   body
-    a.skip-link(href='#main') Skip to content
-    include ../partials/navbar
-    if user
-      .shell
-        include ../partials/sidebar
+    block page
+      a.skip-link(href='#main') Skip to content
+      include ../partials/navbar
+      if user
+        .shell
+          include ../partials/sidebar
+          main.content#main
+            include ../partials/flash
+            block content
+      else
         main.content#main
           include ../partials/flash
           block content
-    else
-      main.content#main
-        include ../partials/flash
-        block content
