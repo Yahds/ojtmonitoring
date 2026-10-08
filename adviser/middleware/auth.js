@@ -12,7 +12,11 @@ function requireRole(role){
             return res.redirect('/ojt-login-page');
         }
         if (req.session.role !== role) {
-            return res.status(403).send('Forbidden (403): you do not have access to this page.');
+            return res.status(403).render('error', {
+                title: 'No access',
+                heading: 'You do not have access to this page',
+                message: 'Use the menu to go back to your own pages.',
+            });
         }
         return next();
     }

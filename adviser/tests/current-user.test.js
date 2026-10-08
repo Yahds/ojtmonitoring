@@ -1,4 +1,4 @@
-const { displayName, navFor } = require('../middleware/currentUser');
+const { displayName, navFor, homeFor } = require('../middleware/currentUser');
 
 describe('displayName', () => {
     test('turns "Last, First" into "First Last"', () => {
@@ -24,5 +24,12 @@ describe('navFor', () => {
 
     test('a dept head gets the dept head links', () => {
         expect(navFor('dept_head', '/ojt-admin').map(link => link.label)).toEqual(['Overview', 'Advisers', 'About us']);
+    });
+});
+
+describe('homeFor', () => {
+    test('sends a dept head to the overview and an adviser to the dashboard', () => {
+        expect(homeFor('dept_head')).toBe('/ojt-admin');
+        expect(homeFor('adviser')).toBe('/ojt-dashboard');
     });
 });

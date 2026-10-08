@@ -33,16 +33,21 @@ function navFor(role, rawPath) {
     return (NAV[role] || NAV.adviser).map(link => ({ ...link, current: isCurrent(link, path) }));
 }
 
+function homeFor(role) {
+    return role === 'dept_head' ? '/ojt-admin' : '/ojt-dashboard';
+}
+
 // gives every page the logged-in user and the sidebar links
 function currentUser(req, res, next) {
     if (req.session.isLoggedIn) {
         res.locals.user = {
             name: displayName(req.session.name || ''),
             roleLabel: ROLE_LABELS[req.session.role] || 'Adviser',
+            home: homeFor(req.session.role),
         };
         res.locals.nav = navFor(req.session.role, req.path);
     }
     next();
 }
 
-module.exports = { currentUser, displayName, navFor };
+module.exports = { currentUser, displayName, navFor, homeFor };
