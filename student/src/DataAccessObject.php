@@ -109,11 +109,11 @@ class DAO {
     public function submitRequirement($internID, $reqID, $internRemarks, $filePath) {
         $date = date("Y-m-d");
         if ($filePath !== null) {
-            $query = "UPDATE internrequirements SET intern_remarks = ?, file_path = ?, status = 'SUBMITTED', datesubmitted = ? WHERE internid = ? AND reqid = ?";
+            $query = "UPDATE internrequirements SET intern_remarks = ?, file_path = ?, status = 'SUBMITTED', datesubmitted = ? WHERE internid = ? AND reqid = ? AND status <> 'APPROVED'";
             $statement = $this->connection->prepare($query);
             $statement->bind_param("sssii", $internRemarks, $filePath, $date, $internID, $reqID);
         } else {
-            $query = "UPDATE internrequirements SET intern_remarks = ?, status = 'SUBMITTED', datesubmitted = ? WHERE internid = ? AND reqid = ?";
+            $query = "UPDATE internrequirements SET intern_remarks = ?, status = 'SUBMITTED', datesubmitted = ? WHERE internid = ? AND reqid = ? AND status <> 'APPROVED'";
             $statement = $this->connection->prepare($query);
             $statement->bind_param("ssii", $internRemarks, $date, $internID, $reqID);
         }

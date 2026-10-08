@@ -1,30 +1,4 @@
 <?php
+// sends one of the intern's own weekly report files
 requireDeployed();
-
-$db = new DAO();
-
-$internID = $_SESSION['internid'];
-$reportID = $_GET['reportid'] ?? null;
-
-if (!$reportID) {
-    http_response_code(400);
-    exit('Bad request');
-}
-
-$filePath = $db->getWeeklyReportFile($internID, $reportID);
-if (!$filePath) {
-    http_response_code(404);
-    exit('File not found');
-}
-
-$fullPath = '/var/www/uploads/' . basename($filePath);
-if (!is_file($fullPath)) {
-    http_response_code(404);
-    exit('File not found');
-}
-
-header('Content-Type: ' . (mime_content_type($fullPath) ?: 'application/octet-stream'));
-header('Content-Disposition: inline; filename="' . basename($fullPath) . '"');
-header('Content-Length: ' . filesize($fullPath));
-readfile($fullPath);
-exit();
+sendUpload((new DAO())->getWeeklyReportFile($_SESSION['internid'], (int) ($_GET['reportid'] ?? 0)));

@@ -41,4 +41,19 @@ class SummaryTest extends TestCase
         $this->assertSame(600, targetHoursFor('BSIT'));
         $this->assertNull(targetHoursFor('UNKNOWN'));
     }
+
+    public function testRequirementsAreGroupedByWhoActsNext(): void
+    {
+        $groups = groupRequirements([
+            $this->requirement('Resume', 'APPROVED'),
+            $this->requirement('MOA', 'PENDING'),
+            $this->requirement('Consent form', 'REJECTED'),
+            $this->requirement('Endorsement letter', 'SUBMITTED'),
+        ]);
+        $names = fn (array $list) => array_map(fn ($r) => $r->reqName, $list);
+
+        $this->assertSame(['Consent form', 'MOA'], $names($groups['action']));
+        $this->assertSame(['Endorsement letter'], $names($groups['waiting']));
+        $this->assertSame(['Resume'], $names($groups['approved']));
+    }
 }

@@ -8,6 +8,7 @@ class StudentDataTest extends TestCase
     private const MARIA = 300;
     private const JOSE = 301;
     private const APPLICATION_LETTER = 1;
+    private const ENDORSEMENT_LETTER = 4;
 
     private DAO $dao;
     private mysqli $db;
@@ -28,6 +29,7 @@ class StudentDataTest extends TestCase
         $this->db->query("DELETE FROM journals WHERE internid = " . self::JOSE);
         $this->db->query("DELETE FROM weeklyreports WHERE file_path = 'test-maria-report.pdf'");
         $this->db->query("UPDATE interns SET status = 'PENDING' WHERE internid = " . self::JOSE);
+        $this->db->query("UPDATE internrequirements SET status = 'APPROVED', intern_remarks = NULL WHERE internid = " . self::MARIA . " AND reqid = " . self::ENDORSEMENT_LETTER);
         $this->db->close();
     }
 
@@ -110,11 +112,22 @@ class StudentDataTest extends TestCase
         $this->assertNull($this->dao->getInternStatus(999999));
     }
 
-        public function testProfileHasTheCompanyAndTheAdviser(): void
+    public function testProfileHasTheCompanyAndTheAdviser(): void
     {
         $profile = $this->dao->getInternProfile(self::MARIA);
 
         $this->assertSame('Microsoft', $profile['companyname']);
         $this->assertSame('Stevens, Amelia', $profile['adviserName']);
+    }
+    
+    public function testAnApprovedRequirementCannotBeChanged(): void
+    {
+        $this->db->query("UPDATE internrequirements SET status = 'APPROVED' WHERE internid = " . self::MARIA . " AND reqid = " . self::ENDORSEMENT_LETTER);
+
+        $changed = $this->dao->submitRequirement(self::MARIA, self::ENDORSEMENT_LETTER, 'trying to change it', null);
+
+        $this->assertSame(0, $changed);
+        $row = $this->db->query("SELECT status FROM internrequirements WHERE internid = " . self::MARIA . " AND reqid = " . self::ENDORSEMENT_LETTER)->fetch_assoc();
+        $this->assertSame('APPROVED', $row['status']);
     }
 }

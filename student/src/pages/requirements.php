@@ -1,91 +1,85 @@
-<?php 
-    requireLogin();
-    $db = new DAO();
-    $requirements = $db->getRequirements($_SESSION['internid']);
+<?php
+requireLogin();
+$db = new DAO();
+$groups = groupRequirements($db->getRequirements($_SESSION['internid']));
+$adviser = displayName($db->getInternProfile($_SESSION['internid'])['adviserName']);
+$title = 'Requirements';
+require __DIR__ . '/../views/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OJT Portal</title>
-    <link rel="stylesheet" href="/student/css/requirements.css">
-    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
-</head>
-<body id="main">
-    <header>
-        <nav class="navbar">
-            <div class="nav-logo">SAINT LOUIS UNIVERSITY</div>
-            <div class="nav-name"> <?php echo htmlspecialchars($_SESSION['studentName'])?></div>
-            <div class="nav-item">
-                <img src="../images/jannsen.png" alt="Profile" class="profile-image">
-            </div>
-        </nav>
-    </header>
-    <main class="container">
-        <aside class="left-nav">
-            <ol>
-                
-                <?php 
-                if ($_SESSION['companyid'] == null) {
-                    echo "<li><a href='/student/choose-company'>DASHBOARD</a></li>";
-                } else {
-                    echo "<li><a href='/student/dashboard'>DASHBOARD</a></li>";
-                    echo "<li><a href='/student/requirements'>REQUIREMENTS</a></li>";
-                    echo "<li><a href='/student/weekly-reports'>WEEKLY REPORTS</a></li>";
-                    echo "<li><a href='/student/journals'>MONTHLY JOURNALS</a></li>";
-                    echo "<li><a href='#'>ABOUT US</a></li>";
-                }
-                ?>
-              
-            </ol>
+<h1 class="page-title">Requirements</h1>
+<p class="muted">PDF, JPG, PNG, DOC or DOCX, up to 5 MB. Only you and your adviser can open your files.</p>
 
-            <img src="../" alt="">
-            <form action="/student/logout" method="post">
-                <input type="submit" value="Logout">
-            </form>
-        </aside>
-        <section>
-            <div class="intern-list-container">
-                <div class="table-label-filter">
-                    <div class="title">REQUIREMENTS</div>
-                </div>
-
-                <?php foreach ($requirements as $requirement): ?>
-                    <div class="requirement-card" style="background:#fff;border:1px solid #e0ddd4;border-radius:8px;padding:16px;margin-bottom:14px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <strong style="color:#0D0464;font-size:16px;"><?php echo htmlspecialchars($requirement->reqName); ?></strong>
-                            <span style="font-weight:600;"><?php echo htmlspecialchars($requirement->status); ?></span>
-                        </div>
-
-                        <?php if (!empty($requirement->remarks)): ?>
-                            <p style="color:#8a6d0f;margin:8px 0;"><em>Adviser: <?php echo htmlspecialchars($requirement->remarks); ?></em></p>
-                        <?php endif; ?>
-
-                        <?php if (!empty($requirement->filePath)): ?>
-                            <p style="margin:8px 0;">Submitted file:
-                                <a href="/student/requirements/file?reqid=<?php echo (int)$requirement->reqID; ?>">view</a>
-                            </p>
-                        <?php endif; ?>
-
-                        <form action="/student/requirements" method="POST" enctype="multipart/form-data" style="margin-top:10px;">
-                            <input type="hidden" name="reqid" value="<?php echo (int)$requirement->reqID; ?>">
-                            <?php echo csrf_field(); ?>
-                            <label>Your remarks</label>
-                            <textarea name="intern_remarks" rows="2" style="width:100%;box-sizing:border-box;"><?php echo htmlspecialchars($requirement->internRemarks ?? ''); ?></textarea>
-                            <div style="margin-top:8px;">
-                                <input type="file" name="requirement_file">
-                                <button type="submit">Submit</button>
-                            </div>
-                        </form>
-                    </div>
-                <?php endforeach; ?>
-
-                <?php if (empty($requirements)): ?>
-                    <p>No requirements assigned yet.</p>
+<h2 class="section-title">Needs your action · <?= count($groups['action']) ?></h2>
+<section class="card">
+    <?php if (!$groups['action']): ?>
+        <div class="empty"><b>Nothing to submit right now</b>Requirements you still need to send will show up here.</div>
+    <?php endif; ?>
+    <?php foreach ($groups['action'] as $requirement): ?>
+        <article class="item">
+            <div class="item-head">
+                <h3><?= e($requirement->reqName) ?></h3>
+                <?php if ($requirement->status === 'REJECTED'): ?>
+                    <span class="tag tag-bad">Needs changes</span>
+                <?php else: ?>
+                    <span class="tag">Not submitted</span>
                 <?php endif; ?>
             </div>
-        </section>
-    </main>
-</body>
-</html>
+            <?php if ($requirement->remarks): ?>
+                <div class="remark"><?= e($adviser) ?>: “<?= e($requirement->remarks) ?>”</div>
+            <?php endif; ?>
+            <?php $buttonLabel = $requirement->status === 'REJECTED' ? 'Submit again' : 'Submit'; ?>
+            <?php require __DIR__ . '/../views/requirement-form.php'; ?>
+        </article>
+    <?php endforeach; ?>
+</section>
+
+<h2 class="section-title">Waiting for your adviser · <?= count($groups['waiting']) ?></h2>
+<section class="card">
+    <?php if (!$groups['waiting']): ?>
+        <div class="empty"><b>Nothing waiting</b>After you submit, a requirement waits here until your adviser checks it.</div>
+    <?php endif; ?>
+    <?php foreach ($groups['waiting'] as $requirement): ?>
+        <article class="item">
+            <div class="item-head">
+                <h3><?= e($requirement->reqName) ?></h3>
+                <span class="tag tag-warn">Submitted</span>
+            </div>
+            <p class="meta">
+                Submitted <?= e($requirement->dateSubmitted) ?>
+                <?php if ($requirement->filePath): ?>
+                    · <a href="/student/requirements/file?reqid=<?= (int) $requirement->reqID ?>">View your file</a>
+                <?php endif; ?>
+            </p>
+            <?php if ($requirement->internRemarks): ?>
+                <p class="note">Your note: <?= e($requirement->internRemarks) ?></p>
+            <?php endif; ?>
+            <details>
+                <summary class="link-btn">Replace the file or change your note</summary>
+                <?php $buttonLabel = 'Submit again'; ?>
+                <?php require __DIR__ . '/../views/requirement-form.php'; ?>
+            </details>
+        </article>
+    <?php endforeach; ?>
+</section>
+
+<h2 class="section-title">Approved · <?= count($groups['approved']) ?></h2>
+<section class="card">
+    <?php if (!$groups['approved']): ?>
+        <div class="empty"><b>None approved yet</b>Approved requirements are locked and listed here.</div>
+    <?php endif; ?>
+    <?php foreach ($groups['approved'] as $requirement): ?>
+        <article class="item">
+            <div class="item-head">
+                <h3><?= e($requirement->reqName) ?></h3>
+                <span class="tag tag-ok">Approved</span>
+            </div>
+            <p class="meta">
+                Locked, approved by <?= e($adviser) ?>
+                <?php if ($requirement->filePath): ?>
+                    · <a href="/student/requirements/file?reqid=<?= (int) $requirement->reqID ?>">View your file</a>
+                <?php endif; ?>
+            </p>
+        </article>
+    <?php endforeach; ?>
+</section>
+<?php require __DIR__ . '/../views/footer.php'; ?>

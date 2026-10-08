@@ -1,55 +1,32 @@
 <?php
+// saves a requirement the intern submits: a file, a note, or both
 requireLogin();
-$db = new DAO();
+verify_csrf();
 
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+$reqId = (int) ($_POST['reqid'] ?? 0);
+$note = trim($_POST['intern_remarks'] ?? '');
+$file = $_FILES['requirement_file'] ?? null;
+$hasFile = $file !== null && $file['error'] !== UPLOAD_ERR_NO_FILE;
+
+$error = uploadError($file);
+if ($error === null && !$hasFile && $note === '') {
+    $error = 'Please attach a file or add a note before submitting.';
+}
+if ($error !== null) {
+    flash('error', $error);
     redirect('/requirements');
 }
 
-verify_csrf(); 
+$fileName = $hasFile ? saveUpload($file, 'req') : null;
+$changed = (new DAO())->submitRequirement($_SESSION['internid'], $reqId, $note, $fileName);
 
-$internID = $_SESSION['internid'];
-$reqID = $_POST['reqid'] ?? null;
-$internRemarks = $_POST['intern_remarks'] ?? '';
-
-if (!$reqID) {
+if ($changed === 0) {
+    if ($fileName !== null) {
+        unlink(UPLOAD_DIR . $fileName);
+    }
+    flash('error', 'This requirement has already been approved and can no longer be modified.');
     redirect('/requirements');
 }
 
-$filePath = null;
-
-if (isset($_FILES['requirement_file']) && $_FILES['requirement_file']['error'] === UPLOAD_ERR_OK) {
-    $file = $_FILES['requirement_file'];
-
-    if ($file['size'] > 5 * 1024 * 1024) {
-        exit('File too large. Maximum size is 5MB.');
-    }
-
-    $allowed = [
-        'application/pdf' => 'pdf',
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'application/msword' => 'doc',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
-    ];
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mime = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
-
-    if (!isset($allowed[$mime])) {
-        exit('File type not allowed. Use PDF, JPG, PNG, DOC, or DOCX.');
-    }
-
-    $ext = $allowed[$mime];
-    $safeName = 'req_' . $internID . '_' . $reqID . '_' . time() . '.' . $ext;
-
-    if (!move_uploaded_file($file['tmp_name'], '/var/www/uploads/' . $safeName)) {
-        exit('Could not save the file.');
-    }
-
-    $filePath = $safeName;
-}
-
-$db->submitRequirement($internID, $reqID, $internRemarks, $filePath);
-
+flash('success', 'Your requirement has been submitted for your adviser\'s review.');
 redirect('/requirements');
