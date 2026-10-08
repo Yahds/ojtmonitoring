@@ -36,12 +36,12 @@ test('adding an adviser shows them in the list with a success message', async ()
 
 describe('dept head can also handle their own interns', () => {
     test('opens the interns page', async () => {
-        const res = await agent.get('/ojt-dashboard/enroll');
+        const res = await agent.get('/adviser/interns');
         expect(res.status).toBe(200);
     });
 
     test("does not see another adviser's interns", async () => {
-        const res = await agent.get('/ojt-dashboard/enroll');
+        const res = await agent.get('/adviser/interns');
         expect(res.text).not.toContain('Maria Santos');
     });
 });

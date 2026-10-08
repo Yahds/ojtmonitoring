@@ -23,7 +23,7 @@ afterAll(async () => {
 
 test('a logged-in adviser can open the dashboard', async () => {
     const agent = await loginAs(app, adviser.email);
-    const res = await agent.get('/ojt-dashboard/');
+    const res = await agent.get('/adviser/dashboard');
     expect(res.status).toBe(200);
 });
 
@@ -34,7 +34,7 @@ test.each(['/', '/adviser/login'])('logged-in GET %s redirects to the dashboard 
     const res = await agent.get(url);
 
     expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/ojt-dashboard');
+    expect(res.headers.location).toBe('/adviser/dashboard');
     expect(fetchStudentsCalls).not.toHaveBeenCalled();
 });
 
@@ -47,7 +47,7 @@ test('logging again in the same browser starts a new session', async () => {
     const firstToken = await csrfTokenFrom(agent, '/adviser/login');
     const first = await agent.post('/adviser/login').type('form').send({ ...form, csrf_token: firstToken });
 
-    const secondToken = await csrfTokenFrom(agent, '/ojt-dashboard/');
+    const secondToken = await csrfTokenFrom(agent, '/adviser/dashboard');
     const second = await agent.post('/adviser/login').type('form').send({ ...form, csrf_token: secondToken });
 
     expect(second.headers['set-cookie']).toBeDefined();

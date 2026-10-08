@@ -13,8 +13,8 @@ describe('route smoke tests', () => {
         expect(res.status).toBe(200);
     });
 
-    test('GET /ojt-dashboard redirects to login when not authenticated (protected)', async () => {
-        const res = await request(app).get('/ojt-dashboard/');
+    test('GET /adviser/dashboard redirects to login when not authenticated (protected)', async () => {
+        const res = await request(app).get('/adviser/dashboard');
         expect(res.status).toBe(302);
         expect(res.headers.location).toBe('/adviser/login');
     });
@@ -41,25 +41,25 @@ describe('route smoke tests', () => {
         ['get', '/ojt-admin'],
         ['get', '/ojt-admin/advisers'],
         ['post', '/ojt-admin/advisers'],
-        ['get', '/ojt-dashboard/enroll'],
-        ['post', '/ojt-dashboard/enroll'],
-        ['post', '/ojt-dashboard/deploy'],
-        ['post', '/update-intern-remarks'],   
-        ['get', '/ojt-dashboard/journals-review/1'],
-        ['post', '/ojt-dashboard/journals-review/1'],
-        ['get', '/ojt-dashboard/journal-file/1'],
-        ['get', '/ojt-dashboard/weekly-reports-review/1'],
-        ['post', '/ojt-dashboard/weekly-reports-review/1'],
-        ['get', '/ojt-dashboard/weekly-report-file/1'],
-        ['get', '/ojt-dashboard/requirements-reports/someone'],
-        ['get', '/ojt-dashboard/requirements-review/1'],
-        ['post', '/ojt-dashboard/requirements-review/1'],
-        ['get', '/ojt-dashboard/requirement-file/1/1'],
-        ['get', '/fetch-unassigned-requirements/1'],
-        ['post', '/ojt-dashboard/postrequirement'],
-        ['post', '/ojt-dashboard/postannouncement'],
-        ['post', '/ojt-dashboard/deleteannouncement'],
-        ['get', '/ojt-about-us/'],
+        ['get', '/adviser/interns'],
+        ['post', '/adviser/interns'],
+        ['post', '/adviser/interns/1/deploy'],
+        ['post', '/adviser/intern-remarks'],   
+        ['get', '/adviser/interns/1/journals'],
+        ['post', '/adviser/interns/1/journals'],
+        ['get', '/adviser/journals/1/file'],
+        ['get', '/adviser/interns/1/weekly-reports'],
+        ['post', '/adviser/interns/1/weekly-reports'],
+        ['get', '/adviser/weekly-reports/1/file'],
+        ['get', '/adviser/requirements-reports/someone'],
+        ['get', '/adviser/interns/1/requirements'],
+        ['post', '/adviser/interns/1/requirements'],
+        ['get', '/adviser/interns/1/requirements/1/file'],
+        ['get', '/adviser/unassigned-requirements/1'],
+        ['post', '/adviser/assign-requirement'],
+        ['post', '/adviser/announcements'],
+        ['post', '/adviser/announcements/delete'],
+        ['get', '/adviser/about'],
         ['get', '/adviser/logout'],
     ];
 
@@ -89,7 +89,7 @@ describe('route smoke tests', () => {
         '/ojt-about-us/index.pug',
         '/ojt-login-page/hash.js',
         '/ojt-dashboard/upload.js',
-        '/ojt-dashboard/postannouncement.js',
+        '/adviser/announcements.js',
         '/ojt-about-us/about-us.html',
     ])('does not serve the file %s', async (url) => {
         const res = await request(app).get(url);

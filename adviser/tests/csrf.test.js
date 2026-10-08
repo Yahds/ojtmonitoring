@@ -28,14 +28,14 @@ test.each([
     ['no', {}],
     ['a wrong', { csrf_token: 'a'.repeat(64) }],
 ])('a form sent with %s CSRF token is rejected', async (_label, body) => {
-    const res = await agent.post('/ojt-dashboard/deploy').type('form').send(body);
+    const res = await agent.post('/adviser/interns/0/deploy').type('form').send(body);
     expect(res.status).toBe(403);
 });
 
 test('a form sent with the right CSRF token gets past the check', async () => {
-    const csrfToken = await csrfTokenFrom(agent, '/ojt-dashboard/');
-    const res = await agent.post('/ojt-dashboard/deploy').type('form').send({ csrf_token: csrfToken });
+    const csrfToken = await csrfTokenFrom(agent, '/adviser/dashboard');
+    const res = await agent.post('/adviser/interns/0/deploy').type('form').send({ csrf_token: csrfToken });
     // a redirect back to the interns page comes from the deploy route itself, so the CSRF check let it through
     expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/ojt-dashboard/enroll');
+    expect(res.headers.location).toBe('/adviser/interns');
 });

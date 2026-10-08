@@ -1,22 +1,21 @@
 const ROLE_LABELS = { adviser: 'Adviser', dept_head: 'Dept head' };
 
 const INTERNS_LINK = {
-    href: '/ojt-dashboard/enroll',
+    href: '/adviser/interns',
     label: 'Interns',
-    also: ['/ojt-dashboard/requirements-review', '/ojt-dashboard/weekly-reports-review', '/ojt-dashboard/journals-review'],
 };
 
 const NAV = {
     adviser: [
-        { href: '/ojt-dashboard', label: 'Dashboard', exact: true },
+        { href: '/adviser/dashboard', label: 'Dashboard', exact: true },
         INTERNS_LINK,
-        { href: '/ojt-about-us', label: 'About us' },
+        { href: '/adviser/about', label: 'About us' },
     ],
     dept_head: [
         { href: '/ojt-admin', label: 'Overview', exact: true },
         { href: '/ojt-admin/advisers', label: 'Advisers' },
         INTERNS_LINK,
-        { href: '/ojt-about-us', label: 'About us' },
+        { href: '/adviser/about', label: 'About us' },
     ],
 };
 
@@ -41,7 +40,7 @@ function navFor(role, rawPath) {
 }
 
 function homeFor(role) {
-    return role === 'dept_head' ? '/ojt-admin' : '/ojt-dashboard';
+    return role === 'dept_head' ? '/ojt-admin' : '/adviser/dashboard';
 }
 
 // gives every page the logged-in user and the sidebar links

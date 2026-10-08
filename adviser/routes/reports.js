@@ -5,7 +5,7 @@ const { requireAdviser } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAdviser, async (req, res, next) => {
+router.get("/interns/:internId/weekly-reports", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const weeklyReports = await fetchWeeklyReportsForReview(internId, req.session.adviserID);
@@ -18,11 +18,11 @@ router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAdviser, asy
     }
 });
 
-router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAdviser, async (req, res, next) => {
+router.post("/interns/:internId/weekly-reports", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const { reportid, decision, remark } = req.body;
-        const backTo = `/ojt-dashboard/weekly-reports-review/${internId}`;
+        const backTo = `/adviser/interns/${internId}/weekly-reports`;
 
         if (decision !== 'APPROVED' && decision !== 'REJECTED') {
             req.flash('error', 'Choose Approve or Reject.');
@@ -41,7 +41,7 @@ router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAdviser, as
     }
 });
 
-router.get("/ojt-dashboard/weekly-report-file/:reportId", requireAdviser, async (req, res, next) => {
+router.get("/weekly-reports/:reportId/file", requireAdviser, async (req, res, next) => {
     try {
         const reportId = req.params.reportId;
         const filePath = await fetchWeeklyReportFileForAdviser(reportId, req.session.adviserID);

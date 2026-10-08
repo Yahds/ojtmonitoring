@@ -61,12 +61,12 @@ app.use(currentUser);
 app.use(flash);
 app.use(homeRoutes);
 app.use(adminRoutes);
-app.use(internRoutes);
+app.use('/adviser', internRoutes);
 app.use('/adviser', authRoutes);
-app.use(dashboardRoutes);
-app.use(journalRoutes);
-app.use(reportRoutes);
-app.use(requirementRoutes);
+app.use('/adviser', dashboardRoutes);
+app.use('/adviser', journalRoutes);
+app.use('/adviser', reportRoutes);
+app.use('/adviser', requirementRoutes);
 app.use(notFound);
 app.use(handleErrors);
 

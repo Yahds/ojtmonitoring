@@ -32,19 +32,18 @@ block content
                   span.tag(class=(i.status === 'ACTIVE' ? 'tag-ok' : ''))= i.status
                 td
                   .btn-row
-                    a(href=`/ojt-dashboard/requirements-review/${i.internid}`) Requirements
-                    a(href=`/ojt-dashboard/weekly-reports-review/${i.internid}`) Reports
-                    a(href=`/ojt-dashboard/journals-review/${i.internid}`) Journals
+                    a(href=`/adviser/interns/${i.internid}/requirements`) Requirements
+                    a(href=`/adviser/interns/${i.internid}/weekly-reports`) Reports
+                    a(href=`/adviser/interns/${i.internid}/journals`) Journals
                 td
                   if i.status === 'PENDING'
-                    form(action='/ojt-dashboard/deploy' method='POST')
+                    form(action=`/adviser/interns/${i.internid}/deploy` method='POST')
                       input(type='hidden' name='csrf_token' value=csrfToken)
-                      input(type='hidden' name='internID' value=i.internid)
                       button.btn.btn-create.btn-sm(type='submit') Deploy
 
   section.card.card-pad#enroll
     h2.section-title Enroll an intern
-    form.form(action='/ojt-dashboard/enroll' method='POST')
+    form.form(action='/adviser/interns' method='POST')
       input(type='hidden' name='csrf_token' value=csrfToken)
       .field
         label(for='studentID') Student ID

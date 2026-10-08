@@ -2,7 +2,7 @@ extends ../../layouts/main
 
 block content
   p.crumb
-    a(href='/ojt-dashboard/enroll') Interns
+    a(href='/adviser/interns') Interns
     |  / Monthly journals
   h1.page-title
     | Monthly journals
@@ -25,8 +25,8 @@ block content
           p.note= journal.notes
         if journal.file_path
           p
-            a(href=`/ojt-dashboard/journal-file/${journal.journalid}`) View journal file
-        form.form(action=`/ojt-dashboard/journals-review/${internId}` method='POST')
+            a(href=`/adviser/journals/${journal.journalid}/file`) View journal file
+        form.form(action=`/adviser/interns/${internId}/journals` method='POST')
           input(type='hidden' name='csrf_token' value=csrfToken)
           input(type='hidden' name='journalid' value=journal.journalid)
           .field
