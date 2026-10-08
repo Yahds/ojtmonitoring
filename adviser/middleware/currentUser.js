@@ -1,14 +1,21 @@
 const ROLE_LABELS = { adviser: 'Adviser', dept_head: 'Dept head' };
 
+const INTERNS_LINK = {
+    href: '/ojt-dashboard/enroll',
+    label: 'Interns',
+    also: ['/ojt-dashboard/requirements-review', '/ojt-dashboard/weekly-reports-review', '/ojt-dashboard/journals-review'],
+};
+
 const NAV = {
     adviser: [
         { href: '/ojt-dashboard', label: 'Dashboard', exact: true },
-        { href: '/ojt-dashboard/enroll', label: 'Interns', also: ['/ojt-dashboard/requirements-review', '/ojt-dashboard/weekly-reports-review', '/ojt-dashboard/journals-review'] },
+        INTERNS_LINK,
         { href: '/ojt-about-us', label: 'About us' },
     ],
     dept_head: [
         { href: '/ojt-admin', label: 'Overview', exact: true },
         { href: '/ojt-admin/advisers', label: 'Advisers' },
+        INTERNS_LINK,
         { href: '/ojt-about-us', label: 'About us' },
     ],
 };

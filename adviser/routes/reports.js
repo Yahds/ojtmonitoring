@@ -1,11 +1,11 @@
 const express = require('express');
 const path = require('path');
 const { fetchWeeklyReportsForReview, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser } = require('../db');
-const { requireAuth } = require('../middleware/auth');
+const { requireAdviser } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const weeklyReports = await fetchWeeklyReportsForReview(internId, req.session.adviserID);
@@ -18,7 +18,7 @@ router.get("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async 
     }
 });
 
-router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async (req, res, next) => {
+router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
         const { reportid, decision, remark } = req.body;
@@ -41,7 +41,7 @@ router.post("/ojt-dashboard/weekly-reports-review/:internId", requireAuth, async
     }
 });
 
-router.get("/ojt-dashboard/weekly-report-file/:reportId", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard/weekly-report-file/:reportId", requireAdviser, async (req, res, next) => {
     try {
         const reportId = req.params.reportId;
         const filePath = await fetchWeeklyReportFileForAdviser(reportId, req.session.adviserID);

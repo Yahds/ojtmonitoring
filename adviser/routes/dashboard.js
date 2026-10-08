@@ -1,10 +1,10 @@
 const express = require('express');
 const { fetchAdviser, fetchInterns, fetchAnnouncements, insertAnnouncement, deleteAnnouncement } = require('../db');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireAdviser } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get("/ojt-dashboard", requireAuth, async (req, res, next) => {
+router.get("/ojt-dashboard", requireAdviser, async (req, res, next) => {
     try {
         const adviser = await fetchAdviser(req.session.adviserID);
         const interns = await fetchInterns(req.session.adviserID);
@@ -52,7 +52,7 @@ router.get("/ojt-dashboard", requireAuth, async (req, res, next) => {
     }
 });
 
-router.post('/ojt-dashboard/postannouncement', requireAuth, async (req, res, next) => {
+router.post('/ojt-dashboard/postannouncement', requireAdviser, async (req, res, next) => {
     const sender = req.session.adviserID;
     const recipient = req.body.recipient;
     const subject = req.body['subject-text'];
@@ -66,7 +66,7 @@ router.post('/ojt-dashboard/postannouncement', requireAuth, async (req, res, nex
     }
 });
 
-router.post('/ojt-dashboard/deleteannouncement', requireAuth, async (req, res, next) => {
+router.post('/ojt-dashboard/deleteannouncement', requireAdviser, async (req, res, next) => {
     const announcementid = req.body['announcementid'];
 
     try {

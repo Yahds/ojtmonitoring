@@ -33,3 +33,16 @@ test('adding an adviser shows them in the list with a success message', async ()
     expect(page.text).toContain('Test, Added added.');
     expect(page.text).toContain(NEW_ADVISER_EMAIL);
 });
+
+describe('dept head can also handle their own interns', () => {
+    test('opens the interns page', async () => {
+        const res = await agent.get('/ojt-dashboard/enroll');
+        expect(res.status).toBe(200);
+    });
+
+    test("does not see another adviser's interns", async () => {
+        const res = await agent.get('/ojt-dashboard/enroll');
+        expect(res.text).not.toContain('Maria Santos');
+    });
+});
+
