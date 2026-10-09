@@ -7,7 +7,8 @@ $formId = (int) $requirement->reqID;
     <input type="hidden" name="reqid" value="<?= $formId ?>">
     <div class="field">
         <label for="file-<?= $formId ?>">File</label>
-        <input class="input" id="file-<?= $formId ?>" type="file" name="requirement_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+        <input class="input" id="file-<?= $formId ?>" type="file" name="requirement_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" aria-describedby="file-<?= $formId ?>-help">
+        <span class="help" id="file-<?= $formId ?>-help">PDF, JPG, PNG, DOC or DOCX, up to 5 MB.</span>
     </div>
     <div class="field">
         <label for="note-<?= $formId ?>">Note to your adviser <span class="muted">(optional)</span></label>

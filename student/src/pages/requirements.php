@@ -7,7 +7,7 @@ $title = 'Requirements';
 require __DIR__ . '/../views/header.php';
 ?>
 <h1 class="page-title">Requirements</h1>
-<p class="muted">PDF, JPG, PNG, DOC or DOCX, up to 5 MB. Only you and your adviser can open your files.</p>
+<p class="muted">Only you and your adviser can open your files.</p>
 
 <h2 class="section-title">Needs your action · <?= count($groups['action']) ?></h2>
 <section class="card">

@@ -12,7 +12,7 @@ router.get("/interns/:internId/weekly-reports", requireAdviser, async (req, res,
         weeklyReports.forEach(report => {
             if (report.datesubmitted) report.datesubmitted = new Date(report.datesubmitted).toDateString();
         });
-        res.render('ojt-dashboard/views/weekly-reports-review', { weeklyReports, internId });
+        res.render('ojt-dashboard/views/weekly-reports-review', { title: 'Weekly reports', weeklyReports, internId });
     } catch (error) {
         next(error);
     }
