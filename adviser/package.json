@@ -5,10 +5,8 @@
   "main": "app.js",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "body-parser": "^1.20.8",
     "dotenv": "^16.3.1",
     "express": "^4.22.3",
-    "express-fileupload": "^1.4.3",
     "express-session": "^1.19.0",
     "mysql2": "^3.24.4",
     "pug": "^3.0.4"
