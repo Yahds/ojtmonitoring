@@ -82,3 +82,15 @@ test("cannot send an announcement to another adviser's intern", async () => {
     const rows = await findAnnouncements(subject);
     expect(rows.filter((row) => row.recipientid === OTHER_INTERN_ID)).toHaveLength(0);
 });
+
+test("cannot send an announcement to another adviser's intern by id", async () => {
+    const subject = `${TAG} other intern by id`;
+
+    await agent
+        .post('/adviser/announcements')
+        .type('form')
+        .send({ recipient: [String(OTHER_INTERN_ID)], 'subject-text': subject, 'description-text': 'testing', csrf_token: csrfToken });
+
+    const rows = await findAnnouncements(subject);
+    expect(rows.filter((row) => row.recipientid === OTHER_INTERN_ID)).toHaveLength(0);
+});

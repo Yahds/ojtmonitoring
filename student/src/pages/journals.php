@@ -8,7 +8,7 @@ $title = 'Journals';
 require __DIR__ . '/../views/header.php';
 ?>
 <h1 class="page-title">Monthly journals</h1>
-<p class="muted">Submit one journal for each month of your OJT. PDF, JPG, PNG, DOC or DOCX, up to 5 MB.</p>
+<p class="muted">Submit one journal for each month of your OJT.</p>
 
 <h2 class="section-title">Submit a journal</h2>
 <section class="card card-pad">
@@ -24,7 +24,8 @@ require __DIR__ . '/../views/header.php';
         </div>
         <div class="field">
             <label for="journal_file">Journal file</label>
-            <input class="input" id="journal_file" type="file" name="journal_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required>
+            <input class="input" id="journal_file" type="file" name="journal_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" aria-describedby="journal_file-help" required>
+            <span class="help" id="journal_file-help">PDF, JPG, PNG, DOC or DOCX, up to 5 MB.</span>
         </div>
         <div class="btn-row">
             <button class="btn btn-create btn-sm" type="submit">Submit journal</button>

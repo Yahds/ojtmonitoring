@@ -51,7 +51,7 @@ router.get("/interns/:internId/requirements", requireAdviser, async (req, res, n
 
         // Render the intern requirements view with the requirements data
         res.render('ojt-dashboard/views/review-requirements', {
-            assignedRequirements, internId
+            title: 'Requirements', assignedRequirements, internId
         });
     } catch (error) {
         next(error);

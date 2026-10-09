@@ -3,12 +3,12 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const bodyParser = require('body-parser');
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.disable('x-powered-by');
+app.use(express.urlencoded({ extended: true }));
 // for session handling
 app.use(session({
     secret: process.env.SESSION_SECRET, // A secret key for signing the session ID cookie

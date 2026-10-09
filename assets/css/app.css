@@ -102,7 +102,7 @@ table, .num { font-variant-numeric: tabular-nums; }
 .field label, .field .label { font-size: 13px; font-weight: 700; }
 .field .help { font-size: 12.5px; color: var(--muted); }
 .field .error { font-size: 13px; font-weight: 600; color: var(--red); }
-.input { font: 400 14px var(--font); color: var(--text); border: 1px solid #c9c9d2; border-radius: 10px; padding: 9px 12px; background: #fff; width: 100%; }
+.input { font: 400 14px var(--font); color: var(--text); border: 1px solid #8a8a94; border-radius: 10px; padding: 9px 12px; background: #fff; width: 100%; }
 textarea.input { min-height: 80px; resize: vertical; }
 .input[aria-invalid="true"] { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
 .req { color: var(--red); }
@@ -228,4 +228,15 @@ th:last-child, td:last-child { padding-right: 24px; }
   .tabbar { display: none; }
   .has-tabbar .sidebar { display: flex; }
   .has-tabbar .content { padding-bottom: 48px; }
+}
+/* ---------- small phones ---------- */
+@media (max-width: 599px) {
+  .nav-name { display: none; }   
+}
+.big-btn { white-space: normal; }
+
+/* ---------- touch targets on phones ---------- */
+@media (max-width: 899px) {
+  .btn-sm, .sidebar a, summary.link-btn { min-height: 44px; display: inline-flex; align-items: center; }
+  .profile-menu summary { width: 44px; height: 44px; }
 }

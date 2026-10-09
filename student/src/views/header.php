@@ -13,7 +13,7 @@ $name = displayName($_SESSION['studentName'] ?? '');
         <span class="nav-name"><?= e($name) ?><span class="nav-role"> · Intern</span></span>
         <details class="profile-menu">
             <summary aria-label="Profile menu">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#0d0464" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
             </summary>
             <div class="menu">
                 <div class="who"><b><?= e($name) ?></b><span>Intern · <?= e((string) ($_SESSION['id'] ?? '')) ?></span></div>

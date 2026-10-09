@@ -8,7 +8,7 @@ $title = 'Weekly reports';
 require __DIR__ . '/../views/header.php';
 ?>
 <h1 class="page-title">Weekly reports</h1>
-<p class="muted">Submit one report per week with your supervisor's signature. PDF, JPG, PNG, DOC or DOCX, up to 5 MB.</p>
+<p class="muted">Submit one report per week with your supervisor's signature.</p>
 
 <h2 class="section-title">Submit a report</h2>
 <section class="card card-pad">
@@ -28,7 +28,8 @@ require __DIR__ . '/../views/header.php';
         </div>
         <div class="field">
             <label for="report_file">Supervisor-signed report</label>
-            <input class="input" id="report_file" type="file" name="report_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required>
+            <input class="input" id="report_file" type="file" name="report_file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" aria-describedby="report_file-help" required>
+            <span class="help" id="report_file-help">PDF, JPG, PNG, DOC or DOCX, up to 5 MB.</span>
         </div>
         <div class="btn-row">
             <button class="btn btn-create btn-sm" type="submit">Submit report</button>

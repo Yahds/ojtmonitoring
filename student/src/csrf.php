@@ -17,8 +17,3 @@ function verify_csrf() {
         exit('Invalid CSRF token');
     }
 }
-
-// to help return the raw token for the JS/AJAX requests
-function csrf_token() {
-    return $_SESSION['csrf_token'];
-}

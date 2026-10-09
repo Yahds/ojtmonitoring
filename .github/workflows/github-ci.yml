@@ -37,6 +37,7 @@ jobs:
           MYSQL_DATABASE: ojt
           MYSQL_USER: ojt_app
           MYSQL_PASSWORD: ojt_app_ci
+          TZ: Asia/Manila
         ports:
           - 3306:3306
         options: >-
@@ -50,6 +51,7 @@ jobs:
       MYSQL_PASSWORD: ojt_app_ci
       MYSQL_DATABASE: ojt
       SESSION_SECRET: ci-test-secret
+      TZ: Asia/Manila
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -79,6 +81,7 @@ jobs:
           php-version: '8.2'
           extensions: mysqli
           tools: composer:2.10.3
+          ini-values: date.timezone=Asia/Manila
       - name: Install PHP deps
         working-directory: student
         run: composer install --no-interaction
