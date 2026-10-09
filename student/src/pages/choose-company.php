@@ -3,10 +3,9 @@ requireLogin();
 if ($_SESSION['status'] === 'ACTIVE') {
     redirect('/dashboard');
 }
-$db = new DAO();
-$profile = $db->getInternProfile($_SESSION['internid']);
-$companies = $db->getCompanies();
-$summary = summarize($db->getRequirements($_SESSION['internid']), []);
+$profile = getInternProfile($_SESSION['internid']);
+$companies = getCompanies();
+$summary = summarize(getRequirements($_SESSION['internid']), []);
 $todoCount = count($summary['todo']);
 $title = 'Choose company';
 require __DIR__ . '/../views/header.php';

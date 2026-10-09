@@ -18,7 +18,7 @@ if ($error !== null) {
 }
 
 $fileName = $hasFile ? saveUpload($file, 'req') : null;
-$changed = (new DAO())->submitRequirement($_SESSION['internid'], $reqId, $note, $fileName);
+$changed = submitRequirement($_SESSION['internid'], $reqId, $note, $fileName);
 
 if ($changed === 0) {
     if ($fileName !== null) {
