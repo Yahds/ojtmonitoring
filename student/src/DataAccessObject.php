@@ -1,15 +1,11 @@
 <?php
 require_once __DIR__ . '/classes.php';
+require_once __DIR__ . '/db/connection.php';
 class DAO {
     private $connection;
 
     public function __construct() {
-        $host = getenv('MYSQL_HOST') ?: 'localhost';
-        $user = getenv('MYSQL_USER') ?: 'root';
-        $password = getenv('MYSQL_PASSWORD') ?: '';
-        $databaseName = getenv('MYSQL_DATABASE') ?: 'ojt';
-
-        $this->connection = mysqli_connect($host, $user, $password, $databaseName);
+        $this->connection = db();
     }
 
     public function internLogIn($id, $password) {
