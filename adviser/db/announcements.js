@@ -1,23 +1,26 @@
 const { pool } = require('./pool');
 
 async function insertAnnouncement(sender, recipient, subject, announcement) {
-    // Get the current date
     const now = new Date();
-    // Format the date as YYYY-MM-DD
+    // YYYY-MM-DD
     const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    if (recipient.length == 1) {
-        await pool.query("INSERT INTO announcements(date, senderid, recipientid, subject, message) values (?,?,?,?,?)", [date, sender, recipient[0], subject, announcement]);
-    } else {
-        for (let i = 0; i < recipient.length; i++) {
-            if (recipient[i] == 0)
-                continue;
-            // only find adviser/sender's own interns
-            const [rs] = await pool.query("select internid from interns i inner join students s on i.studentid = s.studentID where s.studentName = ? and i.adviserid = ?", [recipient[i], sender]);
-            if (rs.length === 0)
-                continue;
-            await pool.query("INSERT INTO announcements(date, senderid, recipientid, subject, message) values (?,?,?,?,?)", [date, sender, rs[0].internid, subject, announcement]);
-        }
+    const recipients = [].concat(recipient);
+
+    // "0" = all of my interns
+    if (recipients.length === 1 && recipients[0] === '0') {
+        await pool.query("INSERT INTO announcements(date, senderid, recipientid, subject, message) values (?,?,?,?,?)", [date, sender, 0, subject, announcement]);
+        return;
+    }
+
+    for (const name of recipients) {
+        if (name === '0')
+            continue;
+        // only find adviser/sender's own interns
+        const [rs] = await pool.query("select internid from interns i inner join students s on i.studentid = s.studentID where s.studentName = ? and i.adviserid = ?", [name, sender]);
+        if (rs.length === 0)
+            continue;
+        await pool.query("INSERT INTO announcements(date, senderid, recipientid, subject, message) values (?,?,?,?,?)", [date, sender, rs[0].internid, subject, announcement]);
     }
 }
 
