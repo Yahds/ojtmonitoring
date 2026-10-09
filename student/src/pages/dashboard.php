@@ -1,9 +1,8 @@
 <?php
 requireDeployed();
-$db = new DAO();
-$profile = $db->getInternProfile($_SESSION['internid']);
-$summary = summarize($db->getRequirements($_SESSION['internid']), $db->getWeeklyReports($_SESSION['internid']));
-$announcements = $db->getAnnouncementsForIntern($_SESSION['internid']);
+$profile = getInternProfile($_SESSION['internid']);
+$summary = summarize(getRequirements($_SESSION['internid']), getWeeklyReports($_SESSION['internid']));
+$announcements = getAnnouncementsForIntern($_SESSION['internid']);
 $target = targetHoursFor($profile['course']);
 $adviser = displayName($profile['adviserName']);
 $todoCount = count($summary['todo']);

@@ -4,7 +4,7 @@ verify_csrf();
 
 $studentId = trim($_POST['id'] ?? '');
 $password = $_POST['password'] ?? '';
-$row = $studentId !== '' ? (new DAO())->internLogIn($studentId, $password) : false;
+$row = $studentId !== '' ? internLogIn($studentId, $password) : false;
 
 if (!$row) {
     http_response_code(401);

@@ -1,14 +1,13 @@
 <?php
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__ . '/../src/DataAccessObject.php';
+require_once __DIR__ . '/../src/db/index.php';
 
 class LoginTest extends TestCase
 {
     public function testRightPasswordReturnsTheIntern(): void
     {
-        $dao = new DAO();
-        $row = $dao->internLogIn(2299001, '1234');
+        $row = internLogIn(2299001, '1234');
 
         $this->assertNotFalse($row);
         $this->assertSame(300, $row['internid']);
@@ -16,8 +15,6 @@ class LoginTest extends TestCase
 
     public function testWrongPasswordIsRejected(): void
     {
-        $dao = new DAO();
-
-        $this->assertFalse($dao->internLogIn(2299001, 'wrong-password'));
+        $this->assertFalse(internLogIn(2299001, 'wrong-password'));
     }
 }

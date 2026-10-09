@@ -23,7 +23,7 @@ if ($error !== null) {
 }
 
 $fileName = saveUpload($file, 'journal');
-(new DAO())->submitJournal($_SESSION['internid'], $month, $notes, $fileName);
+submitJournal($_SESSION['internid'], $month, $notes, $fileName);
 
 flash('success', "Your month $month journal has been submitted for your adviser's review.");
 redirect('/journals');

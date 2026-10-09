@@ -5,7 +5,7 @@ function requireLogin(): void
     if (!isset($_SESSION['internid'])) {
         redirect('/login');
     }
-    $status = (new DAO())->getInternStatus($_SESSION['internid']);
+    $status = getInternStatus($_SESSION['internid']);
     if ($status === null) {
         session_destroy();
         redirect('/login');

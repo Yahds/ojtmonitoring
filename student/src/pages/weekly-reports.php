@@ -1,8 +1,7 @@
 <?php
 requireDeployed();
-$db = new DAO();
-$reports = $db->getWeeklyReports($_SESSION['internid']);
-$adviser = displayName($db->getInternProfile($_SESSION['internid'])['adviserName']);
+$reports = getWeeklyReports($_SESSION['internid']);
+$adviser = displayName(getInternProfile($_SESSION['internid'])['adviserName']);
 $nextWeek = $reports ? max(array_column($reports, 'weeknumber')) + 1 : 1;
 $title = 'Weekly reports';
 require __DIR__ . '/../views/header.php';

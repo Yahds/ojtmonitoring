@@ -26,7 +26,7 @@ if ($error !== null) {
 }
 
 $fileName = saveUpload($file, 'weekly');
-(new DAO())->submitWeeklyReport($_SESSION['internid'], $week, $hours, $description, $fileName);
+submitWeeklyReport($_SESSION['internid'], $week, $hours, $description, $fileName);
 
 flash('success', "Your week $week report has been submitted for your adviser's review.");
 redirect('/weekly-reports');

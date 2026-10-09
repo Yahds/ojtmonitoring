@@ -1,8 +1,7 @@
 <?php
 requireDeployed();
-$db = new DAO();
-$journals = $db->getMonthlyJournals($_SESSION['internid']);
-$adviser = displayName($db->getInternProfile($_SESSION['internid'])['adviserName']);
+$journals = getMonthlyJournals($_SESSION['internid']);
+$adviser = displayName(getInternProfile($_SESSION['internid'])['adviserName']);
 $nextMonth = $journals ? max(array_column($journals, 'monthnumber')) + 1 : 1;
 $title = 'Journals';
 require __DIR__ . '/../views/header.php';

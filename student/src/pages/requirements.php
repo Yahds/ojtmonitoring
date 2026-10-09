@@ -1,8 +1,7 @@
 <?php
 requireLogin();
-$db = new DAO();
-$groups = groupRequirements($db->getRequirements($_SESSION['internid']));
-$adviser = displayName($db->getInternProfile($_SESSION['internid'])['adviserName']);
+$groups = groupRequirements(getRequirements($_SESSION['internid']));
+$adviser = displayName(getInternProfile($_SESSION['internid'])['adviserName']);
 $title = 'Requirements';
 require __DIR__ . '/../views/header.php';
 ?>
