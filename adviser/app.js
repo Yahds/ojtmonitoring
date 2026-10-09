@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const app = express();
 const port = process.env.PORT || 8080;
 
+app.disable('x-powered-by');
 app.use(bodyParser.urlencoded({ extended: true }));
 // for session handling
 app.use(session({
