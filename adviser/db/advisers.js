@@ -9,7 +9,7 @@ async function authenticateAdviser(adviserEmail, password) {
         [adviserEmail]
     );
     const adviser = rows[0];
-    if (!adviser || adviser.isLocked) {
+    if (!adviser || adviser.isLocked || !adviser.password) {
         return null;
     }
 
@@ -32,7 +32,7 @@ async function authenticateAdviser(adviserEmail, password) {
 async function changeAdviserPassword(adviserID, currentPassword, newPassword) {
     const [rows] = await pool.query("SELECT password FROM advisers WHERE adviserID = ?", [adviserID]);
     const current = typeof currentPassword === 'string' ? currentPassword : '';
-    if (!rows[0] || !(await bcrypt.compare(current, rows[0].password))) {
+    if (!rows[0] || !rows[0].password || !(await bcrypt.compare(current, rows[0].password))) {
         return false;
     }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -56,7 +56,7 @@ async function fetchAdvisersByDepartment(departmentid) {
 }
 
 async function insertAdviser(name, email, password, departmentid){
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
     const [result] = await pool.query("INSERT INTO advisers (adviserName, adviserEmail, password, departmentid, role) VALUES (?, ?, ?, ?, 'adviser')", [name, email, hashedPassword, departmentid]);
     return result.insertId;
 }

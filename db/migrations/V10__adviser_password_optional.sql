@@ -1,0 +1,1 @@
+ALTER TABLE advisers MODIFY password VARCHAR(60) NULL;

@@ -1,3 +1,4 @@
+const request = require('supertest');
 const app = require('../app');
 const { closeDatabase } = require('../db');
 const { pool } = require('../db/pool');
@@ -23,27 +24,37 @@ afterAll(async () => {
     await closeDatabase();
 });
 
-test('adding an adviser shows them in the list with a success message', async () => {
+test('adding an adviser lists them, with no portal password', async () => {
     const res = await agent
         .post('/adviser/admin/advisers')
         .type('form')
-        .send({ name: 'Test, Added', email: NEW_ADVISER_EMAIL, password: 'temp-pass-123', csrf_token: csrfToken });
+        .send({ name: 'Test, Added', email: NEW_ADVISER_EMAIL, csrf_token: csrfToken });
     expect(res.headers.location).toBe('/adviser/admin/advisers');
 
     const page = await agent.get('/adviser/admin/advisers');
-    expect(page.text).toContain('Test, Added added.');
+    expect(page.text).toContain('They can now sign in with their SLU account.');
     expect(page.text).toContain(NEW_ADVISER_EMAIL);
+    const [rows] = await pool.query('SELECT password FROM advisers WHERE adviserEmail = ?', [NEW_ADVISER_EMAIL]);
+    expect(rows[0].password).toBeNull();
+});
+
+test('an adviser with no portal password cannot log in with a password', async () => {
+    const loginAgent = request.agent(app);
+    const token = await csrfTokenFrom(loginAgent, '/adviser/login');
+
+    const res = await loginAgent.post('/adviser/login').type('form').send({ adviserEmail: NEW_ADVISER_EMAIL, password: 'anything-at-all-123', csrf_token: token });
+
+    expect(res.status).toBe(401);
 });
 
 test('adding an adviser with an email that is already used shows an error', async () => {
     const res = await agent
         .post('/adviser/admin/advisers')
         .type('form')
-        .send({ name: 'Test, Copy', email: head.email.toUpperCase(), password: 'temp-pass-123', csrf_token: csrfToken});
-    expect(res.headers.location).toBe('/adviser/admin/advisers');
+        .send({ name: 'Test, Copy', email: head.email.toUpperCase(), csrf_token: csrfToken });
 
-    const page = await agent.get('/adviser/admin/advisers');
-    expect(page.text).toContain('That email is already used by another account');
+    expect(res.status).toBe(400);
+    expect(res.text).toContain('That email is already used by another account.');
     const [rows] = await pool.query('SELECT COUNT(*) AS total FROM advisers WHERE adviserEmail = ?', [head.email]);
     expect(rows[0].total).toBe(1);
 });
