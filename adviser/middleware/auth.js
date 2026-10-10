@@ -27,4 +27,13 @@ function requireRole(roles) {
 // adviser pages: advisers, and dept heads who also handle interns
 const requireAdviser = requireRole(['adviser', 'dept_head']);
 
-module.exports = { requireAuth, requireRole, requireAdviser };
+// someone with a temp password can only change it or log out
+function requirePasswordChange(req, res, next) {
+    const allowed = ['/adviser/account/password', '/adviser/logout'];
+    if (req.session.mustChangePassword && !allowed.includes(req.path)) {
+        return res.redirect('/adviser/account/password');
+    }
+    return next();
+}
+
+module.exports = { requireAuth, requireRole, requireAdviser, requirePasswordChange };

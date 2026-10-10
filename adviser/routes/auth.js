@@ -37,6 +37,7 @@ router.post('/login', async (req, res, next) => {
                 req.session.isLoggedIn = true;
                 req.session.role = adviser.role;
                 req.session.name = adviser.adviserName;
+                req.session.mustChangePassword = adviser.must_change_password === 1;
                 return res.redirect(homeFor(adviser.role));
             });
         } else {

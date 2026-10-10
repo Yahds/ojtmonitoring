@@ -5,7 +5,7 @@ const MAX_FAILED_LOGINS = 5;
 
 async function authenticateAdviser(adviserEmail, password) {
     const [rows] = await pool.query(
-        "SELECT adviserID, adviserEmail, adviserName, password, role, locked_until > NOW() AS isLocked FROM advisers WHERE adviserEmail = ?",
+        "SELECT adviserID, adviserEmail, adviserName, password, role, must_change_password, locked_until > NOW() AS isLocked FROM advisers WHERE adviserEmail = ?",
         [adviserEmail]
     );
     const adviser = rows[0];
@@ -27,6 +27,17 @@ async function authenticateAdviser(adviserEmail, password) {
         [MAX_FAILED_LOGINS, MAX_FAILED_LOGINS, adviser.adviserID]
     );
     return null;
+}
+
+async function changeAdviserPassword(adviserID, currentPassword, newPassword) {
+    const [rows] = await pool.query("SELECT password FROM advisers WHERE adviserID = ?", [adviserID]);
+    const current = typeof currentPassword === 'string' ? currentPassword : '';
+    if (!rows[0] || !(await bcrypt.compare(current, rows[0].password))) {
+        return false;
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query("UPDATE advisers SET password = ?, must_change_password = 0 WHERE adviserID = ?", [hashedPassword, adviserID]);
+    return true;
 }
 
 async function fetchAdviser(adviserID) {
@@ -55,4 +66,5 @@ module.exports = {
     fetchAdviser,
     fetchAdvisersByDepartment,
     insertAdviser,
+    changeAdviserPassword,
 };
