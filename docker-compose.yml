@@ -77,7 +77,19 @@ services:
     depends_on:
       - adviser-node
       - student-php
-
+  sso:
+    image: quay.io/keycloak/keycloak:26.3.0
+    command: start-dev --import-realm
+    restart: unless-stopped
+    ports:
+      - "8180:8080"
+    environment:
+      - TZ=Asia/Manila
+      - KC_HOSTNAME=http://localhost:8180
+      - KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true
+    volumes:
+      - ./sso/slu-realm.json:/opt/keycloak/data/import/slu-realm.json:ro
+      
 volumes:
   db_data:
   student_uploads:

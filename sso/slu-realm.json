@@ -1,0 +1,48 @@
+{
+  "realm": "slu",
+  "enabled": true,
+  "displayName": "Saint Louis University",
+  "clients": [
+    {
+      "clientId": "ojt-portal",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-secret",
+      "standardFlowEnabled": true,
+      "redirectUris": ["http://localhost:8080/adviser/sso/callback"],
+      "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "http://localhost:8080/*" }
+    }
+  ],
+  "users": [
+    {
+      "username": "amelia.stevens@example.com",
+      "email": "amelia.stevens@example.com",
+      "emailVerified": true,
+      "firstName": "Amelia",
+      "lastName": "Stevens",
+      "enabled": true,
+      "realmRoles": ["default-roles-slu"],
+      "credentials": [{ "type": "password", "value": "slu-demo-password", "temporary": false }]
+    },
+    {
+      "username": "benjamin.hayes@example.com",
+      "email": "benjamin.hayes@example.com",
+      "emailVerified": true,
+      "firstName": "Benjamin",
+      "lastName": "Hayes",
+      "enabled": true,
+      "realmRoles": ["default-roles-slu"],
+      "credentials": [{ "type": "password", "value": "slu-demo-password", "temporary": false }]
+    },
+    {
+      "username": "maria.cruz@example.com",
+      "email": "maria.cruz@example.com",
+      "emailVerified": true,
+      "firstName": "Maria",
+      "lastName": "Cruz",
+      "enabled": true,
+      "realmRoles": ["default-roles-slu"],
+      "credentials": [{ "type": "password", "value": "slu-demo-password", "temporary": false }]
+    }
+  ]
+}
