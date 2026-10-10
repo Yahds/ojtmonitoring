@@ -9,8 +9,4 @@ const pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE,
 }).promise();
 
-async function closeDatabase() {
-    await pool.end();
-}
-
-module.exports = { pool, closeDatabase };
+module.exports = { pool };

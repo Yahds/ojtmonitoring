@@ -66,6 +66,11 @@ async function findAdviserByEmail(adviserEmail) {
     return rows[0] || null;
 }
 
+// signs the adviser out on every other device, after a password change
+async function endOtherSessions(adviserID, keepSessionID) {
+    await pool.query("DELETE FROM sessions WHERE session_id <> ? AND JSON_EXTRACT(data, '$.adviserID') = ?", [keepSessionID, adviserID]);
+}
+
 module.exports = {
     authenticateAdviser,
     fetchAdviser,
@@ -73,4 +78,5 @@ module.exports = {
     insertAdviser,
     changeAdviserPassword,
     findAdviserByEmail,
+    endOtherSessions,
 };

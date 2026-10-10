@@ -21,6 +21,7 @@ function startSession(req, res, next, adviser) {
         req.session.role = adviser.role;
         req.session.name = adviser.adviserName;
         req.session.mustChangePassword = adviser.must_change_password === 1;
+        req.session.lastSeen = Date.now();
         res.redirect(homeFor(adviser.role));
     });
 }

@@ -3,6 +3,8 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const { sessionStore } = require('./db/sessionStore');
+const { idleTimeout } = require('./middleware/idleTimeout');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -12,12 +14,14 @@ app.use(express.urlencoded({ extended: true }));
 // for session handling
 app.use(session({
     secret: process.env.SESSION_SECRET, // A secret key for signing the session ID cookie
+    store: sessionStore,
     resave: false,              // Forces the session to be saved back to the session store
     saveUninitialized: false,    // set to false so it doesn't save empty sessions for users who never login
     cookie: { 
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
+        sameSite: 'lax',
+        maxAge: 8 * 60 * 60 * 1000,
     }   // Set true if using HTTPS, false otherwise
 }));
 
@@ -63,6 +67,7 @@ app.use(provideCsrfToken);
 app.use(verifyCsrf);
 app.use(currentUser);
 app.use(flash);
+app.use(idleTimeout);
 app.use(requirePasswordChange);
 app.use(homeRoutes);
 app.use('/adviser', adminRoutes);
