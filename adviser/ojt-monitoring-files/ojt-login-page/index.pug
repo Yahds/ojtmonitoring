@@ -18,6 +18,9 @@ block page
       include ../partials/flash
       if error
         .flash.flash-error(role='alert')= error
+      if ssoEnabled
+        a.btn.btn-primary.big-btn(href='/adviser/sso/start') Sign in with SLU account
+        p.login-or or log in with your portal password
       form.form(action='/adviser/login' method='POST')
         input(type='hidden' name='csrf_token' value=csrfToken)
         .field
@@ -28,6 +31,6 @@ block page
           .pw
             input.input#password(type='password' name='password' autocomplete='current-password' required aria-invalid=(error ? 'true' : undefined))
             button.btn.btn-outline.btn-sm(type='button' data-toggle-password='password' aria-pressed='false') Show
-        button.btn.btn-primary.big-btn(type='submit') Log in
+        button.btn.btn-outline.big-btn(type='submit') Log in
 
   script(src='/assets/js/show-password.js' defer)

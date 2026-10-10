@@ -1,21 +1,43 @@
 const { pool } = require('./pool');
 const bcrypt = require('bcrypt');
 
+const MAX_FAILED_LOGINS = 5;
+
 async function authenticateAdviser(adviserEmail, password) {
-    const [rows] = await pool.query("SELECT adviserID, adviserEmail, adviserName, password, role FROM advisers WHERE adviserEmail = ? LIMIT 1", [adviserEmail]);
-
-    if (rows.length === 1) {
-        const adviser = rows[0];
-        const hashedPasswordFromDatabase = adviser.password;
-
-        // ccompare the provided password with the hashed password from the database
-        const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDatabase);
-
-        if (passwordMatch) {
-            return adviser;
-        }
+    const [rows] = await pool.query(
+        "SELECT adviserID, adviserEmail, adviserName, password, role, must_change_password, locked_until > NOW() AS isLocked FROM advisers WHERE adviserEmail = ?",
+        [adviserEmail]
+    );
+    const adviser = rows[0];
+    if (!adviser || adviser.isLocked || !adviser.password) {
+        return null;
     }
+
+    if (await bcrypt.compare(password, adviser.password)) {
+        await pool.query("UPDATE advisers SET failed_logins = 0, locked_until = NULL WHERE adviserID = ?", [adviser.adviserID]);
+        return adviser;
+    }
+
+    // the 5th wrong try locks for 15 minutes and starts the count again
+    await pool.query(
+        `UPDATE advisers
+         SET locked_until = IF(failed_logins + 1 >= ?, NOW() + INTERVAL 15 MINUTE, locked_until),
+             failed_logins = IF(failed_logins + 1 >= ?, 0, failed_logins + 1)
+         WHERE adviserID = ?`,
+        [MAX_FAILED_LOGINS, MAX_FAILED_LOGINS, adviser.adviserID]
+    );
     return null;
+}
+
+async function changeAdviserPassword(adviserID, currentPassword, newPassword) {
+    const [rows] = await pool.query("SELECT password FROM advisers WHERE adviserID = ?", [adviserID]);
+    const current = typeof currentPassword === 'string' ? currentPassword : '';
+    if (!rows[0] || !rows[0].password || !(await bcrypt.compare(current, rows[0].password))) {
+        return false;
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query("UPDATE advisers SET password = ?, must_change_password = 0 WHERE adviserID = ?", [hashedPassword, adviserID]);
+    return true;
 }
 
 async function fetchAdviser(adviserID) {
@@ -34,9 +56,19 @@ async function fetchAdvisersByDepartment(departmentid) {
 }
 
 async function insertAdviser(name, email, password, departmentid){
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
     const [result] = await pool.query("INSERT INTO advisers (adviserName, adviserEmail, password, departmentid, role) VALUES (?, ?, ?, ?, 'adviser')", [name, email, hashedPassword, departmentid]);
     return result.insertId;
+}
+
+async function findAdviserByEmail(adviserEmail) {
+    const [rows] = await pool.query("SELECT adviserID, adviserName, role FROM advisers WHERE adviserEmail = ?", [adviserEmail]);
+    return rows[0] || null;
+}
+
+// signs the adviser out on every other device, after a password change
+async function endOtherSessions(adviserID, keepSessionID) {
+    await pool.query("DELETE FROM sessions WHERE session_id <> ? AND JSON_EXTRACT(data, '$.adviserID') = ?", [keepSessionID, adviserID]);
 }
 
 module.exports = {
@@ -44,4 +76,7 @@ module.exports = {
     fetchAdviser,
     fetchAdvisersByDepartment,
     insertAdviser,
+    changeAdviserPassword,
+    findAdviserByEmail,
+    endOtherSessions,
 };

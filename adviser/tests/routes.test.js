@@ -60,7 +60,7 @@ describe('route smoke tests', () => {
         ['post', '/adviser/announcements'],
         ['post', '/adviser/announcements/delete'],
         ['get', '/adviser/about'],
-        ['get', '/adviser/logout'],
+        ['post', '/adviser/logout'],
     ];
 
     test.each(protectedRoutes)('%s %s redirects to login when not authenticated', async (method, url) => {

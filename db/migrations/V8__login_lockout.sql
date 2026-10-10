@@ -1,0 +1,3 @@
+ALTER TABLE advisers
+  ADD COLUMN failed_logins INT NOT NULL DEFAULT 0,
+  ADD COLUMN locked_until DATETIME NULL;

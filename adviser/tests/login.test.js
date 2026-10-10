@@ -77,3 +77,61 @@ test('wrong password shows the login page again with a general error', async () 
     expect(res.text).not.toContain('wrong-password');
 });
 
+test('logout by GET does nothing', async () => {
+    const agent = await loginAs(app, adviser.email);
+
+    const res = await agent.get('/adviser/logout');
+
+    expect(res.status).toBe(404);
+    expect((await agent.get('/adviser/dashboard')).status).toBe(200);
+});
+
+test('logout by POST ends the session', async () => {
+    const agent = await loginAs(app, adviser.email);
+    const csrfToken = await csrfTokenFrom(agent, '/adviser/dashboard');
+
+    await agent.post('/adviser/logout').type('form').send({ csrf_token: csrfToken });
+
+    const res = await agent.get('/adviser/dashboard');
+    expect(res.headers.location).toBe('/adviser/login');
+});
+
+async function tryLogin(email, password) {
+    const agent = request.agent(app);
+    const csrfToken = await csrfTokenFrom(agent, '/adviser/login');
+    return agent.post('/adviser/login').type('form').send({ adviserEmail: email, password, csrf_token: csrfToken });
+}
+
+test('five wrong passwords lock the login, even for the right password', async () => {
+    const locked = await createTestAdviser('locked');
+    for (let i = 0; i < 5; i++) {
+        await tryLogin(locked.email, 'wrong-password');
+    }
+
+    const res = await tryLogin(locked.email, TEST_PASSWORD);
+
+    expect(res.status).toBe(401);
+    await deleteTestAdviser(locked.adviserID);
+});
+
+test('a right password resets the count of wrong tries', async () => {
+    const user = await createTestAdviser('reset-count');
+    for (let i = 0; i < 4; i++) {
+        await tryLogin(user.email, 'wrong-password');
+    }
+    await tryLogin(user.email, TEST_PASSWORD);
+    for (let i = 0; i < 4; i++) {
+        await tryLogin(user.email, 'wrong-password');
+    }
+
+    const res = await tryLogin(user.email, TEST_PASSWORD);
+
+    expect(res.status).toBe(302);
+    await deleteTestAdviser(user.adviserID);
+});
+
+test('the session cookie does not reveal the framework', async () => {
+    const res = await request(app).get('/adviser/login');
+
+    expect(res.headers['set-cookie'][0]).toMatch(/^adviser\.sid=/);
+});

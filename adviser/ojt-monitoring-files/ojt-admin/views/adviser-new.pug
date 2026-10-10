@@ -1,0 +1,26 @@
+extends ../../layouts/main
+
+block content
+  p.crumb
+    a(href='/adviser/admin/advisers') Advisers
+    |  / Add adviser
+  h1.page-title Add adviser
+
+  section.card.card-pad
+    form.form(action='/adviser/admin/advisers' method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      .field
+        label(for='name') Full name
+        input.input#name(type='text' name='name' value=values.name placeholder='Cruz, Maria' maxlength='45' required aria-invalid=(errors.name ? 'true' : undefined) aria-describedby='name-help')
+        span.help#name-help Last name, then first name.
+        if errors.name
+          span.error= errors.name
+      .field
+        label(for='email') SLU email
+        input.input#email(type='email' name='email' value=values.email maxlength='45' autocomplete='off' required aria-invalid=(errors.email ? 'true' : undefined) aria-describedby='email-help')
+        span.help#email-help They sign in with this SLU account. No password is needed.
+        if errors.email
+          span.error= errors.email
+      .btn-row
+        button.btn.btn-create(type='submit') Add adviser
+        a.btn.btn-outline(href='/adviser/admin/advisers') Cancel

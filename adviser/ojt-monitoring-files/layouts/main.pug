@@ -18,6 +18,12 @@ html(lang='en')
           main.content#main
             include ../partials/flash
             block content
+        dialog#idle-warning.idle-dialog(aria-labelledby='idle-warning-title')
+          h2#idle-warning-title Are you still there?
+          p You will be logged out in 2 minutes due to inactivity.
+          .btn-row
+            button.btn.btn-primary(type='button' data-stay-logged-in) Stay logged in
+        script(src='/assets/js/idle-warning.js' defer)
       else
         main.content#main
           include ../partials/flash

@@ -6,11 +6,11 @@ block content
   section.card
     .card-head
       h2 Advisers in your department
-      a.btn.btn-create.btn-sm(href='#add-adviser') Add adviser
+      a.btn.btn-create.btn-sm(href='/adviser/admin/advisers/new') Add adviser
     if advisers.length === 0
       .empty
         b No advisers yet
-        | Add the first adviser with the form below.
+        | Add the first adviser with the Add adviser button.
     else
       .table-wrap
         table
@@ -23,21 +23,3 @@ block content
               tr
                 td= a.adviserName
                 td= a.adviserEmail
-
-  section.card.card-pad#add-adviser
-    h2.section-title Add an adviser
-    form.form(action='/adviser/admin/advisers' method='POST')
-      input(type='hidden' name='csrf_token' value=csrfToken)
-      .field
-        label(for='name') Full name
-        input.input#name(type='text' name='name' placeholder='Cruz, Maria' required)
-        span.help Last name, then first name.
-      .field
-        label(for='email') Email
-        input.input#email(type='email' name='email' autocomplete='off' required)
-      .field
-        label(for='password') Temporary password
-        input.input#password(type='text' name='password' autocomplete='off' required)
-        span.help The adviser logs in with this. Share it with them privately.
-      .btn-row
-        button.btn.btn-create(type='submit') Add adviser

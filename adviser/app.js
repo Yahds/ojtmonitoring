@@ -3,21 +3,27 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const { sessionStore } = require('./db/sessionStore');
+const { idleTimeout } = require('./middleware/idleTimeout');
 
 const app = express();
 const port = process.env.PORT || 8080;
 
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
 app.use(express.urlencoded({ extended: true }));
 // for session handling
 app.use(session({
     secret: process.env.SESSION_SECRET, // A secret key for signing the session ID cookie
+    store: sessionStore,
+    name: 'adviser.sid',
     resave: false,              // Forces the session to be saved back to the session store
     saveUninitialized: false,    // set to false so it doesn't save empty sessions for users who never login
     cookie: { 
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
+        sameSite: 'lax',
+        maxAge: 8 * 60 * 60 * 1000,
     }   // Set true if using HTTPS, false otherwise
 }));
 
@@ -41,10 +47,13 @@ app.use('/ojt-dashboard', publicFiles(path.join(__dirname, 'ojt-monitoring-files
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
+const { ssoEnabled } = require('./lib/sso');
+app.locals.ssoEnabled = ssoEnabled();
 
 const { provideCsrfToken, verifyCsrf } = require('./middleware/csrf');
 const { currentUser } = require('./middleware/currentUser');
 const { flash } = require('./middleware/flash');
+const { requirePasswordChange } = require('./middleware/auth');
 const homeRoutes = require('./routes/home');
 const adminRoutes = require('./routes/admin');
 const internRoutes = require('./routes/interns');
@@ -53,12 +62,15 @@ const dashboardRoutes = require('./routes/dashboard');
 const journalRoutes = require('./routes/journals');
 const reportRoutes = require('./routes/reports');
 const requirementRoutes = require('./routes/requirements');
+const accountRoutes = require('./routes/account');
 const { notFound, handleErrors } = require('./middleware/errorHandler');
 
 app.use(provideCsrfToken);
 app.use(verifyCsrf);
 app.use(currentUser);
 app.use(flash);
+app.use(idleTimeout);
+app.use(requirePasswordChange);
 app.use(homeRoutes);
 app.use('/adviser', adminRoutes);
 app.use('/adviser', internRoutes);
@@ -67,6 +79,7 @@ app.use('/adviser', dashboardRoutes);
 app.use('/adviser', journalRoutes);
 app.use('/adviser', reportRoutes);
 app.use('/adviser', requirementRoutes);
+app.use('/adviser', accountRoutes);
 app.use(notFound);
 app.use(handleErrors);
 
