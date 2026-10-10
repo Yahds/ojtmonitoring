@@ -12,6 +12,11 @@ services:
       - PORT=8080
       - SESSION_SECRET=${SESSION_SECRET}
       - TZ=Asia/Manila
+      - OIDC_DISCOVERY_URL=http://sso:8080/realms/slu/.well-known/openid-configuration
+      - OIDC_CLIENT_ID=ojt-portal
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
+      - OIDC_REDIRECT_URI=http://localhost:8080/adviser/sso/callback
+      - OIDC_ALLOW_HTTP=true
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -89,7 +94,7 @@ services:
       - KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true
     volumes:
       - ./sso/slu-realm.json:/opt/keycloak/data/import/slu-realm.json:ro
-      
+
 volumes:
   db_data:
   student_uploads:

@@ -41,6 +41,8 @@ app.use('/ojt-dashboard', publicFiles(path.join(__dirname, 'ojt-monitoring-files
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
+const { ssoEnabled } = require('./lib/sso');
+app.locals.ssoEnabled = ssoEnabled();
 
 const { provideCsrfToken, verifyCsrf } = require('./middleware/csrf');
 const { currentUser } = require('./middleware/currentUser');

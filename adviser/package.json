@@ -9,6 +9,7 @@
     "express": "^4.22.3",
     "express-session": "^1.19.0",
     "mysql2": "^3.24.4",
+    "openid-client": "^6.8.8",
     "pug": "^3.0.4"
   },
   "scripts": {

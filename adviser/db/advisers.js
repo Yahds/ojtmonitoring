@@ -61,10 +61,16 @@ async function insertAdviser(name, email, password, departmentid){
     return result.insertId;
 }
 
+async function findAdviserByEmail(adviserEmail) {
+    const [rows] = await pool.query("SELECT adviserID, adviserName, role FROM advisers WHERE adviserEmail = ?", [adviserEmail]);
+    return rows[0] || null;
+}
+
 module.exports = {
     authenticateAdviser,
     fetchAdviser,
     fetchAdvisersByDepartment,
     insertAdviser,
     changeAdviserPassword,
+    findAdviserByEmail,
 };
