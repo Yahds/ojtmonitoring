@@ -42,7 +42,7 @@ router.post('/login', async (req, res, next) => {
         } else {
             res.status(401).render('ojt-login-page/index', {
                 title: 'Log in',
-                error: 'Your email or password is wrong. Try again.',
+                error: 'Your email or password is wrong. After 5 wrong tries, please wait for 15 minutes and try again.',
                 email: adviserEmail,
             });
         }

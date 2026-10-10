@@ -28,7 +28,7 @@ router.post('/admin/advisers', requireRole('dept_head'), async (req, res, next) 
         res.redirect('/adviser/admin/advisers');
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
-            req.flash('error', 'That email is already used by another account.')
+            req.flash('error', 'That email is already used by another account.');
             return res.redirect('/adviser/admin/advisers');
         }
         next(error);

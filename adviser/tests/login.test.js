@@ -95,3 +95,37 @@ test('logout by POST ends the session', async () => {
     const res = await agent.get('/adviser/dashboard');
     expect(res.headers.location).toBe('/adviser/login');
 });
+
+async function tryLogin(email, password) {
+    const agent = request.agent(app);
+    const csrfToken = await csrfTokenFrom(agent, '/adviser/login');
+    return agent.post('/adviser/login').type('form').send({ adviserEmail: email, password, csrf_token: csrfToken });
+}
+
+test('five wrong passwords lock the login, even for the right password', async () => {
+    const locked = await createTestAdviser('locked');
+    for (let i = 0; i < 5; i++) {
+        await tryLogin(locked.email, 'wrong-password');
+    }
+
+    const res = await tryLogin(locked.email, TEST_PASSWORD);
+
+    expect(res.status).toBe(401);
+    await deleteTestAdviser(locked.adviserID);
+});
+
+test('a right password resets the count of wrong tries', async () => {
+    const user = await createTestAdviser('reset-count');
+    for (let i = 0; i < 4; i++) {
+        await tryLogin(user.email, 'wrong-password');
+    }
+    await tryLogin(user.email, TEST_PASSWORD);
+    for (let i = 0; i < 4; i++) {
+        await tryLogin(user.email, 'wrong-password');
+    }
+
+    const res = await tryLogin(user.email, TEST_PASSWORD);
+
+    expect(res.status).toBe(302);
+    await deleteTestAdviser(user.adviserID);
+});
