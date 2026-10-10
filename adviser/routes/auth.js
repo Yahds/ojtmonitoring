@@ -3,6 +3,7 @@ const { authenticateAdviser, findAdviserByEmail } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { homeFor } = require('../middleware/currentUser');
 const { startLogin, finishLogin } = require('../lib/sso');
+const { audit } = require('../lib/audit');
 
 const router = express.Router();
 
@@ -11,8 +12,8 @@ function showLogin(res, status, error, email) {
 }
 
 // a new session id on every login, so an old one cannot be reused
-function startSession(req, res, next, adviser) {
-    req.session.regenerate((err) => {
+function startSession(req, res, next, adviser, how) {
+    req.session.regenerate(async (err) => {
         if (err) {
             return next(err);
         }
@@ -22,6 +23,11 @@ function startSession(req, res, next, adviser) {
         req.session.name = adviser.adviserName;
         req.session.mustChangePassword = adviser.must_change_password === 1;
         req.session.lastSeen = Date.now();
+        try {
+            await audit(req, 'login', how);
+        } catch (error) {
+            return next(error);
+        }
         res.redirect(homeFor(adviser.role));
     });
 }
@@ -34,7 +40,12 @@ router.get('/login', (req, res) => {
     res.render('ojt-login-page/index', { title: 'Log in' });
 });
 
-router.post('/logout', requireAuth, (req, res, next) => {
+router.post('/logout', requireAuth, async (req, res, next) => {
+    try {
+        await audit(req, 'logout');
+    } catch (error) {
+        return next(error);
+    }
     req.session.destroy(err => {
         if (err) {
             return next(err);
@@ -48,9 +59,10 @@ router.post('/login', async (req, res, next) => {
     try {
         const adviser = await authenticateAdviser(adviserEmail, password);
         if (!adviser) {
+            await audit(req, 'login_failed', adviserEmail);
             return showLogin(res, 401, 'Your email or password is wrong. After 5 wrong tries, please wait for 15 minutes and try again.', adviserEmail);
         }
-        startSession(req, res, next, adviser);
+        startSession(req, res, next, adviser, 'password');
     } catch (error) {
         next(error);
     }
@@ -85,9 +97,10 @@ router.get('/sso/callback', async (req, res, next) => {
     try {
         const adviser = email ? await findAdviserByEmail(email) : null;
         if (!adviser) {
+            await audit(req, 'login_refused', email);
             return showLogin(res, 403, 'Your SLU account is not registered in the OJT Portal. Ask your department head to add you.');
         }
-        startSession(req, res, next, adviser);
+        startSession(req, res, next, adviser, 'slu');
     } catch (error) {
         next(error);
     }

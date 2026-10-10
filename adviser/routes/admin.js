@@ -1,6 +1,7 @@
 const express = require('express');
 const { fetchAdviser, fetchAdvisersByDepartment, insertAdviser } = require('../db');
 const { requireRole } = require('../middleware/auth');
+const { audit } = require('../lib/audit');  
 
 const router = express.Router();
 
@@ -43,6 +44,7 @@ router.post('/admin/advisers', requireRole('dept_head'), async (req, res, next) 
     try {
         const adviser = await fetchAdviser(req.session.adviserID);
         await insertAdviser(name, email, null, adviser.departmentid);
+        await audit(req, 'adviser_added', email);
         req.flash('success', `${name} added. They can now sign in with their SLU account.`);
         res.redirect('/adviser/admin/advisers');
     } catch (error) {

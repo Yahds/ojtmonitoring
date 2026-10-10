@@ -7,6 +7,7 @@ const reports = require('./reports');
 const journals = require('./journals');
 const advisers = require('./advisers');
 const announcements = require('./announcements');
+const audit = require('./audit');
 
 async function closeDatabase() {
     await sessionStore.close();
@@ -21,5 +22,6 @@ module.exports = {
     ...journals,
     ...advisers,
     ...announcements,
+    ...audit,
     closeDatabase,
 };

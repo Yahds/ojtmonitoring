@@ -3,6 +3,7 @@ const { changeAdviserPassword, endOtherSessions } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { homeFor } = require('../middleware/currentUser');
 const { passwordProblem } = require('../lib/passwords');
+const { audit } = require('../lib/audit'); 
 
 const router = express.Router();
 
@@ -35,6 +36,7 @@ router.post('/account/password', requireAuth, async (req, res, next) => {
         }
         req.session.mustChangePassword = false;
         await endOtherSessions(req.session.adviserID, req.sessionID);
+        await audit(req, 'password_changed');
         req.flash('success', 'Your password has been changed.');
         res.redirect(homeFor(req.session.role));
     } catch (error) {
