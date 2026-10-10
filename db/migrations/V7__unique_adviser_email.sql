@@ -1,0 +1,1 @@
+ALTER TABLE advisers ADD UNIQUE KEY uq_adviser_email (adviserEmail);
