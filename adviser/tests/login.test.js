@@ -129,3 +129,9 @@ test('a right password resets the count of wrong tries', async () => {
     expect(res.status).toBe(302);
     await deleteTestAdviser(user.adviserID);
 });
+
+test('the session cookie does not reveal the framework', async () => {
+    const res = await request(app).get('/adviser/login');
+
+    expect(res.headers['set-cookie'][0]).toMatch(/^adviser\.sid=/);
+});

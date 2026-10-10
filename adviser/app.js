@@ -10,11 +10,13 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
 app.use(express.urlencoded({ extended: true }));
 // for session handling
 app.use(session({
     secret: process.env.SESSION_SECRET, // A secret key for signing the session ID cookie
     store: sessionStore,
+    name: 'adviser.sid',
     resave: false,              // Forces the session to be saved back to the session store
     saveUninitialized: false,    // set to false so it doesn't save empty sessions for users who never login
     cookie: { 

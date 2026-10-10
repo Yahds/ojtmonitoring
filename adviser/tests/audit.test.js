@@ -55,3 +55,14 @@ test('a password change and a logout are recorded', async () => {
 
     expect(await actionsBy(adviser.adviserID)).toEqual(['login', 'password_changed', 'logout']);
 });
+
+test('the real visitor address from nginx is recorded', async () => {
+    const agent = request.agent(app);
+    const token = await csrfTokenFrom(agent, '/adviser/login');
+
+    await agent.post('/adviser/login').set('X-Forwarded-For', '203.0.113.7').type('form')
+        .send({ adviserEmail: adviser.email, password: 'wrong-password-123', csrf_token: token });
+
+    const [rows] = await pool.query('SELECT ip FROM audit_log WHERE target = ?', [adviser.email]);
+    expect(rows[0].ip).toBe('203.0.113.7');
+});
