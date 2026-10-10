@@ -13,7 +13,7 @@ router.get('/login', (req, res) => {
     res.render('ojt-login-page/index', { title: 'Log in' });
 });
 
-router.get('/logout', requireAuth, (req, res, next) => {
+router.post('/logout', requireAuth, (req, res, next) => {
     req.session.destroy(err => {
         if (err) {
             return next(err);

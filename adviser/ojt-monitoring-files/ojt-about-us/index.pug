@@ -20,7 +20,8 @@ main.container
         a(href='/adviser/about') ABOUT US
       li
         a(href="#") 
-        form(action='/adviser/logout' method="GET" id="logout-form")
+        form(action='/adviser/logout' method="POST" id="logout-form")
+          input(type='hidden' name='csrf_token' value=csrfToken)
           input(id="logoutbutton" type="submit" value="LOG OUT")
 
   section

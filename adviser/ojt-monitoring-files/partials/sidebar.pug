@@ -1,5 +1,6 @@
 nav.sidebar(aria-label='Main')
   each link in nav
     a(href=link.href aria-current=(link.current ? 'page' : undefined))= link.label
-  form.logout-form(action='/adviser/logout' method='GET')
+  form.logout-form(action='/adviser/logout' method='POST')
+    input(type='hidden' name='csrf_token' value=csrfToken)
     button.logout-btn(type='submit') Log out

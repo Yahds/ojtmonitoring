@@ -13,4 +13,6 @@ header.navbar
           .who
             b= user.name
             span= user.roleLabel
-          a(href='/adviser/logout') Log out
+          form(action='/adviser/logout' method='POST')
+            input(type='hidden' name='csrf_token' value=csrfToken)
+            button(type='submit') Log out

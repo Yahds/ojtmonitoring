@@ -77,3 +77,21 @@ test('wrong password shows the login page again with a general error', async () 
     expect(res.text).not.toContain('wrong-password');
 });
 
+test('logout by GET does nothing', async () => {
+    const agent = await loginAs(app, adviser.email);
+
+    const res = await agent.get('/adviser/logout');
+
+    expect(res.status).toBe(404);
+    expect((await agent.get('/adviser/dashboard')).status).toBe(200);
+});
+
+test('logout by POST ends the session', async () => {
+    const agent = await loginAs(app, adviser.email);
+    const csrfToken = await csrfTokenFrom(agent, '/adviser/dashboard');
+
+    await agent.post('/adviser/logout').type('form').send({ csrf_token: csrfToken });
+
+    const res = await agent.get('/adviser/dashboard');
+    expect(res.headers.location).toBe('/adviser/login');
+});
