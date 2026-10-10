@@ -65,3 +65,21 @@ test('changing the password logs the adviser out everywhere else', async () => {
     expect((await phone.get('/adviser/dashboard')).headers.location).toBe('/adviser/login');
     expect((await laptop.get('/adviser/dashboard')).status).toBe(200);
 });
+
+test('"Stay logged in" keeps the session alive', async () => {
+    const agent = await loginAs(app, adviser.email);
+
+    waitMinutes(29);
+    expect((await agent.get('/adviser/session/keep-alive')).status).toBe(204);
+    waitMinutes(29);
+
+    expect((await agent.get('/adviser/dashboard')).status).toBe(200);
+});
+
+test('pages on the layout include the idle warning', async () => {
+    const agent = await loginAs(app, adviser.email);
+
+    const res = await agent.get('/adviser/interns');
+
+    expect(res.text).toContain('id="idle-warning"');
+});

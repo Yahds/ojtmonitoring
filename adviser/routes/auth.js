@@ -93,4 +93,9 @@ router.get('/sso/callback', async (req, res, next) => {
     }
 });
 
+// the idle warning calls this when the adviser clicks "Stay logged in"
+router.get('/session/keep-alive', requireAuth, (req, res) => {
+    res.status(204).end();
+});
+
 module.exports = router;
