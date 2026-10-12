@@ -9,7 +9,7 @@
       "publicClient": false,
       "secret": "dev-secret",
       "standardFlowEnabled": true,
-      "redirectUris": ["http://localhost:8080/adviser/sso/callback"],
+      "redirectUris": ["http://localhost:8080/adviser/sso/callback", "http://localhost:8080/student/sso/callback"],
       "attributes": { "pkce.code.challenge.method": "S256", "post.logout.redirect.uris": "http://localhost:8080/*" }
     }
   ],
@@ -40,6 +40,26 @@
       "emailVerified": true,
       "firstName": "Maria",
       "lastName": "Cruz",
+      "enabled": true,
+      "realmRoles": ["default-roles-slu"],
+      "credentials": [{ "type": "password", "value": "slu-demo-password", "temporary": false }]
+    },
+    {
+      "username": "maria.santos@example.com",
+      "email": "maria.santos@example.com",
+      "emailVerified": true,
+      "firstName": "Maria",
+      "lastName": "Santos",
+      "enabled": true,
+      "realmRoles": ["default-roles-slu"],
+      "credentials": [{ "type": "password", "value": "slu-demo-password", "temporary": false }]
+    },
+    {
+      "username": "jose.ramos@example.com",
+      "email": "jose.ramos@example.com",
+      "emailVerified": true,
+      "firstName": "Jose",
+      "lastName": "Ramos",
       "enabled": true,
       "realmRoles": ["default-roles-slu"],
       "credentials": [{ "type": "password", "value": "slu-demo-password", "temporary": false }]

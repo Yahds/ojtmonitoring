@@ -24,6 +24,10 @@ require __DIR__ . '/../views/head.php';
         <?php if (!empty($error)): ?>
             <div class="flash flash-error" role="alert"><?= e($error) ?></div>
         <?php endif; ?>
+        <?php if (ssoEnabled()): ?>
+            <a class="btn btn-primary big-btn" href="/student/sso/start">Sign in with SLU account</a>
+            <p class="login-or">or log in with your student ID and password</p>
+        <?php endif; ?>
         <form class="form" action="/student/login" method="post">
             <?= csrf_field() ?>
             <div class="field">

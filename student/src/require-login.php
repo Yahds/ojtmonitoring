@@ -22,3 +22,23 @@ function requireDeployed(): void
         redirect('/');
     }
 }
+
+// same session for password login and SLU sign-in
+function startStudentSession(array $row): never
+{
+    session_regenerate_id(true);
+    $_SESSION['id'] = $row['studentid'];
+    $_SESSION['studentName'] = $row['studentName'];
+    $_SESSION['course'] = $row['course'];
+    $_SESSION['year'] = $row['year'];
+    $_SESSION['internid'] = $row['internid'];
+    $_SESSION['status'] = $row['status'];
+    redirect('/');
+}
+
+function showLogin(int $status, string $error, string $studentId = ''): never
+{
+    http_response_code($status);
+    require __DIR__ . '/pages/login.php';
+    exit();
+}

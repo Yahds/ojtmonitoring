@@ -25,6 +25,12 @@ function internLogIn($id, $password)
     return false;
 }
 
+function findInternByEmail(string $email)
+{
+    $query = "SELECT * FROM interns i JOIN students s ON i.studentid = s.studentID WHERE s.email = ?";
+    return db()->execute_query($query, [$email])->fetch_assoc();
+}
+
 function getInternStatus($internID)
 {
     $statement = db()->prepare("SELECT status FROM interns WHERE internid = ?");

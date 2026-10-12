@@ -65,6 +65,10 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - OIDC_PROVIDER_URL=http://sso:8080/realms/slu
+      - OIDC_CLIENT_ID=ojt-portal
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
+      - OIDC_REDIRECT_URI=http://localhost:8080/student/sso/callback
     depends_on:
       migrate:
         condition: service_completed_successfully
