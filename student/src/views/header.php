@@ -17,6 +17,7 @@ $name = displayName($_SESSION['studentName'] ?? '');
             </summary>
             <div class="menu">
                 <div class="who"><b><?= e($name) ?></b><span>Intern · <?= e((string) ($_SESSION['id'] ?? '')) ?></span></div>
+                <a href="/student/account/password">Change password</a>
                 <form action="/student/logout" method="post">
                     <?= csrf_field() ?>
                     <button type="submit">Log out</button>

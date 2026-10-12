@@ -31,6 +31,22 @@ function findInternByEmail(string $email)
     return db()->execute_query($query, [$email])->fetch_assoc();
 }
 
+function internHasPassword($internID): bool
+{
+    $row = db()->execute_query("SELECT password IS NOT NULL AS hasPassword FROM interns WHERE internid = ?", [$internID])->fetch_assoc();
+    return (bool) ($row['hasPassword'] ?? false);
+}
+
+function changeInternPassword($internID, string $currentPassword, string $newPassword): bool
+{
+    $row = db()->execute_query("SELECT password FROM interns WHERE internid = ?", [$internID])->fetch_assoc();
+    if (!$row || $row['password'] === null || !password_verify($currentPassword, $row['password'])) {
+        return false;
+    }
+    db()->execute_query("UPDATE interns SET password = ? WHERE internid = ?", [password_hash($newPassword, PASSWORD_BCRYPT), $internID]);
+    return true;
+}
+
 function getInternStatus($internID)
 {
     $statement = db()->prepare("SELECT status FROM interns WHERE internid = ?");

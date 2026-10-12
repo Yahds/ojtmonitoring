@@ -115,4 +115,20 @@ class HttpTest extends TestCase
 
         $this->assertSame(302, $this->request('GET', '/requirements')['status']);
     }
+    
+    public function testTooShortNewPasswordIsRefused(): void
+    {
+        $this->logIn('2299001', '1234');
+        $token = $this->tokenFrom($this->request('GET', '/account/password')['body']);
+
+        $response = $this->request('POST', '/account/password', [
+            'csrf_token' => $token,
+            'currentPassword' => '1234',
+            'newPassword' => 'short',
+            'confirmPassword' => 'short',
+        ]);
+
+        $this->assertSame(400, $response['status']);
+        $this->assertStringContainsString('Use at least 15 characters.', $response['body']);
+    }
 }
