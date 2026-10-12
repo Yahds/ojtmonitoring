@@ -1,5 +1,4 @@
 const { pool } = require('./pool');
-const bcrypt = require('bcrypt');
 
 // -- functions for changing of intern status
 
@@ -23,18 +22,17 @@ async function updateInternRemarks(internId, remarks) {
     }
 }
 
-async function enrollIntern(student, adviserID, password) {
+async function enrollIntern(student, adviserID) {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
         await connection.query(
-            'INSERT INTO students (studentID, studentName, course, year, classcode) VALUES (?, ?, ?, ?, ?)',
-            [student.id, student.name, student.course, student.year, student.classcode]
+            'INSERT INTO students (studentID, studentName, course, year, classcode, email) VALUES (?, ?, ?, ?, ?, ?)',
+            [student.id, student.name, student.course, student.year, student.classcode, student.email]
         );
-        const hashedPassword = await bcrypt.hash(password, 10);
         const [result] = await connection.query(
-            "INSERT INTO interns (password, adviserid, studentid, status) VALUES (?, ?, ?, 'ENROLLED')",
-            [hashedPassword, adviserID, student.id]
+            "INSERT INTO interns (adviserid, studentid, status) VALUES (?, ?, 'ENROLLED')",
+            [adviserID, student.id]
         );
         await connection.query(
             "INSERT INTO internrequirements (internid, reqid, status, remarks) SELECT ?, reqid, 'PENDING', '' FROM requirements",

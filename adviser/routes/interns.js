@@ -1,5 +1,5 @@
 const express = require('express');
-const { fetchInternsByAdviser, fetchAdviser, enrollIntern,
+const { fetchInternsByAdviser, enrollIntern,
     updateInternRemarks, deployIntern, isAdvisersIntern } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 
@@ -7,15 +7,15 @@ const router = express.Router();
 
 //GET REQUESTS
 
+// errors go next to the enroll form fields
+async function showInterns(req, res, status, values, errors) {
+    const interns = await fetchInternsByAdviser(req.session.adviserID);
+    res.status(status).render('ojt-dashboard/views/interns', { title: 'Interns', interns, values, errors });
+}
+
 router.get('/interns', requireAdviser, async (req, res, next) => {
-    try{
-        const adviser = await fetchAdviser(req.session.adviserID);
-        const interns = await fetchInternsByAdviser(req.session.adviserID);
-        if(adviser){
-            res.render('ojt-dashboard/views/interns', { title: 'Interns', interns })
-        } else {
-            res.redirect('/adviser/login');
-        }
+    try {
+        await showInterns(req, res, 200, {}, {});
     } catch (error) {
         next(error);
     }
@@ -38,19 +38,24 @@ router.post('/intern-remarks', requireAdviser, async (req, res, next) => {
 });
 
 router.post('/interns', requireAdviser, async (req, res, next) => {
-    const studentID = req.body['studentID'];
-    const name = req.body['name'];
-    const course = req.body['course'];
-    const year = req.body['year'];
-    const classcode = req.body['classcode'];
-    const password = req.body['password'];
+    const { studentID, name, course, year, classcode } = req.body;
+    const email = typeof req.body.email === 'string' ? req.body.email.trim() : '';
+    const values = { studentID, name, course, year, classcode, email };
 
     try {
-        const student = { id: studentID, name, course, year, classcode };
-        await enrollIntern(student, req.session.adviserID, password);
-        req.flash('success', `${name} enrolled.`);
+        if (!email.includes('@')) {
+            return await showInterns(req, res, 400, values, { email: "Enter the student's SLU email, like 2299001@slu.edu.ph." });
+        }
+        await enrollIntern({ id: studentID, name, course, year, classcode, email }, req.session.adviserID);
+        req.flash('success', `${name} enrolled. They can now sign in with their SLU account.`);
         res.redirect('/adviser/interns');
-    } catch (error){
+    } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            const errors = error.sqlMessage.includes('uq_student_email')
+                ? { email: 'That email is already used by another student.' }
+                : { studentID: 'That student ID is already enrolled.' };
+            return showInterns(req, res, 400, values, errors).catch(next);
+        }
         next(error);
     }
 });
