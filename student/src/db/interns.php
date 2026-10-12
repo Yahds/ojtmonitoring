@@ -1,14 +1,27 @@
 <?php
+const MAX_FAILED_LOGINS = 5;
+
 function internLogIn($id, $password)
 {
-    $query = "SELECT * FROM interns i JOIN students s ON i.studentid = s.studentID WHERE s.studentid = ?";
-    $statement = db()->prepare($query);
-    $statement->bind_param("i", $id);
-    $statement->execute();
-    $row = $statement->get_result()->fetch_assoc();
-    if ($row && password_verify($password, $row['password'])) {
+    $query = "SELECT *, i.locked_until > NOW() AS isLocked FROM interns i JOIN students s ON i.studentid = s.studentID WHERE s.studentid = ?";
+    $row = db()->execute_query($query, [$id])->fetch_assoc();
+    if (!$row || $row['isLocked'] || $row['password'] === null) {
+        return false;
+    }
+
+    if (password_verify($password, $row['password'])) {
+        db()->execute_query("UPDATE interns SET failed_logins = 0, locked_until = NULL WHERE internid = ?", [$row['internid']]);
         return $row;
     }
+
+    // the 5th wrong try locks for 15 minutes and starts the count again
+    db()->execute_query(
+        "UPDATE interns
+         SET locked_until = IF(failed_logins + 1 >= ?, NOW() + INTERVAL 15 MINUTE, locked_until),
+             failed_logins = IF(failed_logins + 1 >= ?, 0, failed_logins + 1)
+         WHERE internid = ?",
+        [MAX_FAILED_LOGINS, MAX_FAILED_LOGINS, $row['internid']]
+    );
     return false;
 }
 
