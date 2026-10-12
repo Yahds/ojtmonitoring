@@ -24,7 +24,7 @@ function requireDeployed(): void
 }
 
 // same session for password login and SLU sign-in
-function startStudentSession(array $row): never
+function startStudentSession(array $row, ?string $idToken = null): never
 {
     session_regenerate_id(true);
     $_SESSION['id'] = $row['studentid'];
@@ -33,6 +33,9 @@ function startStudentSession(array $row): never
     $_SESSION['year'] = $row['year'];
     $_SESSION['internid'] = $row['internid'];
     $_SESSION['status'] = $row['status'];
+    if ($idToken !== null) {
+        $_SESSION['idToken'] = $idToken;
+    }
     redirect('/');
 }
 

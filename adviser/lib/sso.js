@@ -54,7 +54,7 @@ async function startLogin() {
     return { url: url.href, pending: { codeVerifier, state, nonce } };
 }
 
-// checks the answer from the login server and returns the verified email, or null
+// checks the answer from the login server; email is null when it is not verified
 async function finishLogin(callbackPath, pending) {
     const client = await openidClient();
     const config = await ssoConfig();
@@ -64,7 +64,17 @@ async function finishLogin(callbackPath, pending) {
         expectedNonce: pending.nonce,
     });
     const claims = tokens.claims();
-    return claims.email_verified ? claims.email : null;
+    return { email: claims.email_verified ? claims.email : null, idToken: tokens.id_token };
 }
 
-module.exports = { ssoEnabled, startLogin, finishLogin };
+// the login server's logout page, so the SLU sign-in ends too
+async function logoutUrl(idToken) {
+    const client = await openidClient();
+    const config = await ssoConfig();
+    return client.buildEndSessionUrl(config, {
+        id_token_hint: idToken,
+        post_logout_redirect_uri: process.env.OIDC_LOGOUT_REDIRECT_URI,
+    }).href;
+}
+
+module.exports = { ssoEnabled, startLogin, finishLogin, logoutUrl };

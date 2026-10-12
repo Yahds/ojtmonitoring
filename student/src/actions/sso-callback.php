@@ -22,4 +22,4 @@ $intern = !empty($claims->email_verified) ? findInternByEmail($claims->email) : 
 if (!$intern) {
     showLogin(403, 'Your SLU account is not registered in the OJT Portal. Ask your OJT adviser to add you.');
 }
-startStudentSession($intern);
+startStudentSession($intern, $client->getIdToken());

@@ -2,13 +2,14 @@ jest.mock('../lib/sso', () => ({
     ssoEnabled: () => true,
     startLogin: jest.fn(),
     finishLogin: jest.fn(),
+    logoutUrl: jest.fn(),
 }));
 
 const request = require('supertest');
 const sso = require('../lib/sso');
 const app = require('../app');
 const { closeDatabase } = require('../db');
-const { createTestAdviser, deleteTestAdviser } = require('./helpers/auth');
+const { createTestAdviser, deleteTestAdviser, csrfTokenFrom } = require('./helpers/auth');
 
 let adviser;
 
@@ -27,7 +28,7 @@ beforeEach(() => {
 });
 
 async function signInWith(email) {
-    sso.finishLogin.mockResolvedValue(email);
+    sso.finishLogin.mockResolvedValue({ email, idToken: 'test-id-token' });
     const agent = request.agent(app);
     const start = await agent.get('/adviser/sso/start');
     expect(start.headers.location).toBe('http://sso.test/login');
@@ -59,4 +60,26 @@ test('a callback without a started sign-in is refused', async () => {
 
     expect(res.status).toBe(400);
     expect(sso.finishLogin).not.toHaveBeenCalled();
+});
+
+test('logging out after SLU sign-in also ends the SLU session', async () => {
+    sso.logoutUrl.mockResolvedValue('http://sso.test/logout');
+    const { agent } = await signInWith(adviser.email);
+    const csrfToken = await csrfTokenFrom(agent, '/adviser/dashboard');
+
+    const res = await agent.post('/adviser/logout').type('form').send({ csrf_token: csrfToken });
+
+    expect(res.headers.location).toBe('http://sso.test/logout');
+    expect(sso.logoutUrl).toHaveBeenCalledWith('test-id-token');
+});
+
+test('when SLU sign-out is down, logout still ends our session', async () => {
+    sso.logoutUrl.mockRejectedValue(new Error('down'));
+    const { agent } = await signInWith(adviser.email);
+    const csrfToken = await csrfTokenFrom(agent, '/adviser/dashboard');
+
+    const res = await agent.post('/adviser/logout').type('form').send({ csrf_token: csrfToken });
+
+    expect(res.headers.location).toBe('/adviser/login');
+    expect((await agent.get('/adviser/dashboard')).status).toBe(302);
 });

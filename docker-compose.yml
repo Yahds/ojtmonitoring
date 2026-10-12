@@ -17,6 +17,7 @@ services:
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
       - OIDC_REDIRECT_URI=http://localhost:8080/adviser/sso/callback
       - OIDC_ALLOW_HTTP=true
+      - OIDC_LOGOUT_REDIRECT_URI=http://localhost:8080/adviser/login
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -69,6 +70,7 @@ services:
       - OIDC_CLIENT_ID=ojt-portal
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
       - OIDC_REDIRECT_URI=http://localhost:8080/student/sso/callback
+      - OIDC_LOGOUT_REDIRECT_URI=http://localhost:8080/student/login
     depends_on:
       migrate:
         condition: service_completed_successfully
