@@ -1,45 +1,48 @@
-const mysql = require('mysql2/promise');
 const { deployIntern, closeDatabase } = require('../db');
+const { pool } = require('../db/pool');
 
-let db;
-const INTERN = 300;   
+const INTERN = 300; // Maria Santos, adviser 1, company 2
 const ADVISER = 1;
 
-beforeAll(async () => {
-  db = await mysql.createConnection({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-  });
-});
+async function setEndorsement(companyID, status) {
+    await pool.query(
+        `REPLACE INTO endorsements (internid, companyid, contact_name, contact_email, status)
+         VALUES (?, ?, 'Test Contact', 'hr@company.test', ?)`,
+        [INTERN, companyID, status]
+    );
+}
+
+async function internStatus() {
+    const [[row]] = await pool.query('SELECT status FROM interns WHERE internid = ?', [INTERN]);
+    return row.status;
+}
 
 beforeEach(async () => {
-  await db.query("UPDATE interns SET status = 'PENDING' WHERE internid = ?", [INTERN]);
-  await db.query("UPDATE internrequirements SET status = 'APPROVED' WHERE internid = ? AND reqid = 4", [INTERN]);
+    await pool.query("UPDATE interns SET status = 'PENDING', companyid = 2 WHERE internid = ?", [INTERN]);
 });
 
 afterAll(async () => {
-  await db.query("UPDATE interns SET status = 'PENDING' WHERE internid = ?", [INTERN]);
-  await db.query("UPDATE internrequirements SET status = 'APPROVED' WHERE internid = ? AND reqid = 4", [INTERN]);
-  await db.end();
-  await closeDatabase();
+    await pool.query('DELETE FROM endorsements WHERE internid = ?', [INTERN]);
+    await pool.query("UPDATE interns SET status = 'PENDING' WHERE internid = ?", [INTERN]);
+    await closeDatabase();
 });
 
-test('deploys a PENDING intern with an approved endorsement', async () => {
-  const result = await deployIntern(INTERN, ADVISER);           
-  expect(result.affectedRows).toBe(1);                         
+test('deploys an intern whose company sent back the reply form', async () => {
+    await setEndorsement(2, 'ACCEPTED');
 
-  const [rows] = await db.query("SELECT status FROM interns WHERE internid = ?", [INTERN]);
-  expect(rows[0].status).toBe('ACTIVE');                        
+    expect((await deployIntern(INTERN, ADVISER)).affectedRows).toBe(1);
+    expect(await internStatus()).toBe('ACTIVE');
 });
 
-test('refuses to deploy when the endorsement is not approved', async () => {
-  await db.query("UPDATE internrequirements SET status = 'PENDING' WHERE internid = ? AND reqid = 4", [INTERN]);
+test('refuses while the letter is sent but no reply form came back', async () => {
+    await setEndorsement(2, 'SENT');
 
-  const result = await deployIntern(INTERN, ADVISER);           
-  expect(result.affectedRows).toBe(0);                          
+    expect((await deployIntern(INTERN, ADVISER)).affectedRows).toBe(0);
+    expect(await internStatus()).toBe('PENDING');
+});
 
-  const [rows] = await db.query("SELECT status FROM interns WHERE internid = ?", [INTERN]);
-  expect(rows[0].status).toBe('PENDING');                      
+test('refuses when the accepted endorsement is for a different company', async () => {
+    await setEndorsement(3, 'ACCEPTED');
+
+    expect((await deployIntern(INTERN, ADVISER)).affectedRows).toBe(0);
 });

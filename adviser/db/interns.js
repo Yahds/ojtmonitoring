@@ -5,9 +5,9 @@ const { pool } = require('./pool');
 async function deployIntern(internID, adviserID) {
     const [result] = await pool.query(
         `UPDATE interns i
-            JOIN internrequirements ir ON ir.internid = i.internid AND ir.reqid = 4
+            JOIN endorsements e ON e.internid = i.internid AND e.companyid = i.companyid AND e.status = 'ACCEPTED'
             SET i.status = 'ACTIVE'
-            WHERE i.internid = ? AND i.adviserid = ? AND i.status = 'PENDING' AND ir.status = 'APPROVED'`,
+            WHERE i.internid = ? AND i.adviserid = ? AND i.status = 'PENDING'`,
         [internID, adviserID]
     );
     return result;

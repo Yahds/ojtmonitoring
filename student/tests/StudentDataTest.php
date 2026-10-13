@@ -8,7 +8,7 @@ class StudentDataTest extends TestCase
     private const MARIA = 300;
     private const JOSE = 301;
     private const APPLICATION_LETTER = 1;
-    private const ENDORSEMENT_LETTER = 4;
+    private const DATA_PRIVACY_CERTIFICATE = 6;
 
     private mysqli $db;
 
@@ -28,15 +28,15 @@ class StudentDataTest extends TestCase
         $this->db->query("DELETE FROM weeklyreports WHERE file_path = 'test-maria-report.pdf'");
         $this->db->query("UPDATE interns SET status = 'PENDING' WHERE internid = " . self::JOSE);
         $this->db->query("UPDATE interns SET companyid = 3 WHERE internid = " . self::JOSE);
-        $this->db->query("UPDATE internrequirements SET status = 'APPROVED', intern_remarks = NULL WHERE internid = " . self::MARIA . " AND reqid = " . self::ENDORSEMENT_LETTER);
+        $this->db->query("UPDATE internrequirements SET status = 'PENDING', intern_remarks = NULL WHERE internid = " . self::MARIA . " AND reqid = " . self::DATA_PRIVACY_CERTIFICATE);
         $this->db->close();
     }
 
-    public function testInternGetsAllSevenRequirements(): void
+    public function testInternGetsAllSixRequirements(): void
     {
         $requirements = getRequirements(self::MARIA);
 
-        $this->assertCount(7, $requirements);
+        $this->assertCount(6, $requirements);
     }
 
     public function testSubmittingARequirementSavesStatusDateAndRemark(): void
@@ -116,12 +116,12 @@ class StudentDataTest extends TestCase
     
     public function testAnApprovedRequirementCannotBeChanged(): void
     {
-        $this->db->query("UPDATE internrequirements SET status = 'APPROVED' WHERE internid = " . self::MARIA . " AND reqid = " . self::ENDORSEMENT_LETTER);
+        $this->db->query("UPDATE internrequirements SET status = 'APPROVED' WHERE internid = " . self::MARIA . " AND reqid = " . self::DATA_PRIVACY_CERTIFICATE);
 
-        $changed = submitRequirement(self::MARIA, self::ENDORSEMENT_LETTER, 'trying to change it', null);
+        $changed = submitRequirement(self::MARIA, self::DATA_PRIVACY_CERTIFICATE, 'trying to change it', null);
 
         $this->assertSame(0, $changed);
-        $row = $this->db->query("SELECT status FROM internrequirements WHERE internid = " . self::MARIA . " AND reqid = " . self::ENDORSEMENT_LETTER)->fetch_assoc();
+        $row = $this->db->query("SELECT status FROM internrequirements WHERE internid = " . self::MARIA . " AND reqid = " . self::DATA_PRIVACY_CERTIFICATE)->fetch_assoc();
         $this->assertSame('APPROVED', $row['status']);
     }
 

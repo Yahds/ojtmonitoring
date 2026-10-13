@@ -84,7 +84,7 @@ router.post('/interns/:internId/deploy', requireAdviser, async (req, res, next) 
         const internID = req.params.internId;
         const result = await deployIntern(internID, req.session.adviserID);
         if (result.affectedRows === 0) {
-            req.flash('error', 'Cannot deploy yet. The intern needs a chosen company and an approved endorsement letter.');
+            req.flash('error', 'Cannot deploy yet. The company has not sent back the endorsement reply form.');
             return res.redirect('/adviser/interns');
         }
         req.flash('success', 'Intern deployed.');

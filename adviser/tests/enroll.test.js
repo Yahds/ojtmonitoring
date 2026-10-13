@@ -30,7 +30,7 @@ afterAll(async () => {
     await closeDatabase();
 });
 
-test('enrolling saves the student with their email, the intern without a password, and all 7 requirements', async () => {
+test('enrolling saves the student with their email, the intern without a password, and all 6 requirements', async () => {
     const res = await agent
         .post('/adviser/interns')
         .type('form')
@@ -43,7 +43,7 @@ test('enrolling saves the student with their email, the intern without a passwor
     expect(interns).toHaveLength(1);
     expect(interns[0].password).toBeNull();
     const [requirements] = await pool.query('SELECT reqid FROM internrequirements WHERE internid = ?', [interns[0].internid]);
-    expect(requirements).toHaveLength(7);
+    expect(requirements).toHaveLength(6);
     const [events] = await pool.query("SELECT target FROM audit_log WHERE action = 'intern_enrolled' AND actor_adviser_id = ?", [adviser.adviserID]);
     expect(events.map(e => e.target)).toContain(String(NEW_STUDENT_ID));
 });
