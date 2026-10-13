@@ -1,0 +1,35 @@
+extends ../../layouts/main
+
+block content
+  p.crumb
+    a(href='/adviser/interns') Interns
+    |  / Mark finished
+  h1.page-title Mark #{intern.studentName} as finished
+
+  section.card.card-pad
+    h2.section-title Before finishing
+    ul
+      each item in checklist
+        li
+          span.tag(class=item.done ? 'tag-ok' : 'tag-bad')= item.done ? 'Done' : 'Missing'
+          |  #{item.label}
+          if !item.done
+            br
+            span.help= item.hint
+
+    if !intern.evaluationDate
+      form(action=`/adviser/interns/${intern.internid}/finish/evaluation` method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        button.btn.btn-outline(type='submit') Mark evaluation as received
+    else
+      p.muted Evaluation received on #{intern.evaluationDate}.
+
+    if ready
+      form(action=`/adviser/interns/${intern.internid}/finish` method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        p This ends the intern's OJT. They can still view their records.
+        .btn-row
+          button.btn.btn-create(type='submit') Mark finished
+          a.btn.btn-outline(href='/adviser/interns') Cancel
+    else
+      p.muted You can mark the intern finished once every item above is done.

@@ -33,6 +33,50 @@ async function deployIntern(internID, adviserID, startDate) {
     return result;
 }
 
+const CERTIFICATE_OF_COMPLETION = 8; // requirements.reqid
+
+const APPROVED_HOURS = `(SELECT CAST(COALESCE(SUM(w.hours), 0) AS UNSIGNED)
+                         FROM weeklyreports w WHERE w.internid = i.internid AND w.status = 'APPROVED')`;
+
+async function fetchFinishCheck(internID, adviserID) {
+    const [rows] = await pool.query(
+        `SELECT i.internid, i.status, s.studentName, co.target_hours, ${APPROVED_HOURS} AS approvedHours,
+                ir.status = 'APPROVED' AS certificateApproved,
+                DATE_FORMAT(i.evaluation_received_on, '%b %e, %Y') AS evaluationDate
+         FROM interns i
+         JOIN students s ON s.studentID = i.studentid
+         JOIN courses co ON co.code = s.course
+         LEFT JOIN internrequirements ir ON ir.internid = i.internid AND ir.reqid = ?
+         WHERE i.internid = ? AND i.adviserid = ?`,
+        [CERTIFICATE_OF_COMPLETION, internID, adviserID]
+    );
+    return rows[0] || null;
+}
+
+async function markEvaluationReceived(internID, adviserID) {
+    const [result] = await pool.query(
+        `UPDATE interns SET evaluation_received_on = CURDATE()
+         WHERE internid = ? AND adviserid = ? AND status = 'ACTIVE' AND evaluation_received_on IS NULL`,
+        [internID, adviserID]
+    );
+    return result.affectedRows === 1;
+}
+
+async function finishIntern(internID, adviserID) {
+    const [result] = await pool.query(
+        `UPDATE interns i
+            JOIN students s ON s.studentID = i.studentid
+            JOIN courses co ON co.code = s.course
+            JOIN internrequirements ir ON ir.internid = i.internid AND ir.reqid = ? AND ir.status = 'APPROVED'
+            SET i.status = 'FINISHED', i.finished_on = CURDATE()
+            WHERE i.internid = ? AND i.adviserid = ? AND i.status = 'ACTIVE'
+              AND i.evaluation_received_on IS NOT NULL
+              AND ${APPROVED_HOURS} >= co.target_hours`,
+        [CERTIFICATE_OF_COMPLETION, internID, adviserID]
+    );
+    return result;
+}
+
 // updates the status in the interns table
 async function updateInternRemarks(internId, remarks) {
     // Loop through the remarks and update each one in the database
@@ -119,5 +163,8 @@ module.exports = {
     fetchInterns,
     fetchInternsByAdviser,
     fetchInternId,
-    isAdvisersIntern
+    isAdvisersIntern,
+    fetchFinishCheck, 
+    markEvaluationReceived, 
+    finishIntern,
 };

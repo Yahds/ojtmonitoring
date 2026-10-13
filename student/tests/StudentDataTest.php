@@ -32,11 +32,11 @@ class StudentDataTest extends TestCase
         $this->db->close();
     }
 
-    public function testInternGetsAllSixRequirements(): void
+    public function testInternGetsAllSevenRequirements(): void
     {
         $requirements = getRequirements(self::MARIA);
 
-        $this->assertCount(6, $requirements);
+        $this->assertCount(7, $requirements);
     }
 
     public function testSubmittingARequirementSavesStatusDateAndRemark(): void

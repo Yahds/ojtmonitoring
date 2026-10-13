@@ -39,3 +39,5 @@ block content
                 td
                   if i.status === 'PENDING'
                     a.btn.btn-create.btn-sm(href=`/adviser/interns/${i.internid}/deploy`) Deploy
+                  else if i.status === 'ACTIVE'
+                    a.btn.btn-outline.btn-sm(href=`/adviser/interns/${i.internid}/finish`) Finish
