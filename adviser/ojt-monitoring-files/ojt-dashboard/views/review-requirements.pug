@@ -18,7 +18,8 @@ block content
       article.item
         .item-head
           h3= req.requirementname
-          span.tag(class={ APPROVED: 'tag-ok', REJECTED: 'tag-bad', SUBMITTED: 'tag-warn' }[req.status])= req.status
+          - const status = statusOf('requirement', req.status)
+          span.tag(class=status.tag)= status.label
         if req.datesubmitted
           p.meta Submitted #{req.datesubmitted}
         if req.intern_remarks

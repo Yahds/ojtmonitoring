@@ -29,7 +29,8 @@ block content
                 td= i.course
                 td= i.companyname || '—'
                 td
-                  span.tag(class=(i.status === 'ACTIVE' ? 'tag-ok' : ''))= i.status
+                  - const status = statusOf('intern', i.status)
+                  span.tag(class=status.tag)= status.label
                 td
                   .btn-row
                     a(href=`/adviser/interns/${i.internid}/requirements`) Requirements

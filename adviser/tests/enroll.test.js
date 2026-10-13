@@ -102,6 +102,7 @@ test('after enrolling, the interns page shows a success message once', async () 
 
     const page = await agent.get('/adviser/interns');
     expect(page.text).toContain('Test Flash enrolled.');
+    expect(page.text).toContain('Choosing company');
 
     const again = await agent.get('/adviser/interns');
     expect(again.text).not.toContain('class="flash');

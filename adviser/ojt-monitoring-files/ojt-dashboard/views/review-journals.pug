@@ -18,7 +18,8 @@ block content
       article.item
         .item-head
           h3 Month #{journal.monthnumber}
-          span.tag(class={ APPROVED: 'tag-ok', REJECTED: 'tag-bad', SUBMITTED: 'tag-warn' }[journal.status])= journal.status
+          - const status = statusOf('review', journal.status)
+          span.tag(class=status.tag)= status.label
         if journal.datesubmitted
           p.meta Submitted #{journal.datesubmitted}
         if journal.notes
