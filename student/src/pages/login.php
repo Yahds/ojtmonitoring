@@ -45,9 +45,10 @@ require __DIR__ . '/../views/head.php';
                     <button class="btn btn-outline btn-sm" type="button" data-toggle-password="password" aria-pressed="false">Show</button>
                 </div>
             </div>
-            <button class="btn btn-primary big-btn" type="submit">Log in</button>
+            <button class="btn btn-outline big-btn" type="submit">Log in</button>
         </form>
         <p class="muted"><a href="/">Not an intern? Go back</a></p>
+        <p class="muted"><a href="/privacy">How we use your data</a></p>
     </main>
 </div>
 <script src="/assets/js/show-password.js" defer></script>
