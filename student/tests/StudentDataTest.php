@@ -152,4 +152,15 @@ class StudentDataTest extends TestCase
         $row = $this->db->query("SELECT companyid FROM interns WHERE internid = " . self::JOSE)->fetch_assoc();
         $this->assertSame(3, (int) $row['companyid']);
     }
+
+    public function testAWithdrawnInternCannotPickACompany(): void
+    {
+        $this->db->query("UPDATE interns SET status = 'WITHDRAWN' WHERE internid = " . self::JOSE);
+
+        chooseCompany(self::JOSE, 4);
+
+        $row = $this->db->query("SELECT companyid, status FROM interns WHERE internid = " . self::JOSE)->fetch_assoc();
+        $this->assertSame(3, (int) $row['companyid']);
+        $this->assertSame('WITHDRAWN', $row['status']);
+    }
 }

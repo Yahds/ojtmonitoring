@@ -31,13 +31,23 @@ block content
                 td
                   - const status = statusOf('intern', i.status)
                   span.tag(class=status.tag)= status.label
+                  if i.status === 'WITHDRAWN' && i.withdrawn_reason
+                    br
+                    span.help= i.withdrawn_reason
                 td
                   .btn-row
                     a(href=`/adviser/interns/${i.internid}/requirements`) Requirements
                     a(href=`/adviser/interns/${i.internid}/weekly-reports`) Reports
                     a(href=`/adviser/interns/${i.internid}/journals`) Journals
                 td
-                  if i.status === 'PENDING'
-                    a.btn.btn-create.btn-sm(href=`/adviser/interns/${i.internid}/deploy`) Deploy
-                  else if i.status === 'ACTIVE'
-                    a.btn.btn-outline.btn-sm(href=`/adviser/interns/${i.internid}/finish`) Finish
+                  .btn-row
+                    if i.status === 'PENDING'
+                      a.btn.btn-create.btn-sm(href=`/adviser/interns/${i.internid}/deploy`) Deploy
+                    else if i.status === 'ACTIVE'
+                      a.btn.btn-outline.btn-sm(href=`/adviser/interns/${i.internid}/finish`) Finish
+                    if ['ENROLLED', 'PENDING', 'ACTIVE'].includes(i.status)
+                      a.btn.btn-reject.btn-sm(href=`/adviser/interns/${i.internid}/withdraw`) Withdraw
+                    else if i.status === 'WITHDRAWN'
+                      form(action=`/adviser/interns/${i.internid}/undo-withdraw` method='POST')
+                        input(type='hidden' name='csrf_token' value=csrfToken)
+                        button.btn.btn-outline.btn-sm(type='submit') Undo withdraw

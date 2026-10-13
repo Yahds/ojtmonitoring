@@ -165,4 +165,18 @@ class HttpTest extends TestCase
             db()->execute_query("UPDATE interns SET status = 'PENDING', finished_on = NULL WHERE internid = 300");
         }
     }
+
+    public function testAWithdrawnInternOnlySeesTheWithdrawnPage(): void
+    {
+        db()->execute_query("UPDATE interns SET status = 'WITHDRAWN' WHERE internid = 300");
+        try {
+            $this->logIn('2299001', '1234');
+            $response = $this->request('GET', '/requirements');
+
+            $this->assertSame(403, $response['status']);
+            $this->assertStringContainsString('You were withdrawn from the OJT', $response['body']);
+        } finally {
+            db()->execute_query("UPDATE interns SET status = 'PENDING' WHERE internid = 300");
+        }
+    }
 }

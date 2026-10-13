@@ -77,6 +77,39 @@ async function finishIntern(internID, adviserID) {
     return result;
 }
 
+const WITHDRAWABLE = ['ENROLLED', 'PENDING', 'ACTIVE'];
+
+async function fetchInternForAdviser(internID, adviserID) {
+    const [rows] = await pool.query(
+        `SELECT i.internid, i.status, s.studentName
+         FROM interns i JOIN students s ON s.studentID = i.studentid
+         WHERE i.internid = ? AND i.adviserid = ?`,
+        [internID, adviserID]
+    );
+    return rows[0] || null;
+}
+
+// MySQL runs SET from left to right, so withdrawn_from keeps the status from before
+async function withdrawIntern(internID, adviserID, reason) {
+    const [result] = await pool.query(
+        `UPDATE interns
+         SET withdrawn_from = status, status = 'WITHDRAWN', withdrawn_reason = ?, withdrawn_on = CURDATE()
+         WHERE internid = ? AND adviserid = ? AND status IN (?)`,
+        [reason, internID, adviserID, WITHDRAWABLE]
+    );
+    return result.affectedRows === 1;
+}
+
+async function undoWithdraw(internID, adviserID) {
+    const [result] = await pool.query(
+        `UPDATE interns
+         SET status = withdrawn_from, withdrawn_from = NULL, withdrawn_reason = NULL, withdrawn_on = NULL
+         WHERE internid = ? AND adviserid = ? AND status = 'WITHDRAWN' AND withdrawn_from IS NOT NULL`,
+        [internID, adviserID]
+    );
+    return result.affectedRows === 1;
+}
+
 // updates the status in the interns table
 async function updateInternRemarks(internId, remarks) {
     // Loop through the remarks and update each one in the database
@@ -131,7 +164,7 @@ async function fetchInterns(adviserID) {
 }
 
 async function fetchInternsByAdviser(adviserid){
-    const [rows] = await pool.query("SELECT i.internid, s.studentID, s.studentName, s.course, i.status, c.companyname FROM interns i JOIN students s ON i.studentid = s.studentID LEFT JOIN company c ON i.companyid = c.companyid WHERE i.adviserid = ? ORDER BY s.studentName", [adviserid]);
+    const [rows] = await pool.query("SELECT i.internid, s.studentID, s.studentName, s.course, i.status, i.withdrawn_reason, c.companyname FROM interns i JOIN students s ON i.studentid = s.studentID LEFT JOIN company c ON i.companyid = c.companyid WHERE i.adviserid = ? ORDER BY s.studentName", [adviserid]);
     return rows;
 }
 
@@ -164,7 +197,11 @@ module.exports = {
     fetchInternsByAdviser,
     fetchInternId,
     isAdvisersIntern,
-    fetchFinishCheck, 
-    markEvaluationReceived, 
+    fetchFinishCheck,
+    markEvaluationReceived,
     finishIntern,
+    WITHDRAWABLE,
+    fetchInternForAdviser,
+    withdrawIntern,
+    undoWithdraw,
 };

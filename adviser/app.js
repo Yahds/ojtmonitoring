@@ -24,6 +24,7 @@ const reportRoutes = require('./routes/reports');
 const journalRoutes = require('./routes/journals');
 const endorsementRoutes = require('./routes/endorsements');
 const finishRoutes = require('./routes/finish');
+const withdrawRoutes = require('./routes/withdraw');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
@@ -79,7 +80,7 @@ app.use(requirePasswordChange);
 // pages
 app.use(homeRoutes);
 app.use('/adviser', authRoutes, accountRoutes, dashboardRoutes, internRoutes,
-    requirementRoutes, reportRoutes, journalRoutes, endorsementRoutes, finishRoutes, adminRoutes);
+    requirementRoutes, reportRoutes, journalRoutes, endorsementRoutes, finishRoutes, withdrawRoutes, adminRoutes);
 
 app.use(notFound);
 app.use(handleErrors);

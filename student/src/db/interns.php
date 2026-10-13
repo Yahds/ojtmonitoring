@@ -74,10 +74,10 @@ function getInternProfile($internID)
     return $row;
 }
 
-// a deployed (ACTIVE) intern cannot change company
+// only interns who are not yet deployed can pick a company
 function chooseCompany($internID, $companyID)
 {
-    $query = "UPDATE interns SET companyid = ?, status = 'PENDING' WHERE internid = ? AND status <> 'ACTIVE'";
+    $query = "UPDATE interns SET companyid = ?, status = 'PENDING' WHERE internid = ? AND status IN ('ENROLLED', 'PENDING')";
     $statement = db()->prepare($query);
     $statement->bind_param("ii", $companyID, $internID);
     $statement->execute();

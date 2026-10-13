@@ -27,6 +27,12 @@ function requireLogin(): void
         redirect('/login');
     }
     $_SESSION['status'] = $status;
+
+    if ($status === 'WITHDRAWN') {
+        http_response_code(403);
+        require __DIR__ . '/pages/withdrawn.php';
+        exit();
+    }
 }
 
 // finished interns can still view their records
