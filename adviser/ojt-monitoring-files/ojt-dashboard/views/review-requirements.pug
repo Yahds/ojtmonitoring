@@ -26,9 +26,12 @@ block content
           p.note
             b Intern:
             |  #{req.intern_remarks}
-        if req.file_path
-          p
-            a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/file`) View submitted file
+        if req.file_path || req.versions > 1
+          p.btn-row
+            if req.file_path
+              a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/file`) View submitted file
+            if req.versions > 1
+              a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/versions`) All versions (#{req.versions})
         if req.status === 'PENDING'
           p.meta Waiting for the intern to submit.
         else if req.status !== 'SUBMITTED'

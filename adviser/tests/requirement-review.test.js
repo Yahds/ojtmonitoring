@@ -107,3 +107,35 @@ test('the page shows the version number once the intern has resubmitted', async 
 
     expect(page.text).toContain('Version 2');
 });
+
+test('the versions page lists every version newest first with what happened to it', async () => {
+    await submit(APPLICATION_LETTER, 1);
+    await submit(APPLICATION_LETTER, 2);
+    await review(APPLICATION_LETTER, 'REJECTED', 'still wrong');
+    await submit(APPLICATION_LETTER, 3);
+
+    const page = await agent.get(`/adviser/interns/${internId}/requirements/${APPLICATION_LETTER}/versions`);
+
+    expect(page.status).toBe(200);
+    const order = ['Version 3', 'Version 2', 'Version 1'].map(label => page.text.indexOf(label));
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+    expect(page.text).toContain('Waiting for review');
+    expect(page.text).toContain('still wrong');
+    expect(page.text).toContain('Replaced');
+});
+
+test('the review page links to all versions once there is more than one', async () => {
+    await submit(APPLICATION_LETTER, 1);
+    await submit(APPLICATION_LETTER, 2);
+
+    const page = await agent.get(`/adviser/interns/${internId}/requirements`);
+
+    expect(page.text).toContain('All versions (2)');
+});
+
+test("cannot open another adviser's intern's versions or version files", async () => {
+    const OTHER_ADVISERS_INTERN = 300;
+
+    expect((await agent.get(`/adviser/interns/${OTHER_ADVISERS_INTERN}/requirements/${APPLICATION_LETTER}/versions`)).status).toBe(404);
+    expect((await agent.get(`/adviser/interns/${OTHER_ADVISERS_INTERN}/requirements/${APPLICATION_LETTER}/versions/1/file`)).status).toBe(404);
+});

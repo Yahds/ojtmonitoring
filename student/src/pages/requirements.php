@@ -1,6 +1,7 @@
 <?php
 requireLogin();
 $groups = groupRequirements(getRequirements($_SESSION['internid']));
+$versions = getRequirementVersions($_SESSION['internid']);
 $adviser = displayName(getInternProfile($_SESSION['internid'])['adviserName']);
 $title = 'Requirements';
 require __DIR__ . '/../views/header.php';
@@ -26,6 +27,7 @@ require __DIR__ . '/../views/header.php';
             <?php if ($requirement->remarks): ?>
                 <div class="remark"><?= e($adviser) ?>: “<?= e($requirement->remarks) ?>”</div>
             <?php endif; ?>
+            <?php require __DIR__ . '/../views/requirement-history.php'; ?>
             <?php $buttonLabel = $requirement->status === 'REJECTED' ? 'Submit again' : 'Submit'; ?>
             <?php require __DIR__ . '/../views/requirement-form.php'; ?>
         </article>
@@ -52,6 +54,7 @@ require __DIR__ . '/../views/header.php';
             <?php if ($requirement->internRemarks): ?>
                 <p class="note">Your note: <?= e($requirement->internRemarks) ?></p>
             <?php endif; ?>
+            <?php require __DIR__ . '/../views/requirement-history.php'; ?>
             <details>
                 <summary class="link-btn">Replace the file or change your note</summary>
                 <?php $buttonLabel = 'Submit again'; ?>
@@ -78,6 +81,7 @@ require __DIR__ . '/../views/header.php';
                     · <a href="/student/requirements/file?reqid=<?= (int) $requirement->reqID ?>">View your file</a>
                 <?php endif; ?>
             </p>
+            <?php require __DIR__ . '/../views/requirement-history.php'; ?>
         </article>
     <?php endforeach; ?>
 </section>

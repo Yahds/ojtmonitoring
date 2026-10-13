@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { fetchInternId, fetchRequirementsForReview, updateRequirementReview, fetchRequirementFile,
+    fetchRequirementVersions, fetchVersionFile,
     fetchUnassignedRequirements, insertNewRequirement, insertInternRequirement, isAdvisersIntern } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 const { audit } = require('../lib/audit');
@@ -102,6 +103,38 @@ router.get("/interns/:internId/requirements/:reqid/file", requireAdviser, async 
             if (err) {
                 console.error('Error sending file:', err.message);
                 if (!res.headersSent) res.status(404).send("File not found");
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/interns/:internId/requirements/:reqid/versions', requireAdviser, async (req, res, next) => {
+    try {
+        const { internId, reqid } = req.params;
+        const requirement = await fetchRequirementVersions(internId, reqid, req.session.adviserID);
+        if (!requirement) {
+            return next();
+        }
+        res.render('ojt-dashboard/views/requirement-versions', {
+            title: `${requirement.requirementname} versions`, requirement, internId, reqid,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/interns/:internId/requirements/:reqid/versions/:versionNo/file', requireAdviser, async (req, res, next) => {
+    try {
+        const { internId, reqid, versionNo } = req.params;
+        const filePath = await fetchVersionFile(internId, reqid, versionNo, req.session.adviserID);
+        if (!filePath) {
+            return next();
+        }
+        res.sendFile(path.join('/var/www/uploads', path.basename(filePath)), { headers: { 'X-Content-Type-Options': 'nosniff' } }, error => {
+            if (error && !res.headersSent) {
+                next(); // the version is there but the file is gone
             }
         });
     } catch (error) {

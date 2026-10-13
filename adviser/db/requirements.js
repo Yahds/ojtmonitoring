@@ -53,6 +53,46 @@ async function fetchRequirementFile(internID, reqID, adviserID) {
     return rows[0] ? rows[0].file_path : null; 
 }
 
+// newest first; a version with no decision was either replaced by a newer one or is still waiting
+async function fetchRequirementVersions(internID, reqID, adviserID) {
+    const [[requirement]] = await pool.query(
+        `SELECT r.requirementname, s.studentName
+         FROM internrequirements ir
+         JOIN requirements r ON r.reqid = ir.reqid
+         JOIN interns i ON i.internid = ir.internid
+         JOIN students s ON s.studentID = i.studentid
+         WHERE ir.internid = ? AND ir.reqid = ? AND i.adviserid = ?`,
+        [internID, reqID, adviserID]
+    );
+    if (!requirement) {
+        return null;
+    }
+    const [versions] = await pool.query(
+        `SELECT version_no, file_path, intern_note, decision, remarks,
+                DATE_FORMAT(submitted_at, '%b %e, %Y %l:%i %p') AS submitted,
+                DATE_FORMAT(reviewed_at, '%b %e, %Y') AS reviewed
+         FROM requirement_versions
+         WHERE internid = ? AND reqid = ?
+         ORDER BY version_no DESC`,
+        [internID, reqID]
+    );
+    versions.forEach((version, i) => {
+        version.state = version.decision || (i === 0 ? 'WAITING' : 'REPLACED');
+    });
+    return { ...requirement, versions };
+}
+
+async function fetchVersionFile(internID, reqID, versionNo, adviserID) {
+    const [rows] = await pool.query(
+        `SELECT v.file_path
+         FROM requirement_versions v
+         JOIN interns i ON i.internid = v.internid
+         WHERE v.internid = ? AND v.reqid = ? AND v.version_no = ? AND i.adviserid = ?`,
+        [internID, reqID, versionNo, adviserID]
+    );
+    return rows[0] ? rows[0].file_path : null;
+}
+
 // only a submitted requirement can be decided; the decision is also kept on its latest version
 async function updateRequirementReview(internID, reqID, adviserID, decision, remarks) {
     const connection = await pool.getConnection();
@@ -101,6 +141,8 @@ module.exports = {
     fetchUnassignedRequirements,
     fetchRequirementsForReview,
     fetchRequirementFile,
+    fetchRequirementVersions,
+    fetchVersionFile,
     updateRequirementReview,
     insertNewRequirement,
     insertInternRequirement,

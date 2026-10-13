@@ -75,3 +75,31 @@ function submitRequirement($internID, $reqID, $internRemarks, $filePath)
         throw $error;
     }
 }
+
+// every version of every requirement for this intern, grouped by requirement, newest first
+function getRequirementVersions($internID): array
+{
+    $rows = db()->execute_query(
+        "SELECT reqid, version_no, file_path IS NOT NULL AS has_file, intern_note, decision, remarks,
+                DATE_FORMAT(submitted_at, '%b %e, %Y') AS submitted
+         FROM requirement_versions
+         WHERE internid = ?
+         ORDER BY reqid, version_no DESC",
+        [$internID]
+    )->fetch_all(MYSQLI_ASSOC);
+
+    $byRequirement = [];
+    foreach ($rows as $row) {
+        $byRequirement[$row['reqid']][] = $row;
+    }
+    return $byRequirement;
+}
+
+function getRequirementVersionFile($internID, $reqID, $versionNo)
+{
+    $row = db()->execute_query(
+        "SELECT file_path FROM requirement_versions WHERE internid = ? AND reqid = ? AND version_no = ?",
+        [$internID, $reqID, $versionNo]
+    )->fetch_assoc();
+    return $row ? $row['file_path'] : null;
+}

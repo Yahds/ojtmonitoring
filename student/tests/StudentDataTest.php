@@ -67,6 +67,25 @@ class StudentDataTest extends TestCase
         ], $versions);
     }
 
+    public function testVersionsAreGroupedByRequirementNewestFirst(): void
+    {
+        submitRequirement(self::JOSE, self::APPLICATION_LETTER, 'first', 'req_one.pdf');
+        submitRequirement(self::JOSE, self::APPLICATION_LETTER, 'second', 'req_two.pdf');
+
+        $versions = getRequirementVersions(self::JOSE)[self::APPLICATION_LETTER];
+
+        $this->assertSame(['second', 'first'], array_column($versions, 'intern_note'));
+    }
+
+    public function testAnInternCannotGetAnotherInternsVersionFile(): void
+    {
+        submitRequirement(self::JOSE, self::APPLICATION_LETTER, 'mine', 'req_jose.pdf');
+        $versionNo = (int) $this->db->query("SELECT MAX(version_no) FROM requirement_versions WHERE internid = " . self::JOSE . " AND reqid = " . self::APPLICATION_LETTER)->fetch_row()[0];
+
+        $this->assertSame('req_jose.pdf', getRequirementVersionFile(self::JOSE, self::APPLICATION_LETTER, $versionNo));
+        $this->assertNull(getRequirementVersionFile(self::MARIA, self::APPLICATION_LETTER, $versionNo + 100));
+    }
+
     public function testResubmittingClearsTheOldRemark(): void
     {
         $this->db->query("UPDATE internrequirements SET status = 'REJECTED', remarks = 'wrong file' WHERE internid = " . self::JOSE . " AND reqid = " . self::APPLICATION_LETTER);
