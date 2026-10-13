@@ -128,6 +128,9 @@ require __DIR__ . '/../views/header.php';
                     <h3><?= e($announcement['subject']) ?></h3>
                     <p class="meta"><?= e((string) $announcement['date']) ?><?= $announcement['edited'] ? ' · Edited' : '' ?></p>
                     <p><?= e($announcement['message']) ?></p>
+                    <?php if ($announcement['file_name']): ?>
+                        <p><a href="/student/announcements/file?id=<?= (int) $announcement['announcementid'] ?>"><?= e($announcement['file_name']) ?></a></p>
+                    <?php endif; ?>
                 </article>
             <?php endforeach; ?>
         </section>

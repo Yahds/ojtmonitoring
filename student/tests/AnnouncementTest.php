@@ -13,12 +13,13 @@ class AnnouncementTest extends TestCase
         db()->execute_query("DELETE FROM announcements WHERE subject LIKE ?", [self::SUBJECT . '%']);
     }
 
-    private function post(int $adviserID, ?string $section, string $label): void
+    private function post(int $adviserID, ?string $section, string $label, ?string $filePath = null): int
     {
         db()->execute_query(
-            "INSERT INTO announcements (senderid, audience_classcode, subject, message) VALUES (?, ?, ?, 'test')",
-            [$adviserID, $section, self::SUBJECT . " $label"]
+            "INSERT INTO announcements (senderid, audience_classcode, subject, message, file_path) VALUES (?, ?, ?, 'test', ?)",
+            [$adviserID, $section, self::SUBJECT . " $label", $filePath]
         );
+        return db()->insert_id;
     }
 
     public function testInternSeesPostsToAllAndToTheirOwnSectionOnly(): void
@@ -32,6 +33,17 @@ class AnnouncementTest extends TestCase
         $mine = array_values(array_filter($subjects, fn ($subject) => str_starts_with($subject, self::SUBJECT)));
 
         $this->assertSame([self::SUBJECT . ' to my section', self::SUBJECT . ' to all'], $mine);
+    }
+
+    public function testInternCanOnlyGetFilesFromPostsTheyCanSee(): void
+    {
+        $mine = $this->post(1, 'CS401', 'mine', 'announcement_mine.pdf');
+        $otherSection = $this->post(1, 'IT401', 'other section', 'announcement_other.pdf');
+        $otherAdviser = $this->post(2, null, 'other adviser', 'announcement_adviser2.pdf');
+
+        $this->assertSame('announcement_mine.pdf', getAnnouncementFileForIntern(self::MARIA, $mine));
+        $this->assertNull(getAnnouncementFileForIntern(self::MARIA, $otherSection));
+        $this->assertNull(getAnnouncementFileForIntern(self::MARIA, $otherAdviser));
     }
 
     public function testAnEditedPostIsMarkedEdited(): void

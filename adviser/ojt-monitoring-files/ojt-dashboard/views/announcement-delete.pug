@@ -11,7 +11,9 @@ block content
       h3= announcement.subject
       p.meta #{announcement.date} · #{announcement.audience ? `Section ${announcement.audience}` : 'All my sections'}
       p= announcement.message
-    p Interns will no longer see this announcement. This cannot be undone.
+      if announcement.file_name
+        p.meta Attachment: #{announcement.file_name}
+    p Interns will no longer see this announcement or its attachment. This cannot be undone.
     form(action='/adviser/announcements/delete' method='POST')
       input(type='hidden' name='csrf_token' value=csrfToken)
       input(type='hidden' name='announcementid' value=announcement.announcementid)

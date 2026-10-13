@@ -13,6 +13,7 @@ const { flash } = require('./middleware/flash');
 const { idleTimeout } = require('./middleware/idleTimeout');
 const { requirePasswordChange } = require('./middleware/auth');
 const { notFound, handleErrors } = require('./middleware/errorHandler');
+const { parseAttachment } = require('./lib/attachments');
 
 const homeRoutes = require('./routes/home');
 const authRoutes = require('./routes/auth');
@@ -72,6 +73,7 @@ app.use(session({
     },
 }));
 app.use(provideCsrfToken);
+app.use('/adviser/announcements', parseAttachment); // file forms are multipart, so read them before the CSRF check
 app.use(verifyCsrf);
 app.use(currentUser);
 app.use(flash);

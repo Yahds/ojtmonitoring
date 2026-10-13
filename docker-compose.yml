@@ -23,6 +23,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - student_uploads:/var/www/uploads:ro
+      - announcement_files:/var/www/announcement-files
 
   database:
     image: mysql:8.0.46
@@ -76,6 +77,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - student_uploads:/var/www/uploads
+      - announcement_files:/var/www/announcement-files:ro
 
   nginx:
     image: nginx:1.27.5-alpine
@@ -104,3 +106,4 @@ services:
 volumes:
   db_data:
   student_uploads:
+  announcement_files: # written by the adviser app, read-only for the student app

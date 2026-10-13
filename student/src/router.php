@@ -25,6 +25,7 @@ const ROUTES = [
     'GET /supervisor'          => 'pages/supervisor.php',
     'POST /supervisor'         => 'actions/save-supervisor.php',
     'GET /announcements'       => 'pages/announcements.php',
+    'GET /announcements/file'  => 'actions/download-announcement-file.php',
 ];
 
 // "/requirements/?reqid=3" -> "/requirements"

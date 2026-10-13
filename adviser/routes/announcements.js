@@ -4,6 +4,7 @@ const {
 } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 const { audit } = require('../lib/audit');
+const { attachmentError, saveAttachment, removeAttachment, attachmentPath } = require('../lib/attachments');
 
 const router = express.Router();
 
@@ -46,6 +47,10 @@ async function checkAnnouncementForm(req, currentAudience = null) {
     if (values.message === '' || values.message.length > MAX_MESSAGE) {
         errors.message = `Write the message, up to ${MAX_MESSAGE} characters.`;
     }
+    const fileError = attachmentError(req);
+    if (fileError) {
+        errors.attachment = fileError;
+    }
     return { values, errors, ok: Object.keys(errors).length === 0 };
 }
 
@@ -64,7 +69,10 @@ router.post('/announcements', requireAdviser, async (req, res, next) => {
             return await showAnnouncements(req, res, 400, values, errors);
         }
 
-        const id = await insertAnnouncement(req.session.adviserID, values.audience || null, values.subject, values.message);
+        const file = req.file ? await saveAttachment(req.file) : { filePath: null, fileName: null };
+        const id = await insertAnnouncement(req.session.adviserID, {
+            audience: values.audience || null, subject: values.subject, message: values.message, ...file,
+        });
         await audit(req, 'announcement_posted', String(id));
         req.flash('success', 'Announcement posted.');
         res.redirect('/adviser/announcements');
@@ -97,10 +105,40 @@ router.post('/announcements/:announcementId/edit', requireAdviser, async (req, r
             return await showEdit(req, res, 400, announcement, values, errors);
         }
 
-        await updateAnnouncement(announcement.announcementid, req.session.adviserID, values.audience || null, values.subject, values.message);
+        let file = { filePath: announcement.file_path, fileName: announcement.file_name };
+        if (req.file) {
+            file = await saveAttachment(req.file);
+        } else if (req.body.remove_attachment === '1') {
+            file = { filePath: null, fileName: null };
+        }
+        await updateAnnouncement(announcement.announcementid, req.session.adviserID, {
+            audience: values.audience || null, subject: values.subject, message: values.message, ...file,
+        });
+        // the old file is only removed after the post no longer points to it
+        if (announcement.file_path && file.filePath !== announcement.file_path) {
+            await removeAttachment(announcement.file_path);
+        }
         await audit(req, 'announcement_edited', String(announcement.announcementid));
         req.flash('success', 'Announcement updated.');
         res.redirect('/adviser/announcements');
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/announcements/:announcementId/file', requireAdviser, async (req, res, next) => {
+    try {
+        const announcement = await fetchAnnouncement(req.params.announcementId, req.session.adviserID);
+        if (!announcement || !announcement.file_path) {
+            return next();
+        }
+        res.download(attachmentPath(announcement.file_path), announcement.file_name, {
+            headers: { 'X-Content-Type-Options': 'nosniff' },
+        }, error => {
+            if (error && !res.headersSent) {
+                next(); // the row is there but the file is gone
+            }
+        });
     } catch (error) {
         next(error);
     }
@@ -120,12 +158,14 @@ router.get('/announcements/:announcementId/delete', requireAdviser, async (req, 
 });
 
 router.post('/announcements/delete', requireAdviser, async (req, res, next) => {
-    const announcementId = req.body.announcementid;
     try {
-        if (await deleteAnnouncement(announcementId, req.session.adviserID) === 0) {
+        const announcement = await fetchAnnouncement(req.body.announcementid, req.session.adviserID);
+        if (!announcement) {
             return next(); // not this adviser's post, so it ends on the 404 page
         }
-        await audit(req, 'announcement_deleted', String(announcementId));
+        await deleteAnnouncement(announcement.announcementid, req.session.adviserID);
+        await removeAttachment(announcement.file_path);
+        await audit(req, 'announcement_deleted', String(announcement.announcementid));
         req.flash('success', 'Announcement deleted.');
         res.redirect('/adviser/announcements');
     } catch (error) {

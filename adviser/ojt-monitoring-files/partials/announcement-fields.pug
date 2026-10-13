@@ -19,3 +19,10 @@
   textarea.input#message(name='message' rows='6' maxlength='5000' required aria-invalid=(errors.message ? 'true' : undefined) aria-describedby=(errors.message ? 'message-error' : undefined))= values.message
   if errors.message
     span.error#message-error= errors.message
+.field
+  label(for='attachment') Attachment (optional)
+  input.input#attachment(type='file' name='attachment' accept='.pdf,.jpg,.jpeg,.png,.doc,.docx' aria-invalid=(errors.attachment ? 'true' : undefined) aria-describedby=(errors.attachment ? 'attachment-error' : 'attachment-help'))
+  if errors.attachment
+    span.error#attachment-error= errors.attachment
+  else
+    span.help#attachment-help PDF, JPG, PNG, DOC or DOCX, up to 5 MB.

@@ -12,19 +12,22 @@ async function fetchAdviserSections(adviserID) {
     return rows.map(row => row.classcode);
 }
 
-// audience NULL means all of the adviser's sections
-async function insertAnnouncement(adviserID, audience, subject, message) {
+const COLUMNS = `announcementid, audience_classcode AS audience, subject, message, file_path, file_name,
+                 DATE_FORMAT(created_at, '%b %e, %Y') AS date, updated_at IS NOT NULL AS edited`;
+
+// post.audience NULL means all of the adviser's sections
+async function insertAnnouncement(adviserID, post) {
     const [result] = await pool.query(
-        'INSERT INTO announcements (senderid, audience_classcode, subject, message) VALUES (?, ?, ?, ?)',
-        [adviserID, audience, subject, message]
+        `INSERT INTO announcements (senderid, audience_classcode, subject, message, file_path, file_name)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [adviserID, post.audience, post.subject, post.message, post.filePath, post.fileName]
     );
     return result.insertId;
 }
 
 async function fetchAnnouncements(adviserID) {
     const [rows] = await pool.query(
-        `SELECT announcementid, audience_classcode AS audience, subject, message,
-                DATE_FORMAT(created_at, '%b %e, %Y') AS date, updated_at IS NOT NULL AS edited
+        `SELECT ${COLUMNS}
          FROM announcements
          WHERE senderid = ?
          ORDER BY created_at DESC, announcementid DESC`,
@@ -35,20 +38,18 @@ async function fetchAnnouncements(adviserID) {
 
 async function fetchAnnouncement(announcementID, adviserID) {
     const [rows] = await pool.query(
-        `SELECT announcementid, audience_classcode AS audience, subject, message,
-                DATE_FORMAT(created_at, '%b %e, %Y') AS date, updated_at IS NOT NULL AS edited
-         FROM announcements
-         WHERE announcementid = ? AND senderid = ?`,
+        `SELECT ${COLUMNS} FROM announcements WHERE announcementid = ? AND senderid = ?`,
         [announcementID, adviserID]
     );
     return rows[0] || null;
 }
 
-async function updateAnnouncement(announcementID, adviserID, audience, subject, message) {
+async function updateAnnouncement(announcementID, adviserID, post) {
     const [result] = await pool.query(
-        `UPDATE announcements SET audience_classcode = ?, subject = ?, message = ?, updated_at = NOW()
+        `UPDATE announcements
+         SET audience_classcode = ?, subject = ?, message = ?, file_path = ?, file_name = ?, updated_at = NOW()
          WHERE announcementid = ? AND senderid = ?`,
-        [audience, subject, message, announcementID, adviserID]
+        [post.audience, post.subject, post.message, post.filePath, post.fileName, announcementID, adviserID]
     );
     return result.affectedRows;
 }

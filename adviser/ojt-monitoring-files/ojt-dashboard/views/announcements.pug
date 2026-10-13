@@ -5,7 +5,7 @@ block content
 
   section.card.card-pad
     h2.section-title New announcement
-    form.form(action='/adviser/announcements' method='POST')
+    form.form(action='/adviser/announcements' method='POST' enctype='multipart/form-data')
       input(type='hidden' name='csrf_token' value=csrfToken)
       include ../../partials/announcement-fields
       .btn-row
@@ -28,3 +28,6 @@ block content
               a.btn.btn-reject.btn-sm(href=`/adviser/announcements/${announcement.announcementid}/delete`) Delete
           p.meta #{announcement.date} · #{announcement.audience ? `Section ${announcement.audience}` : 'All my sections'}#{announcement.edited ? ' · Edited' : ''}
           p= announcement.message
+          if announcement.file_name
+            p
+              a(href=`/adviser/announcements/${announcement.announcementid}/file`) #{announcement.file_name}
