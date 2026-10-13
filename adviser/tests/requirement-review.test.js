@@ -79,7 +79,7 @@ test('a decision adds an audit row', async () => {
     await review(APPLICATION_LETTER, 'REJECTED', 'wrong file');
 
     const [events] = await pool.query("SELECT target FROM audit_log WHERE actor_adviser_id = ? AND action = 'requirement_rejected'", [adviser.adviserID]);
-    expect(events.map(e => e.target)).toContain(`intern ${internId} requirement ${APPLICATION_LETTER}`);
+    expect(events.map(e => e.target)).toContain(`intern ${internId} requirement ${APPLICATION_LETTER}: REJECTED`);
 });
 
 test('a requirement the intern has not submitted cannot be approved', async () => {
@@ -138,4 +138,53 @@ test("cannot open another adviser's intern's versions or version files", async (
 
     expect((await agent.get(`/adviser/interns/${OTHER_ADVISERS_INTERN}/requirements/${APPLICATION_LETTER}/versions`)).status).toBe(404);
     expect((await agent.get(`/adviser/interns/${OTHER_ADVISERS_INTERN}/requirements/${APPLICATION_LETTER}/versions/1/file`)).status).toBe(404);
+});
+
+function change(reqid, decision, remarks = '') {
+    return agent.post(`/adviser/interns/${internId}/requirements/change`).type('form')
+        .send({ csrf_token: csrfToken, reqid, decision, remarks });
+}
+
+test('an approval made by mistake can be changed to needs changes, which unlocks it', async () => {
+    await submit(APPLICATION_LETTER, 1);
+    await review(APPLICATION_LETTER, 'APPROVED', 'ok');
+
+    await change(APPLICATION_LETTER, 'REJECTED', 'wrong intern, sorry');
+
+    expect(await requirement(APPLICATION_LETTER)).toEqual({ status: 'REJECTED', remarks: 'wrong intern, sorry' });
+    const [version] = await versions(APPLICATION_LETTER);
+    expect(version.decision).toBe('REJECTED');
+    const [events] = await pool.query("SELECT target FROM audit_log WHERE actor_adviser_id = ? AND action = 'requirement_review_changed'", [adviser.adviserID]);
+    expect(events.map(e => e.target)).toContain(`intern ${internId} requirement ${APPLICATION_LETTER}: REJECTED`);
+});
+
+test('editing the remark changes only the latest version, older ones keep theirs', async () => {
+    await submit(APPLICATION_LETTER, 1);
+    await review(APPLICATION_LETTER, 'REJECTED', 'first remark');
+    await submit(APPLICATION_LETTER, 2);
+    await review(APPLICATION_LETTER, 'REJECTED', 'second remark');
+
+    await change(APPLICATION_LETTER, 'REJECTED', 'second remark, reworded');
+
+    const [first, second] = await versions(APPLICATION_LETTER);
+    expect(first.remarks).toBe('first remark');
+    expect(second.remarks).toBe('second remark, reworded');
+});
+
+test('a requirement that is waiting for review cannot be changed, only reviewed', async () => {
+    await submit(APPLICATION_LETTER, 1);
+
+    await change(APPLICATION_LETTER, 'APPROVED');
+
+    expect((await requirement(APPLICATION_LETTER)).status).toBe('SUBMITTED');
+});
+
+test('a decided requirement shows the change form with the current decision picked', async () => {
+    await submit(APPLICATION_LETTER, 1);
+    await review(APPLICATION_LETTER, 'APPROVED', 'fine');
+
+    const page = await agent.get(`/adviser/interns/${internId}/requirements`);
+
+    expect(page.text).toContain('Change decision or remark');
+    expect(page.text).toMatch(/value="APPROVED" checked/);
 });

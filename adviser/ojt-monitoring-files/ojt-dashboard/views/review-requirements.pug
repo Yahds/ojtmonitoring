@@ -39,6 +39,25 @@ block content
             p.note
               b Your remark:
               |  #{req.remarks}
+          details
+            summary.link-btn Change decision or remark
+            form.form(action=`/adviser/interns/${internId}/requirements/change` method='POST')
+              input(type='hidden' name='csrf_token' value=csrfToken)
+              input(type='hidden' name='reqid' value=req.reqid)
+              fieldset.field
+                legend.label Decision
+                label.check-row
+                  input(type='radio' name='decision' value='APPROVED' checked=req.status === 'APPROVED')
+                  | Approved
+                label.check-row
+                  input(type='radio' name='decision' value='REJECTED' checked=req.status === 'REJECTED')
+                  | Needs changes
+              .field
+                label(for=`change-remarks-${req.reqid}`) Your remark
+                textarea.input(id=`change-remarks-${req.reqid}` name='remarks' rows='2' maxlength='200')= req.remarks
+              p.muted Needs changes unlocks the requirement, so the intern can submit again.
+              .btn-row
+                button.btn.btn-create.btn-sm(type='submit') Save changes
         else
           form.form(action=`/adviser/interns/${internId}/requirements` method='POST')
             input(type='hidden' name='csrf_token' value=csrfToken)

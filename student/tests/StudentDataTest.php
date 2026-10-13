@@ -11,17 +11,20 @@ class StudentDataTest extends TestCase
     private const DATA_PRIVACY_CERTIFICATE = 6;
 
     private mysqli $db;
+    private int $lastVersionBeforeTest;
 
     protected function setUp(): void
     {
         $this->db = mysqli_connect(
             getenv('MYSQL_HOST'), getenv('MYSQL_USER'), getenv('MYSQL_PASSWORD'), getenv('MYSQL_DATABASE')
         );
+        // versions made in the browser are real data; only the ones this test adds get removed
+        $this->lastVersionBeforeTest = (int) $this->db->query("SELECT COALESCE(MAX(versionid), 0) FROM requirement_versions")->fetch_row()[0];
     }
 
     protected function tearDown(): void
     {
-        $this->db->query("DELETE FROM requirement_versions WHERE internid IN (" . self::MARIA . ", " . self::JOSE . ") AND submitted_at >= CURDATE()");
+        $this->db->query("DELETE FROM requirement_versions WHERE versionid > " . $this->lastVersionBeforeTest);
         $this->db->query("UPDATE internrequirements SET status = 'PENDING', datesubmitted = NULL, intern_remarks = NULL, file_path = NULL, remarks = NULL
                           WHERE internid = " . self::JOSE . " AND reqid = " . self::APPLICATION_LETTER);
         $this->db->query("DELETE FROM weeklyreports WHERE internid = " . self::JOSE);
@@ -166,7 +169,7 @@ class StudentDataTest extends TestCase
         $changed = submitRequirement(self::MARIA, self::DATA_PRIVACY_CERTIFICATE, 'trying to change it', null);
 
         $this->assertSame(0, $changed);
-        $versions = $this->db->query("SELECT COUNT(*) FROM requirement_versions WHERE internid = " . self::MARIA . " AND reqid = " . self::DATA_PRIVACY_CERTIFICATE . " AND submitted_at >= CURDATE()")->fetch_row()[0];
+        $versions = $this->db->query("SELECT COUNT(*) FROM requirement_versions WHERE internid = " . self::MARIA . " AND reqid = " . self::DATA_PRIVACY_CERTIFICATE . " AND versionid > " . $this->lastVersionBeforeTest)->fetch_row()[0];
         $this->assertSame(0, (int) $versions);
         $row = $this->db->query("SELECT status FROM internrequirements WHERE internid = " . self::MARIA . " AND reqid = " . self::DATA_PRIVACY_CERTIFICATE)->fetch_assoc();
         $this->assertSame('APPROVED', $row['status']);

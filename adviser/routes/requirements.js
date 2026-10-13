@@ -60,34 +60,52 @@ router.get("/interns/:internId/requirements", requireAdviser, async (req, res, n
     }
 });
 
-router.post("/interns/:internId/requirements", requireAdviser, async (req, res, next) => {
-    try {
-        const internId = req.params.internId;
-        const { reqid, decision } = req.body;
-        const remarks = typeof req.body.remarks === 'string' ? req.body.remarks.trim() : '';
-        const backTo = `/adviser/interns/${internId}/requirements`;
+// the first decision and a later change share the same checks; only the allowed starting statuses differ
+function reviewHandler({ fromStatuses, notAllowed, auditAction, success }) {
+    return async (req, res, next) => {
+        try {
+            const internId = req.params.internId;
+            const { reqid, decision } = req.body;
+            const remarks = typeof req.body.remarks === 'string' ? req.body.remarks.trim() : '';
+            const backTo = `/adviser/interns/${internId}/requirements`;
 
-        if (decision !== 'APPROVED' && decision !== 'REJECTED') {
-            req.flash('error', 'Choose Approve or Reject.');
-            return res.redirect(backTo);
-        }
-        if (remarks.length > 200) {
-            req.flash('error', 'Keep your remark to 200 characters or fewer.');
-            return res.redirect(backTo);
-        }
+            if (decision !== 'APPROVED' && decision !== 'REJECTED') {
+                req.flash('error', 'Choose Approve or Reject.');
+                return res.redirect(backTo);
+            }
+            if (remarks.length > 200) {
+                req.flash('error', 'Keep your remark to 200 characters or fewer.');
+                return res.redirect(backTo);
+            }
 
-        const changed = await updateRequirementReview(internId, reqid, req.session.adviserID, decision, remarks || null);
-        if (changed === 0) {
-            req.flash('error', 'Only a submitted requirement can be approved or rejected.');
-            return res.redirect(backTo);
+            const changed = await updateRequirementReview(internId, reqid, req.session.adviserID, decision, remarks || null, fromStatuses);
+            if (changed === 0) {
+                req.flash('error', notAllowed);
+                return res.redirect(backTo);
+            }
+            await audit(req, auditAction(decision), `intern ${internId} requirement ${reqid}: ${decision}`);
+            req.flash('success', success(decision));
+            res.redirect(backTo);
+        } catch (error) {
+            next(error);
         }
-        await audit(req, decision === 'APPROVED' ? 'requirement_approved' : 'requirement_rejected', `intern ${internId} requirement ${reqid}`);
-        req.flash('success', decision === 'APPROVED' ? 'Requirement approved.' : 'Requirement rejected.');
-        res.redirect(backTo);
-    } catch (error) {
-        next(error);
-    }
-});
+    };
+}
+
+router.post('/interns/:internId/requirements', requireAdviser, reviewHandler({
+    fromStatuses: ['SUBMITTED'],
+    notAllowed: 'Only a submitted requirement can be approved or rejected.',
+    auditAction: decision => (decision === 'APPROVED' ? 'requirement_approved' : 'requirement_rejected'),
+    success: decision => (decision === 'APPROVED' ? 'Requirement approved.' : 'Requirement rejected.'),
+}));
+
+// fixes a decision made by mistake or rewords the remark
+router.post('/interns/:internId/requirements/change', requireAdviser, reviewHandler({
+    fromStatuses: ['APPROVED', 'REJECTED'],
+    notAllowed: 'Only an approved or rejected requirement can be changed. If the intern sent a new version, review that one.',
+    auditAction: () => 'requirement_review_changed',
+    success: () => 'Your decision and remark were saved.',
+}));
 
 router.get("/interns/:internId/requirements/:reqid/file", requireAdviser, async (req, res, next) => {
     try {

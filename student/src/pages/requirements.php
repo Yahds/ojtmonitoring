@@ -81,6 +81,9 @@ require __DIR__ . '/../views/header.php';
                     · <a href="/student/requirements/file?reqid=<?= (int) $requirement->reqID ?>">View your file</a>
                 <?php endif; ?>
             </p>
+            <?php if ($requirement->remarks): ?>
+                <div class="remark"><?= e($adviser) ?>: “<?= e($requirement->remarks) ?>”</div>
+            <?php endif; ?>
             <?php require __DIR__ . '/../views/requirement-history.php'; ?>
         </article>
     <?php endforeach; ?>

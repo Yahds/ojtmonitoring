@@ -93,8 +93,9 @@ async function fetchVersionFile(internID, reqID, versionNo, adviserID) {
     return rows[0] ? rows[0].file_path : null;
 }
 
-// only a submitted requirement can be decided; the decision is also kept on its latest version
-async function updateRequirementReview(internID, reqID, adviserID, decision, remarks) {
+// a first decision needs a SUBMITTED requirement, a change needs an APPROVED or REJECTED one;
+// the decision is also kept on the latest version, so older versions keep their own remark
+async function updateRequirementReview(internID, reqID, adviserID, decision, remarks, fromStatuses = ['SUBMITTED']) {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -102,8 +103,8 @@ async function updateRequirementReview(internID, reqID, adviserID, decision, rem
             `UPDATE internrequirements ir
                 JOIN interns i ON ir.internid = i.internid
                 SET ir.status = ?, ir.remarks = ?
-                WHERE ir.internid = ? AND ir.reqid = ? AND i.adviserid = ? AND ir.status = 'SUBMITTED'`,
-            [decision, remarks, internID, reqID, adviserID]
+                WHERE ir.internid = ? AND ir.reqid = ? AND i.adviserid = ? AND ir.status IN (?)`,
+            [decision, remarks, internID, reqID, adviserID, fromStatuses]
         );
         if (result.affectedRows === 1) {
             await connection.query(
