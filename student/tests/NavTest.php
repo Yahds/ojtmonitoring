@@ -25,4 +25,9 @@ class NavTest extends TestCase
         $current = array_filter(navFor('ACTIVE', '/journals'), fn ($link) => $link['current']);
         $this->assertSame(['Journals'], array_column($current, 'label'));
     }
+
+    public function testAFinishedInternStillSeesTheirReportsAndJournals(): void
+    {
+        $this->assertSame(['Dashboard', 'Requirements', 'Weekly reports', 'Journals'], $this->labels(navFor('FINISHED', '/dashboard')));
+    }
 }

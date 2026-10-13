@@ -1,7 +1,7 @@
 <?php
 function navFor(string $status, string $path): array
 {
-    $deployed = $status === 'ACTIVE';
+    $deployed = in_array($status, ['ACTIVE', 'FINISHED'], true);
     $links = [
         ['href' => $deployed ? '/dashboard' : '/choose-company', 'label' => 'Dashboard'],
         ['href' => '/requirements', 'label' => 'Requirements'],

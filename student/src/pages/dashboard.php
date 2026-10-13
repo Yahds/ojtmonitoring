@@ -1,5 +1,5 @@
 <?php
-requireDeployed();
+requireDeployed(true);
 $profile = getInternProfile($_SESSION['internid']);
 $summary = summarize(getRequirements($_SESSION['internid']), getWeeklyReports($_SESSION['internid']));
 $announcements = getAnnouncementsForIntern($_SESSION['internid']);
@@ -12,6 +12,9 @@ require __DIR__ . '/../views/header.php';
 ?>
 <div class="dash">
     <div class="dash-main">
+    <?php if ($profile['finishedOn']): ?>
+        <div class="flash flash-success" role="status">You finished your OJT on <?= e($profile['finishedOn']) ?>. Your records stay here for you to view.</div>
+    <?php endif; ?>
         <section class="card hero">
             <div class="hero-banner" role="img" aria-label="Saint Louis University campus"></div>
             <div class="hero-body">
@@ -101,10 +104,14 @@ require __DIR__ . '/../views/header.php';
                     <b><?= e($supervisor['supervisorname']) ?></b>
                     <span><?= e($supervisor['supervisoremail']) ?></span>
                 </div>
-                <p><a href="/student/supervisor">Update</a></p>
-            <?php else: ?>
+                <?php if ($_SESSION['status'] === 'ACTIVE'): ?>
+                    <p><a href="/student/supervisor">Update</a></p>
+                <?php endif; ?>
+            <?php elseif ($_SESSION['status'] === 'ACTIVE'): ?>
                 <p class="muted">Add the person at the company who signs your weekly reports.</p>
                 <a class="btn btn-create btn-sm" href="/student/supervisor">Add supervisor</a>
+            <?php else: ?>
+                <p class="muted">No supervisor was added.</p>
             <?php endif; ?>
         </section>
 

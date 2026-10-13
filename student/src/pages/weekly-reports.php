@@ -1,5 +1,5 @@
 <?php
-requireDeployed();
+requireDeployed(true);
 $reports = getWeeklyReports($_SESSION['internid']);
 $adviser = displayName(getInternProfile($_SESSION['internid'])['adviserName']);
 $nextWeek = $reports ? max(array_column($reports, 'weeknumber')) + 1 : 1;
@@ -9,6 +9,7 @@ require __DIR__ . '/../views/header.php';
 <h1 class="page-title">Weekly reports</h1>
 <p class="muted">Submit one report per week with your supervisor's signature.</p>
 
+<?php if ($_SESSION['status'] === 'ACTIVE'): ?>
 <h2 class="section-title">Submit a report</h2>
 <section class="card card-pad">
     <form class="form" action="/student/weekly-reports" method="post" enctype="multipart/form-data">
@@ -35,6 +36,7 @@ require __DIR__ . '/../views/header.php';
         </div>
     </form>
 </section>
+<?php endif; ?>
 
 <h2 class="section-title">Your reports · <?= count($reports) ?></h2>
 <section class="card">

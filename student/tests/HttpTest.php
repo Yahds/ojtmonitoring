@@ -1,5 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
+require_once __DIR__ . '/../src/db/index.php';
 
 // runs the app on PHP's built-in server and sends real requests to it
 class HttpTest extends TestCase
@@ -149,5 +150,19 @@ class HttpTest extends TestCase
     public function testKeepAliveSendsLoggedOutVisitorsToLogin(): void
     {
         $this->assertSame(302, $this->request('GET', '/session/keep-alive')['status']);
+    }
+
+    public function testAFinishedInternSeesTheirDashboardButCannotSubmit(): void
+    {
+        db()->execute_query("UPDATE interns SET status = 'FINISHED', finished_on = '2026-12-18' WHERE internid = 300");
+        try {
+            $this->logIn('2299001', '1234');
+
+            $this->assertSame('/student/dashboard', $this->request('GET', '/')['location']);
+            $this->assertStringContainsString('You finished your OJT on December 18, 2026', $this->request('GET', '/dashboard')['body']);
+            $this->assertStringNotContainsString('Submit a report', $this->request('GET', '/weekly-reports')['body']);
+        } finally {
+            db()->execute_query("UPDATE interns SET status = 'PENDING', finished_on = NULL WHERE internid = 300");
+        }
     }
 }

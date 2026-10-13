@@ -1,5 +1,5 @@
 <?php
-requireDeployed();
+requireDeployed(true);
 $journals = getMonthlyJournals($_SESSION['internid']);
 $adviser = displayName(getInternProfile($_SESSION['internid'])['adviserName']);
 $nextMonth = $journals ? max(array_column($journals, 'monthnumber')) + 1 : 1;
@@ -9,7 +9,8 @@ require __DIR__ . '/../views/header.php';
 <h1 class="page-title">Monthly journals</h1>
 <p class="muted">Submit one journal for each month of your OJT.</p>
 
-<h2 class="section-title">Submit a journal</h2>
+<?php if ($_SESSION['status'] === 'ACTIVE'): ?>
+<h2 class="section-title">Submit a report</h2>
 <section class="card card-pad">
     <form class="form" action="/student/journals" method="post" enctype="multipart/form-data">
         <?= csrf_field() ?>
@@ -31,6 +32,7 @@ require __DIR__ . '/../views/header.php';
         </div>
     </form>
 </section>
+<?php endif; ?>
 
 <h2 class="section-title">Your journals · <?= count($journals) ?></h2>
 <section class="card">

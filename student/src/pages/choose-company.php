@@ -1,6 +1,6 @@
 <?php
 requireLogin();
-if ($_SESSION['status'] === 'ACTIVE') {
+if (in_array($_SESSION['status'], ['ACTIVE', 'FINISHED'], true)) {
     redirect('/dashboard');
 }
 $profile = getInternProfile($_SESSION['internid']);
