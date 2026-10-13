@@ -131,4 +131,23 @@ class HttpTest extends TestCase
         $this->assertSame(400, $response['status']);
         $this->assertStringContainsString('Use at least 15 characters.', $response['body']);
     }
+
+    public function testLoggedInPagesIncludeTheIdleWarning(): void
+    {
+        $this->logIn('2299001', '1234');
+
+        $this->assertStringContainsString('id="idle-warning"', $this->request('GET', '/requirements')['body']);
+    }
+
+    public function testKeepAliveAnswersWithNoContentWhenLoggedIn(): void
+    {
+        $this->logIn('2299001', '1234');
+
+        $this->assertSame(204, $this->request('GET', '/session/keep-alive')['status']);
+    }
+
+    public function testKeepAliveSendsLoggedOutVisitorsToLogin(): void
+    {
+        $this->assertSame(302, $this->request('GET', '/session/keep-alive')['status']);
+    }
 }

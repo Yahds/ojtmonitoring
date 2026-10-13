@@ -1,10 +1,26 @@
 <?php
+const IDLE_LIMIT_SECONDS = 30 * 60;
+
+function sessionExpired(?int $lastSeen, int $now): bool
+{
+    return $lastSeen === null || $now - $lastSeen > IDLE_LIMIT_SECONDS;
+}
+
 // sends logged-out visitors to the login page and keeps the status up to date
 function requireLogin(): void
 {
     if (!isset($_SESSION['internid'])) {
         redirect('/login');
     }
+    if (sessionExpired($_SESSION['lastSeen'] ?? null, time())) {
+        // empty the session but keep it, so the message can show on the login page
+        session_unset();
+        session_regenerate_id(true);
+        flash('info', 'You were logged out after 30 minutes without activity. Please log in again.');
+        redirect('/login');
+    }
+    $_SESSION['lastSeen'] = time();
+
     $status = getInternStatus($_SESSION['internid']);
     if ($status === null) {
         session_destroy();
@@ -33,6 +49,7 @@ function startStudentSession(array $row, ?string $idToken = null): never
     $_SESSION['year'] = $row['year'];
     $_SESSION['internid'] = $row['internid'];
     $_SESSION['status'] = $row['status'];
+    $_SESSION['lastSeen'] = time();
     if ($idToken !== null) {
         $_SESSION['idToken'] = $idToken;
     }

@@ -21,6 +21,10 @@ require __DIR__ . '/../views/head.php';
         <img class="login-logo" src="/assets/img/slu-logo.png" alt="Saint Louis University">
         <h1>Log in</h1>
         <p class="lead">For interns</p>
+        <?php $flash = takeFlash(); ?>
+        <?php if ($flash): ?>
+            <div class="flash flash-<?= e($flash['type']) ?>" role="status"><?= e($flash['text']) ?></div>
+        <?php endif; ?>
         <?php if (!empty($error)): ?>
             <div class="flash flash-error" role="alert"><?= e($error) ?></div>
         <?php endif; ?>

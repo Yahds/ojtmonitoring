@@ -8,6 +8,7 @@ const ROUTES = [
     'GET /sso/callback'        => 'actions/sso-callback.php',
     'GET /account/password'    => 'pages/change-password.php',
     'POST /account/password'   => 'actions/change-password.php',
+    'GET /session/keep-alive'  => 'actions/keep-alive.php',
     'GET /dashboard'           => 'pages/dashboard.php',
     'GET /choose-company'      => 'pages/choose-company.php',
     'POST /choose-company'     => 'actions/update-company.php',
