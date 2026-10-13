@@ -17,6 +17,17 @@ const STATUSES = {
         APPROVED: { label: 'Approved', tag: 'tag-ok' },
         REJECTED: { label: 'Needs changes', tag: 'tag-bad' },
     },
+    deadline: {
+        OVERDUE: { label: 'Overdue', tag: 'tag-bad' },
+        LATE: { label: 'Sent late', tag: 'tag-warn' },
+    },
+    // one submitted version of a requirement
+    version: {
+        WAITING: { label: 'Waiting for review', tag: 'tag-warn' },
+        REPLACED: { label: 'Replaced', tag: '' },
+        APPROVED: { label: 'Approved', tag: 'tag-ok' },
+        REJECTED: { label: 'Needs changes', tag: 'tag-bad' },
+    },
 };
 
 function statusOf(kind, status) {

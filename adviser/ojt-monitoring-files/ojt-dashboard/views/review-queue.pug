@@ -1,0 +1,31 @@
+extends ../../layouts/main
+
+block content
+  h1.page-title To review
+  p.muted Everything your interns sent that is waiting for your decision, oldest first.
+
+  section.card
+    .card-head
+      h2 Waiting
+        span.sub #{items.length} #{items.length === 1 ? 'item' : 'items'}#{section ? ` in section ${section}` : ''}
+    if sections.length > 1
+      form.search-row(action='/adviser/review' method='GET')
+        .field
+          label(for='section') Section
+          select.input#section(name='section')
+            option(value='') All my sections
+            each code in sections
+              option(value=code selected=section === code) Section #{code}
+        button.btn.btn-outline(type='submit') Show
+    if items.length === 0
+      .empty
+        b Nothing to review
+        | New submissions from your interns will show up here.
+    each item in items
+      article.item
+        .item-head
+          h3 #{item.item} #[span.meta · #{item.studentName}]
+          span.tag= item.kindLabel
+        p.meta Section #{item.classcode}#{item.sent ? ` · Sent ${item.sent}` : ''}#{item.days > 0 ? ` · Waiting ${item.days} ${item.days === 1 ? 'day' : 'days'}` : ''}
+        p
+          a.btn.btn-create.btn-sm(href=item.href) Review

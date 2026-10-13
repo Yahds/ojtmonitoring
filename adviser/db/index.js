@@ -10,6 +10,7 @@ const announcements = require('./announcements');
 const audit = require('./audit');
 const courses = require('./courses');
 const endorsements = require('./endorsements');
+const review = require('./review');
 
 async function closeDatabase() {
     await sessionStore.close();
@@ -27,5 +28,6 @@ module.exports = {
     ...audit,
     ...courses,
     ...endorsements,
+    ...review,
     closeDatabase,
 };

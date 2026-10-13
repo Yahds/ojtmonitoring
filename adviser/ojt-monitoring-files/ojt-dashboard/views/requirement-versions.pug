@@ -1,0 +1,32 @@
+extends ../../layouts/main
+
+block content
+  p.crumb #[a(href='/adviser/interns') Interns] / #[a(href=`/adviser/interns/${internId}/requirements`) Requirements] / Versions
+  h1.page-title #{requirement.requirementname} · #{requirement.studentName}
+  p.muted Every file and note the intern sent, newest first.
+
+  section.card
+    if requirement.versions.length === 0
+      .empty
+        b Nothing submitted yet
+        | Each time the intern submits, a new version shows up here.
+    each version in requirement.versions
+      article.item
+        .item-head
+          h3 Version #{version.version_no}
+          - const state = statusOf('version', version.state)
+          span.tag(class=state.tag)= state.label
+        p.meta Submitted #{version.submitted}
+        if version.file_path
+          p
+            a(href=`/adviser/interns/${internId}/requirements/${reqid}/versions/${version.version_no}/file`) View file
+        else
+          p.meta No file, note only.
+        if version.intern_note
+          p.note
+            b Intern:
+            |  #{version.intern_note}
+        if version.remarks
+          p.note
+            b Your remark#{version.reviewed ? ` (${version.reviewed})` : ''}:
+            |  #{version.remarks}

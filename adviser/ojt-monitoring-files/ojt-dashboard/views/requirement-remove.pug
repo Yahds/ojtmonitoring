@@ -1,0 +1,20 @@
+extends ../../layouts/main
+
+block content
+  p.crumb #[a(href='/adviser/interns') Interns] / #[a(href=back) Requirements] / Remove
+  h1.page-title Remove "#{requirement.requirementname}"?
+
+  section.card.card-pad
+    if requirement.sent > 0
+      p This requirement can't be removed, because #{requirement.sent} #{requirement.sent === 1 ? 'intern has' : 'interns have'} already submitted it.
+      .btn-row
+        a.btn.btn-outline(href=back) Back to requirements
+    else
+      p It will be removed from #{requirement.interns} #{requirement.interns === 1 ? 'intern' : 'interns'}, together with its deadlines. This cannot be undone.
+      form(action='/adviser/requirements/remove' method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        input(type='hidden' name='reqid' value=requirement.reqid)
+        input(type='hidden' name='from' value=from)
+        .btn-row
+          button.btn.btn-danger(type='submit') Remove requirement
+          a.btn.btn-outline(href=back) Cancel

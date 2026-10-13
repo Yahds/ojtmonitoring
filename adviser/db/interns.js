@@ -81,7 +81,7 @@ const WITHDRAWABLE = ['ENROLLED', 'PENDING', 'ACTIVE'];
 
 async function fetchInternForAdviser(internID, adviserID) {
     const [rows] = await pool.query(
-        `SELECT i.internid, i.status, s.studentName
+        `SELECT i.internid, i.status, s.studentName, s.classcode
          FROM interns i JOIN students s ON s.studentID = i.studentid
          WHERE i.internid = ? AND i.adviserid = ?`,
         [internID, adviserID]
@@ -131,9 +131,13 @@ async function enrollIntern(student, adviserID) {
             "INSERT INTO interns (adviserid, studentid, status) VALUES (?, ?, 'ENROLLED')",
             [adviserID, student.id]
         );
+        // the school's requirements, plus this adviser's own ones meant for everyone or for this student's section
         await connection.query(
-            "INSERT INTO internrequirements (internid, reqid, status, remarks) SELECT ?, reqid, 'PENDING', '' FROM requirements",
-            [result.insertId]
+            `INSERT INTO internrequirements (internid, reqid, status, remarks)
+             SELECT ?, reqid, 'PENDING', '' FROM requirements
+             WHERE created_by IS NULL
+                OR (created_by = ? AND (audience = 'ALL' OR (audience = 'SECTION' AND audience_classcode = ?)))`,
+            [result.insertId, adviserID, student.classcode]
         );
         await connection.commit();
         return result.insertId;

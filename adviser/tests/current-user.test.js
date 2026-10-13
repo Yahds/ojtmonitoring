@@ -23,7 +23,7 @@ describe('navFor', () => {
     });
 
     test('a dept head gets the dept head links', () => {
-        expect(navFor('dept_head', '/adviser/admin').map(link => link.label)).toEqual(['Overview', 'Advisers', 'Interns', 'Endorsements', 'Announcements', 'About us']);
+        expect(navFor('dept_head', '/adviser/admin').map(link => link.label)).toEqual(['Overview', 'Advisers', 'To review', 'Interns', 'Endorsements', 'Announcements', 'About us']);
     });
 });
 

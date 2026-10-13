@@ -28,9 +28,10 @@ function groupRequirements(array $requirements): array
 {
     $withStatus = fn (array $statuses) => array_values(array_filter($requirements, fn ($r) => in_array($r->status, $statuses, true)));
 
-    // rejected ones first: they already have the adviser's remark to act on
+    // rejected ones first: they already have the adviser's remark to act on; then the nearest deadline, none last
     $action = $withStatus(['REJECTED', 'PENDING']);
-    usort($action, fn ($a, $b) => ($a->status === 'REJECTED' ? 0 : 1) <=> ($b->status === 'REJECTED' ? 0 : 1));
+    $order = fn ($r) => [$r->status === 'REJECTED' ? 0 : 1, $r->dueDate ?? '9999-12-31'];
+    usort($action, fn ($a, $b) => $order($a) <=> $order($b));
 
     return [
         'action' => $action,

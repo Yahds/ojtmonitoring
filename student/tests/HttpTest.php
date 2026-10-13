@@ -180,6 +180,19 @@ class HttpTest extends TestCase
         }
     }
 
+    public function testAnApprovedRequirementShowsTheAdvisersRemark(): void
+    {
+        $before = db()->execute_query("SELECT status, remarks FROM internrequirements WHERE internid = 300 AND reqid = 1")->fetch_assoc();
+        db()->execute_query("UPDATE internrequirements SET status = 'APPROVED', remarks = 'Approved, thank you' WHERE internid = 300 AND reqid = 1");
+        try {
+            $this->logIn('2299001', '1234');
+
+            $this->assertStringContainsString('Approved, thank you', $this->request('GET', '/requirements')['body']);
+        } finally {
+            db()->execute_query("UPDATE internrequirements SET status = ?, remarks = ? WHERE internid = 300 AND reqid = 1", [$before['status'], $before['remarks']]);
+        }
+    }
+
     public function testAWithdrawnInternOnlySeesTheWithdrawnPage(): void
     {
         db()->execute_query("UPDATE interns SET status = 'WITHDRAWN' WHERE internid = 300");

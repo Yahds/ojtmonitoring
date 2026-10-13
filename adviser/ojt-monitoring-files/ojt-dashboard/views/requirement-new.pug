@@ -1,0 +1,39 @@
+extends ../../layouts/main
+
+block content
+  p.crumb #[a(href='/adviser/interns') Interns] / #[a(href=`/adviser/interns/${intern.internid}/requirements`) Requirements] / Add
+  h1.page-title Add requirement
+  p.muted The school's requirements are already given to every intern. Add one here only if your interns need something more.
+
+  section.card.card-pad
+    form.form(action=`/adviser/interns/${intern.internid}/requirements/new` method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      .field
+        label(for='name') Requirement name
+        input.input#name(type='text' name='name' maxlength='100' value=values.name required aria-invalid=(errors.name ? 'true' : undefined) aria-describedby=(errors.name ? 'name-error' : undefined))
+        if errors.name
+          span.error#name-error= errors.name
+      fieldset.field(aria-describedby=(errors.audience ? 'audience-error' : undefined))
+        legend.label Who needs to submit it
+        label.check-row
+          input(type='radio' name='audience' value='INTERN' checked=values.audience === 'INTERN')
+          | Only #{intern.studentName}
+        label.check-row
+          input(type='radio' name='audience' value='SECTION' checked=values.audience === 'SECTION')
+          | Everyone in section #{intern.classcode}, including interns enrolled later
+        label.check-row
+          input(type='radio' name='audience' value='ALL' checked=values.audience === 'ALL')
+          | All my sections, including interns enrolled later
+        if errors.audience
+          span.error#audience-error= errors.audience
+      .field
+        label(for='dueDate') Due date (optional)
+        input.input#dueDate(type='date' name='dueDate' value=values.dueDate min=today aria-invalid=(errors.dueDate ? 'true' : undefined) aria-describedby=(errors.dueDate ? 'dueDate-error' : 'dueDate-help'))
+        if errors.dueDate
+          span.error#dueDate-error= errors.dueDate
+        else
+          span.help#dueDate-help Applies to the same interns. You can change it later with Set deadline.
+      p.muted You can remove it until an intern submits it.
+      .btn-row
+        button.btn.btn-create(type='submit') Add requirement
+        a.btn.btn-outline(href=`/adviser/interns/${intern.internid}/requirements`) Cancel
