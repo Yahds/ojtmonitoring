@@ -11,6 +11,7 @@ const ROUTES = [
     'GET /session/keep-alive'  => 'actions/keep-alive.php',
     'GET /dashboard'           => 'pages/dashboard.php',
     'GET /choose-company'      => 'pages/choose-company.php',
+    'POST /endorsement'        => 'actions/endorsement-form.php',
     'POST /choose-company'     => 'actions/update-company.php',
     'GET /requirements'        => 'pages/requirements.php',
     'POST /requirements'       => 'actions/submit-requirement.php',

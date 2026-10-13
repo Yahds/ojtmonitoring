@@ -6,3 +6,4 @@ require_once __DIR__ . '/weekly-reports.php';
 require_once __DIR__ . '/journals.php';
 require_once __DIR__ . '/companies.php';
 require_once __DIR__ . '/announcements.php';
+require_once __DIR__ . '/endorsements.php';

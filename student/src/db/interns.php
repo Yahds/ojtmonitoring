@@ -81,5 +81,10 @@ function chooseCompany($internID, $companyID)
     $statement = db()->prepare($query);
     $statement->bind_param("ii", $companyID, $internID);
     $statement->execute();
+
+    // a different company needs a new endorsement form
+    if ($statement->affected_rows > 0) {
+        db()->execute_query("DELETE FROM endorsements WHERE internid = ? AND companyid <> ?", [$internID, $companyID]);
+    }
     $statement->close();
 }
