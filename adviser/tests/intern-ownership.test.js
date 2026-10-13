@@ -47,19 +47,16 @@ describe("an adviser cannot use another adviser's intern", () => {
         const before = await requirementsOf(OTHER_INTERN_ID);
 
         const res = await agent
-            .post('/adviser/assign-requirement')
+            .post(`/adviser/interns/${OTHER_INTERN_ID}/requirements/new`)
             .type('form')
-            .send({ 'intern-id': OTHER_INTERN_ID, 'existing-requirement-dropdown': 1, csrf_token: csrfToken });
+            .send({ name: 'Added by another adviser', audience: 'INTERN', csrf_token: csrfToken });
 
         expect(res.status).toBe(404);
         expect(await requirementsOf(OTHER_INTERN_ID)).toEqual(before);
     });
 
-    test.each([
-        '/adviser/unassigned-requirements/',
-        '/adviser/requirements-reports/',
-    ])('cannot look them up by name at %s', async (path) => {
-        const res = await agent.get(path + encodeURIComponent(OTHER_INTERN_NAME));
+    test('cannot look them up by name', async () => {
+        const res = await agent.get('/adviser/requirements-reports/' + encodeURIComponent(OTHER_INTERN_NAME));
         expect(res.status).toBe(404);
     });
 

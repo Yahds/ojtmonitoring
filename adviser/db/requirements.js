@@ -1,19 +1,5 @@
 const { pool } = require('./pool');
 
-async function fetchUnassignedRequirements(internID) {
-    const [requirements] = await pool.query(`
-        SELECT
-            r.reqid,
-            r.requirementname
-        FROM
-            requirements r
-        LEFT JOIN internrequirements ir ON ir.reqid = r.reqid AND ir.internid = ?
-        WHERE
-            ir.reqid IS NULL
-    `, [internID]);
-    return requirements;
-}
-
 // the deadline that applies: one set for this intern, else for their section, else for all the adviser's sections
 const DEADLINE_JOINS = `
     LEFT JOIN requirement_deadlines ds ON ds.adviserid = i.adviserid AND ds.reqid = ir.reqid AND ds.classcode = s.classcode
@@ -29,7 +15,7 @@ END`;
 
 async function fetchRequirementsForReview(internID, adviserID) {
     const [rows] = await pool.query(
-        `SELECT r.reqid, r.requirementname, s.studentName, ir.datesubmitted, ir.intern_remarks, ir.file_path,
+        `SELECT r.reqid, r.requirementname, r.created_by IS NOT NULL AS custom, s.studentName, ir.datesubmitted, ir.intern_remarks, ir.file_path,
                 ir.remarks, ir.status,
                 (SELECT MAX(v.version_no) FROM requirement_versions v
                  WHERE v.internid = ir.internid AND v.reqid = ir.reqid) AS versions,
@@ -134,6 +120,101 @@ async function fetchVersionFile(internID, reqID, versionNo, adviserID) {
     return rows[0] ? rows[0].file_path : null;
 }
 
+// interns a new requirement goes to: still doing their OJT, not finished or withdrawn
+const OPEN_STATUSES = ['ENROLLED', 'PENDING', 'ACTIVE'];
+
+// school requirement names and the adviser's own, lowercased, so the same name isn't added twice
+async function fetchRequirementNames(adviserID) {
+    const [rows] = await pool.query(
+        'SELECT LOWER(requirementname) AS name FROM requirements WHERE created_by IS NULL OR created_by = ?',
+        [adviserID]
+    );
+    return rows.map(row => row.name);
+}
+
+// audience is INTERN (internID), SECTION (classcode) or ALL; the deadline, if any, uses the same audience
+async function addRequirement(adviserID, { name, audience, internID, classcode, dueDate }) {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        const [created] = await connection.query(
+            'INSERT INTO requirements (requirementname, created_by, audience, audience_classcode) VALUES (?, ?, ?, ?)',
+            [name, adviserID, audience, audience === 'SECTION' ? classcode : null]
+        );
+        const reqID = created.insertId;
+
+        let added;
+        if (audience === 'INTERN') {
+            [added] = await connection.query(
+                `INSERT INTO internrequirements (internid, reqid, status, due_date)
+                 SELECT internid, ?, 'PENDING', ? FROM interns WHERE internid = ? AND adviserid = ?`,
+                [reqID, dueDate, internID, adviserID]
+            );
+        } else {
+            [added] = await connection.query(
+                `INSERT INTO internrequirements (internid, reqid, status)
+                 SELECT i.internid, ?, 'PENDING'
+                 FROM interns i JOIN students s ON s.studentID = i.studentid
+                 WHERE i.adviserid = ? AND i.status IN (?) AND (? = 'ALL' OR s.classcode = ?)`,
+                [reqID, adviserID, OPEN_STATUSES, audience, classcode]
+            );
+            if (dueDate) {
+                await connection.query(
+                    'INSERT INTO requirement_deadlines (adviserid, reqid, classcode, due_date) VALUES (?, ?, ?, ?)',
+                    [adviserID, reqID, audience === 'SECTION' ? classcode : '', dueDate]
+                );
+            }
+        }
+        await connection.commit();
+        return { reqID, interns: added.affectedRows };
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+}
+
+// an adviser's own requirement, with how many interns have it and how many already sent something
+async function fetchOwnRequirement(reqID, adviserID) {
+    const [[row]] = await pool.query(
+        `SELECT r.reqid, r.requirementname, r.audience, r.audience_classcode,
+                COUNT(ir.internid) AS interns, CAST(COALESCE(SUM(ir.status <> 'PENDING'), 0) AS UNSIGNED) AS sent
+         FROM requirements r
+         LEFT JOIN internrequirements ir ON ir.reqid = r.reqid
+         WHERE r.reqid = ? AND r.created_by = ?
+         GROUP BY r.reqid`,
+        [reqID, adviserID]
+    );
+    return row || null;
+}
+
+// removable only while no intern has sent anything for it; the rows are locked so a submit can't slip in between
+async function removeOwnRequirement(reqID, adviserID) {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        const [[owned]] = await connection.query(
+            'SELECT reqid FROM requirements WHERE reqid = ? AND created_by = ? FOR UPDATE',
+            [reqID, adviserID]
+        );
+        const [rows] = await connection.query('SELECT status FROM internrequirements WHERE reqid = ? FOR UPDATE', [reqID]);
+        if (!owned || rows.some(row => row.status !== 'PENDING')) {
+            await connection.rollback();
+            return false;
+        }
+        await connection.query('DELETE FROM internrequirements WHERE reqid = ?', [reqID]);
+        await connection.query('DELETE FROM requirements WHERE reqid = ?', [reqID]);
+        await connection.commit();
+        return true;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+}
+
 // a first decision needs a SUBMITTED requirement, a change needs an APPROVED or REJECTED one;
 // the decision is also kept on the latest version, so older versions keep their own remark
 async function updateRequirementReview(internID, reqID, adviserID, decision, remarks, fromStatuses = ['SUBMITTED']) {
@@ -166,28 +247,17 @@ async function updateRequirementReview(internID, reqID, adviserID, decision, rem
     }
 }
 
-async function insertNewRequirement(requirementName) {
-    const query = `INSERT INTO requirements (requirementname) VALUES (?);`;
-    const [result] = await pool.query(query, [requirementName]);
-    return result.insertId; // This should now return the auto-generated ID of the new requirement
-}
-
-async function insertInternRequirement(internid, reqid) {
-    const query = `INSERT INTO internrequirements (internid, reqid, datesubmitted, status, remarks)
-        VALUES (?, ?, NULL, 'PENDING', '')`;
-    const [result] = await pool.query(query, [internid, reqid]);
-    return result.insertId; 
-}
-
 module.exports = {
-    fetchUnassignedRequirements,
+    OPEN_STATUSES,
     fetchRequirementsForReview,
     fetchRequirementFile,
     fetchRequirementVersions,
     fetchVersionFile,
     fetchDeadlines,
     setDeadline,
+    fetchRequirementNames,
+    addRequirement,
+    fetchOwnRequirement,
+    removeOwnRequirement,
     updateRequirementReview,
-    insertNewRequirement,
-    insertInternRequirement,
 };

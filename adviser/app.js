@@ -22,6 +22,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const internRoutes = require('./routes/interns');
 const requirementRoutes = require('./routes/requirements');
 const deadlineRoutes = require('./routes/deadlines');
+const customRequirementRoutes = require('./routes/custom-requirements');
 const reportRoutes = require('./routes/reports');
 const journalRoutes = require('./routes/journals');
 const endorsementRoutes = require('./routes/endorsements');
@@ -84,7 +85,7 @@ app.use(requirePasswordChange);
 // pages
 app.use(homeRoutes);
 app.use('/adviser', authRoutes, accountRoutes, dashboardRoutes, internRoutes,
-    requirementRoutes, deadlineRoutes, reportRoutes, journalRoutes, endorsementRoutes, finishRoutes, withdrawRoutes, announcementRoutes, adminRoutes);
+    customRequirementRoutes, requirementRoutes, deadlineRoutes, reportRoutes, journalRoutes, endorsementRoutes, finishRoutes, withdrawRoutes, announcementRoutes, adminRoutes);
 
 app.use(notFound);
 app.use(handleErrors);

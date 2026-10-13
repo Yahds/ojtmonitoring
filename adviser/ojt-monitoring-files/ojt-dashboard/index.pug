@@ -190,31 +190,8 @@ main.container
         a.create-post-button(href='/adviser/announcements') MANAGE ANNOUNCEMENTS
 
 
-form(action='/adviser/assign-requirement' id="requirement-form" method='POST')
-  input(type='hidden' name='csrf_token' value=csrfToken)
-  #requirement-pop-up.modal
-    .content
-      a.close(href='#main') &Cross;
-      .form-container
-        .content_info_holder
-          .header ADD NEW REQUIREMENT
-          .horizontal-gray-ruler
-          .filter ASSIGN TO:
-            .rec-option-text#recipients  
-                span.material-symbols-outlined#student-name(style="vertical-align= middle") 
-                  | add
-          .horizontal-gray-ruler
-          .pop-up-subject
-            .title REQUIREMENT NAME
-            select(name='existing-requirement-dropdown')
-                option(value='') Select Existing Requirement
-            .title OR ADD NEW REQUIREMENT
-            textarea#requirement-name.content-holder-requirement(name='new-requirement-name' cols='30' rows='3' placeholder='Enter new requirement name')
-            .horizontal-gray-ruler
-            // Make sure this hidden input is updated with the actual intern ID before the form is submitted
-            input#internid(type="hidden" name="intern-id")
-            input(type="hidden" name="reqnumber")
-            input.create-post-button(id="submit-requirement-button" type="submit" value="SUBMIT") 
+//- read by the old scripts below; the Add Requirement button opens /adviser/interns/:id/requirements/new
+input#internid(type='hidden')
 
 .footer 
   .text 
@@ -578,48 +555,15 @@ script.
       });
   }
 
-  function updateRequirementsDropdown(internId) {
-    fetch(`/adviser/unassigned-requirements/${internId}`)
-        .then(response => response.json())
-        .then(data => {
-            const dropdown = document.querySelector('select[name="existing-requirement-dropdown"]');
-            dropdown.innerHTML = '<option value="">Select Existing Requirement</option>'; // Reset dropdown
-
-            // Populate dropdown with unassigned requirements
-            data.forEach(req => {
-                const option = new Option(req.requirementname, req.reqid);
-                dropdown.add(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching unassigned requirements:', error);
-        });
-  }
-
   // Add a click event listener to each row in the intern table
   document.querySelectorAll('.intern-row').forEach(row => {
       row.addEventListener('click', function() {
-          // Retrieve the internId from the data attribute of the clicked row
-          const internId = this.dataset.internId;
-          
-          // Set the internId in the hidden input inside the 'requirement-form'
+          // data-intern-id holds the name; the id is in data-internid
+          const internId = this.dataset.internid;
+
           document.getElementById('internid').value = internId;
-
-          // Trigger the function to update the dropdown based on the selected intern
-          console.log('updating to' )
-          updateRequirementsDropdown(internId);
+          document.getElementById('addreqbtn').href = `/adviser/interns/${internId}/requirements/new`;
       });
-  });
-
-  document.getElementById('requirement-form').addEventListener('submit', function(e) {
-      const existingRequirementId = document.querySelector('[name="existing-requirement-dropdown"]').value;
-      const newRequirementName = document.querySelector('[name="new-requirement-name"]').value;
-
-      if (!existingRequirementId && !newRequirementName) {
-          e.preventDefault(); // Prevent form submission only if validation fails
-          alert("Please select a requirement from the dropdown or enter a new requirement.");
-          return; // Exit the function if both are empty
-      }
   });
 
   document.addEventListener('DOMContentLoaded', function() {

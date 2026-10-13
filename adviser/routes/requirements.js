@@ -1,8 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { fetchInternId, fetchRequirementsForReview, updateRequirementReview, fetchRequirementFile,
-    fetchRequirementVersions, fetchVersionFile,
-    fetchUnassignedRequirements, insertNewRequirement, insertInternRequirement, isAdvisersIntern } = require('../db');
+    fetchRequirementVersions, fetchVersionFile } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 const { audit } = require('../lib/audit');
 
@@ -155,50 +154,6 @@ router.get('/interns/:internId/requirements/:reqid/versions/:versionNo/file', re
                 next(); // the version is there but the file is gone
             }
         });
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.get("/unassigned-requirements/:internName", requireAdviser, async (req, res, next) => {
-    try {
-        const internIdResult = await fetchInternId(req.params.internName, req.session.adviserID);
-        if (internIdResult.length === 0) {
-            return res.status(404).json({ message: 'Intern not found' });
-        }
-
-        const unassignedRequirements = await fetchUnassignedRequirements(internIdResult[0].internid);
-        res.json(unassignedRequirements);
-    } catch (error) {
-        next(error);
-    }
-});
-
-
-
-router.post('/assign-requirement', requireAdviser, async (req, res, next) => {
-    const existingRequirementId = req.body['existing-requirement-dropdown'];
-    const newRequirementName = req.body['new-requirement-name'];
-    const internId = req.body['intern-id'];
-
-    try {
-        if (!(await isAdvisersIntern(internId, req.session.adviserID))) {
-            return res.status(404).send('Intern not found');
-        }
-        let requirementId;
-
-        if (newRequirementName) {
-            requirementId = await insertNewRequirement(newRequirementName);
-            await insertInternRequirement(internId, requirementId);
-        } else if (existingRequirementId) {
-            requirementId = existingRequirementId;
-            await insertInternRequirement(internId, requirementId);
-        } else {
-            // Send a response with status 400 (Bad Request) and a message
-            return res.status(400).json({ message: "Pick a requirement please" });
-        }
-
-        res.redirect('/adviser/dashboard');
     } catch (error) {
         next(error);
     }

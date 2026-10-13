@@ -8,6 +8,9 @@ block content
     | Requirements
     if assignedRequirements.length
       |  · #{assignedRequirements[0].studentName}
+  if assignedRequirements.length
+    p.btn-row
+      a.btn.btn-create.btn-sm(href=`/adviser/interns/${internId}/requirements/new`) Add requirement
 
   section.card
     if assignedRequirements.length === 0
@@ -17,7 +20,10 @@ block content
     each req in assignedRequirements
       article.item
         .item-head
-          h3= req.requirementname
+          h3
+            | #{req.requirementname}
+            if req.custom
+              span.meta  · Added by you
           - const status = statusOf('requirement', req.status)
           .btn-row
             if req.deadline
@@ -38,6 +44,8 @@ block content
           if req.versions > 1
             a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/versions`) All versions (#{req.versions})
           a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/deadline`) #{req.due ? 'Change deadline' : 'Set deadline'}
+          if req.custom
+            a(href=`/adviser/requirements/${req.reqid}/remove?from=${internId}`) Remove
         if req.status === 'PENDING'
           p.meta Waiting for the intern to submit.
         else if req.status !== 'SUBMITTED'
