@@ -5,6 +5,7 @@ $summary = summarize(getRequirements($_SESSION['internid']), getWeeklyReports($_
 $announcements = getAnnouncementsForIntern($_SESSION['internid']);
 $target = $profile['target_hours'];
 $adviser = displayName($profile['adviserName']);
+$supervisor = getSupervisor($_SESSION['internid']);
 $todoCount = count($summary['todo']);
 $title = 'Dashboard';
 require __DIR__ . '/../views/header.php';
@@ -91,6 +92,20 @@ require __DIR__ . '/../views/header.php';
                 <b><?= e($adviser) ?></b>
                 <span><?= e($profile['adviserEmail']) ?></span>
             </div>
+        </section>
+
+        <section class="card card-pad">
+            <h2 class="section-title">Your supervisor</h2>
+            <?php if ($supervisor): ?>
+                <div class="person">
+                    <b><?= e($supervisor['supervisorname']) ?></b>
+                    <span><?= e($supervisor['supervisoremail']) ?></span>
+                </div>
+                <p><a href="/student/supervisor">Update</a></p>
+            <?php else: ?>
+                <p class="muted">Add the person at the company who signs your weekly reports.</p>
+                <a class="btn btn-create btn-sm" href="/student/supervisor">Add supervisor</a>
+            <?php endif; ?>
         </section>
 
         <section class="card">
