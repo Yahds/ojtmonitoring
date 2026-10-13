@@ -34,8 +34,8 @@ test.each([
 
 test('a form sent with the right CSRF token gets past the check', async () => {
     const csrfToken = await csrfTokenFrom(agent, '/adviser/dashboard');
-    const res = await agent.post('/adviser/interns/0/deploy').type('form').send({ csrf_token: csrfToken });
-    // a redirect back to the interns page comes from the deploy route itself, so the CSRF check let it through
+    const res = await agent.post('/adviser/interns/0/deploy').type('form').send({ startDate: '2026-11-03', csrf_token: csrfToken });
+    // only the deploy route itself sends this redirect, so the CSRF check let the form through
     expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/adviser/interns');
+    expect(res.headers.location).toBe('/adviser/interns/0/deploy');
 });

@@ -34,4 +34,15 @@ class ValidateTest extends TestCase
         $this->assertNull(wholeNumberIn(null, 1, 52));
         $this->assertNull(wholeNumberIn('', 1, 52));
     }
+
+    public function testAcceptsARealDate(): void
+    {
+        $this->assertSame('2026-11-03', validDate('2026-11-03'));
+    }
+
+    public function testRejectsDatesThatDoNotExist(): void
+    {
+        $this->assertNull(validDate('2026-02-31'));
+        $this->assertNull(validDate('next monday'));
+    }
 }

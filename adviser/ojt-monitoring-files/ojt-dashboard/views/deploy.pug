@@ -1,0 +1,32 @@
+extends ../../layouts/main
+
+block content
+  p.crumb
+    a(href='/adviser/interns') Interns
+    |  / Deploy
+  h1.page-title Deploy #{intern.studentName}
+
+  section.card.card-pad
+    h2.section-title Before deployment
+    ul
+      each item in checklist
+        li
+          span.tag(class=item.done ? 'tag-ok' : 'tag-bad')= item.done ? 'Done' : 'Missing'
+          |  #{item.label}
+          if !item.done
+            br
+            span.help= item.hint
+
+    if ready
+      form.form(action=`/adviser/interns/${intern.internid}/deploy` method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        .field
+          label(for='startDate') Start date
+          input.input#startDate(type='date' name='startDate' value=startDate required aria-invalid=(errors.startDate ? 'true' : undefined) aria-describedby=(errors.startDate ? 'startDate-error' : undefined))
+          if errors.startDate
+            span.error#startDate-error= errors.startDate
+        .btn-row
+          button.btn.btn-create(type='submit') Deploy intern
+          a.btn.btn-outline(href='/adviser/interns') Cancel
+    else
+      p.muted You can deploy once every item above is done.

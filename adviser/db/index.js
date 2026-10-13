@@ -8,6 +8,8 @@ const journals = require('./journals');
 const advisers = require('./advisers');
 const announcements = require('./announcements');
 const audit = require('./audit');
+const courses = require('./courses');
+const endorsements = require('./endorsements');
 
 async function closeDatabase() {
     await sessionStore.close();
@@ -23,5 +25,7 @@ module.exports = {
     ...advisers,
     ...announcements,
     ...audit,
+    ...courses,
+    ...endorsements,
     closeDatabase,
 };

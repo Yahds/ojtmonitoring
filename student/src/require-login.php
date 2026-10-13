@@ -27,16 +27,28 @@ function requireLogin(): void
         redirect('/login');
     }
     $_SESSION['status'] = $status;
+
+    if ($status === 'WITHDRAWN') {
+        http_response_code(403);
+        require __DIR__ . '/pages/withdrawn.php';
+        exit();
+    }
 }
 
-// for pages only deployed interns may use (weekly reports, journals, dashboard)
-function requireDeployed(): void
+// finished interns can still view their records
+function requireDeployed(bool $finishedCanView = false): void
 {
     requireLogin();
-    if ($_SESSION['status'] !== 'ACTIVE') {
-        flash('info', 'This page is available only to deployed interns. Please select your company and complete your requirements while waiting for deployment.');
-        redirect('/');
+    $status = $_SESSION['status'];
+    if ($status === 'ACTIVE' || ($finishedCanView && $status === 'FINISHED')) {
+        return;
     }
+    if ($status === 'FINISHED') {
+        flash('info', 'Your OJT is finished, so you can no longer submit or change anything.');
+        redirect('/dashboard');
+    }
+    flash('info', 'This page is available only to deployed interns. Please select your company and complete your requirements while waiting for deployment.');
+    redirect('/');
 }
 
 // same session for password login and SLU sign-in

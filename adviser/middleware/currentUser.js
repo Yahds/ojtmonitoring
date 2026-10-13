@@ -5,16 +5,21 @@ const INTERNS_LINK = {
     label: 'Interns',
 };
 
+const ENDORSEMENTS_LINK = {
+    href: '/adviser/endorsements',
+    label: 'Endorsements',
+};
+
 const NAV = {
     adviser: [
         { href: '/adviser/dashboard', label: 'Dashboard', exact: true },
-        INTERNS_LINK,
+        INTERNS_LINK, ENDORSEMENTS_LINK,
         { href: '/adviser/about', label: 'About us' },
     ],
     dept_head: [
         { href: '/adviser/admin', label: 'Overview', exact: true },
         { href: '/adviser/admin/advisers', label: 'Advisers' },
-        INTERNS_LINK,
+        INTERNS_LINK, ENDORSEMENTS_LINK,
         { href: '/adviser/about', label: 'About us' },
     ],
 };

@@ -70,7 +70,7 @@ describe("an adviser cannot use another adviser's intern", () => {
         const res = await agent
             .post(url)
             .type('form')
-            .send({ reqid: 4, decision: 'REJECTED', remarks: 'changed by another adviser', csrf_token: csrfToken });
+            .send({ reqid: 1, decision: 'REJECTED', remarks: 'changed by another adviser', csrf_token: csrfToken });
         expect(res.headers.location).toBe(url);
 
         const page = await agent.get(url);

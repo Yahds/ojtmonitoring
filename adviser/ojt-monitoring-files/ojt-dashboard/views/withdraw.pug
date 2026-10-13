@@ -1,0 +1,29 @@
+extends ../../layouts/main
+
+block content
+  p.crumb
+    a(href='/adviser/interns') Interns
+    |  / Withdraw
+  h1.page-title Withdraw #{intern.studentName}
+
+  section.card.card-pad
+    p The intern will no longer be able to use the portal. Their records are kept, and you can undo this from the interns list.
+    form.form(action=`/adviser/interns/${intern.internid}/withdraw` method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      .field
+        label(for='reason') Reason
+        select.input#reason(name='reason' required aria-invalid=(errors.reason ? 'true' : undefined) aria-describedby=(errors.reason ? 'reason-error' : undefined))
+          option(value='') Select a reason
+          each reason in reasons
+            option(value=reason selected=values.reason === reason)= reason
+        if errors.reason
+          span.error#reason-error= errors.reason
+      .field
+        label(for='details') Details
+          span.muted (needed for Other)
+        textarea.input#details(name='details' maxlength='200' aria-invalid=(errors.details ? 'true' : undefined) aria-describedby=(errors.details ? 'details-error' : undefined))= values.details
+        if errors.details
+          span.error#details-error= errors.details
+      .btn-row
+        button.btn.btn-danger(type='submit') Withdraw intern
+        a.btn.btn-outline(href='/adviser/interns') Cancel

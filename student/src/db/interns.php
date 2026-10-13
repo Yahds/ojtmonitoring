@@ -59,9 +59,10 @@ function getInternStatus($internID)
 
 function getInternProfile($internID)
 {
-    $query = "SELECT s.studentName, s.course, s.classcode, i.companyid, c.companyname, a.adviserName, a.adviserEmail
+    $query = "SELECT s.studentName, s.course, s.classcode, co.target_hours, DATE_FORMAT(i.finished_on, '%M %e, %Y') AS finishedOn, i.companyid, c.companyname, a.adviserName, a.adviserEmail
               FROM interns i
               JOIN students s ON s.studentID = i.studentid
+              JOIN courses co ON co.code = s.course
               JOIN advisers a ON a.adviserID = i.adviserid
               LEFT JOIN company c ON c.companyid = i.companyid
               WHERE i.internid = ?";
@@ -73,12 +74,17 @@ function getInternProfile($internID)
     return $row;
 }
 
-// a deployed (ACTIVE) intern cannot change company
+// only interns who are not yet deployed can pick a company
 function chooseCompany($internID, $companyID)
 {
-    $query = "UPDATE interns SET companyid = ?, status = 'PENDING' WHERE internid = ? AND status <> 'ACTIVE'";
+    $query = "UPDATE interns SET companyid = ?, status = 'PENDING' WHERE internid = ? AND status IN ('ENROLLED', 'PENDING')";
     $statement = db()->prepare($query);
     $statement->bind_param("ii", $companyID, $internID);
     $statement->execute();
+
+    // a different company needs a new endorsement form
+    if ($statement->affected_rows > 0) {
+        db()->execute_query("DELETE FROM endorsements WHERE internid = ? AND companyid <> ?", [$internID, $companyID]);
+    }
     $statement->close();
 }

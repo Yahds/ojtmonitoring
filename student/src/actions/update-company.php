@@ -2,7 +2,7 @@
 // saves the company an intern picks while waiting to be deployed
 requireLogin();
 verify_csrf();
-if ($_SESSION['status'] === 'ACTIVE') {
+if (in_array($_SESSION['status'], ['ACTIVE', 'FINISHED'], true)) {
     redirect('/dashboard');
 }
 

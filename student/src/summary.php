@@ -1,9 +1,4 @@
 <?php
-// OJT hours each course must finish
-function targetHoursFor(string $course): ?int
-{
-    return ['BSCS' => 240, 'BSIT' => 600][$course] ?? null;
-}
 
 // numbers and the to-do list for the student dashboard
 function summarize(array $requirements, array $reports): array

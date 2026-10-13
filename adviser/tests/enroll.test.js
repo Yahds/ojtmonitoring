@@ -8,6 +8,7 @@ const FAILED_STUDENT_ID = 9900002;
 const FLASH_STUDENT_ID = 9900003;
 const DUP_EMAIL_STUDENT_ID = 9900004;
 const NO_EMAIL_STUDENT_ID = 9900005;
+const BAD_COURSE_STUDENT_ID = 9900006;
 
 let adviser;
 let agent;
@@ -24,11 +25,12 @@ afterAll(async () => {
     await pool.query('DELETE ir FROM internrequirements ir JOIN interns i ON i.internid = ir.internid WHERE i.studentid IN (?)', [ids]);
     await pool.query('DELETE FROM interns WHERE studentid IN (?)', [ids]);
     await pool.query('DELETE FROM students WHERE studentID IN (?)', [ids]);
+    await pool.query("DELETE FROM audit_log WHERE action = 'intern_enrolled' AND actor_adviser_id = ?", [adviser.adviserID]);
     await deleteTestAdviser(adviser.adviserID);
     await closeDatabase();
 });
 
-test('enrolling saves the student with their email, the intern without a password, and all 7 requirements', async () => {
+test('enrolling saves the student with their email, the intern without a password, and all 6 requirements', async () => {
     const res = await agent
         .post('/adviser/interns')
         .type('form')
@@ -42,6 +44,8 @@ test('enrolling saves the student with their email, the intern without a passwor
     expect(interns[0].password).toBeNull();
     const [requirements] = await pool.query('SELECT reqid FROM internrequirements WHERE internid = ?', [interns[0].internid]);
     expect(requirements).toHaveLength(7);
+    const [events] = await pool.query("SELECT target FROM audit_log WHERE action = 'intern_enrolled' AND actor_adviser_id = ?", [adviser.adviserID]);
+    expect(events.map(e => e.target)).toContain(String(NEW_STUDENT_ID));
 });
 
 test('a failed enroll saves nothing', async () => {
@@ -102,22 +106,41 @@ test('after enrolling, the interns page shows a success message once', async () 
 
     const page = await agent.get('/adviser/interns');
     expect(page.text).toContain('Test Flash enrolled.');
+    expect(page.text).toContain('Choosing company');
 
     const again = await agent.get('/adviser/interns');
     expect(again.text).not.toContain('class="flash');
 });
 
-test('deploying an intern who is not ready shows an error instead of a blank page', async () => {
+test('deploying an intern who is not ready goes back to the checklist with a message', async () => {
     const [[intern]] = await pool.query('SELECT internid FROM interns WHERE studentid = ?', [FLASH_STUDENT_ID]);
+    const deployUrl = `/adviser/interns/${intern.internid}/deploy`;
 
     const res = await agent
-        .post(`/adviser/interns/${intern.internid}/deploy`)
+        .post(deployUrl)
         .type('form')
-        .send({ csrf_token: csrfToken });
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/adviser/interns');
+        .send({ startDate: '2026-11-03', csrf_token: csrfToken });
+    expect(res.headers.location).toBe(deployUrl);
 
-    const page = await agent.get('/adviser/interns');
+    const page = await agent.get(deployUrl);
     expect(page.text).toContain('Cannot deploy yet.');
+    expect(page.text).toContain('Missing');
+});
+
+test('the enroll page lists the courses from the database', async () => {
+    const res = await agent.get('/adviser/interns/new');
+
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('BS Information Technology');
+});
+
+test('enrolling with a course that does not exist shows an error', async () => {
+    const res = await agent
+        .post('/adviser/interns')
+        .type('form')
+        .send({ studentID: BAD_COURSE_STUDENT_ID, name: 'Test Bad Course', course: 'BSXX', year: '4', classcode: 'T1', email: 'test.badcourse@example.com', csrf_token: csrfToken });
+
+    expect(res.status).toBe(400);
+    expect(res.text).toContain('Select a course from the list.');
 });
 

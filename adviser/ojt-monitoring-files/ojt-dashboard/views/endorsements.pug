@@ -1,0 +1,99 @@
+extends ../../layouts/main
+
+block content
+  h1.page-title Endorsements
+
+  section.card
+    .card-head
+      h2 Letters to send
+    if toSend.length === 0
+      .empty
+        b Nothing to send
+        | Endorsement forms show up here after interns send them.
+    else
+      form(action='/adviser/endorsements/sent' method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        .table-wrap
+          table
+            thead
+              tr
+                th
+                  input(type='checkbox' data-select-all aria-label='Select all letters to send')
+                th Intern
+                th Company
+                th Contact person
+                th Position
+                th Start
+            tbody
+              each e in toSend
+                tr
+                  td
+                    input(type='checkbox' name='internIds' value=e.internid aria-label=`Select ${e.studentName}`)
+                  td= e.studentName
+                  td= e.companyname
+                  td
+                    | #{e.contact_name}
+                    br
+                    a(href=`mailto:${e.contact_email}`)= e.contact_email
+                  td= e.position || '—'
+                  td= e.startDate || '—'
+        .card-pad
+          button.btn.btn-create(type='submit') Mark selected as sent
+
+  section.card
+    .card-head
+      h2 Waiting for reply form
+    if waiting.length === 0
+      .empty
+        b No letters waiting
+        | Letters you mark as sent show up here until the company replies.
+    else
+      form(action='/adviser/endorsements/reply-received' method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        .table-wrap
+          table
+            thead
+              tr
+                th
+                  input(type='checkbox' data-select-all aria-label='Select all letters waiting for a reply')
+                th Intern
+                th Company
+                th Contact person
+                th Sent
+            tbody
+              each e in waiting
+                tr
+                  td
+                    input(type='checkbox' name='internIds' value=e.internid aria-label=`Select ${e.studentName}`)
+                  td= e.studentName
+                  td= e.companyname
+                  td
+                    | #{e.contact_name}
+                    br
+                    a(href=`mailto:${e.contact_email}`)= e.contact_email
+                  td= e.sentDate
+        .card-pad
+          button.btn.btn-create(type='submit') Mark selected as received
+
+  section.card
+    .card-head
+      h2 Accepted
+    if accepted.length === 0
+      .empty
+        b No accepted interns yet
+        | Interns show up here once their company sends back the reply form.
+    else
+      .table-wrap
+        table
+          thead
+            tr
+              th Intern
+              th Company
+          tbody
+            each e in accepted
+              tr
+                td= e.studentName
+                td= e.companyname
+      p.card-pad.muted You can now deploy these interns from the #[a(href='/adviser/interns') interns list].
+
+  script(src='/assets/js/select-all.js' defer)
