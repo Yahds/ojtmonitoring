@@ -6,11 +6,11 @@ block content
   section.card
     .card-head
       h2 My interns
-      a.btn.btn-create.btn-sm(href='#enroll') Enroll intern
+      a.btn.btn-create.btn-sm(href='/adviser/interns/new') Enroll intern
     if interns.length === 0
       .empty
         b No interns yet
-        | Enroll your first intern with the form below.
+        | Enroll your first intern to get started.
     else
       .table-wrap
         table
@@ -41,38 +41,3 @@ block content
                     form(action=`/adviser/interns/${i.internid}/deploy` method='POST')
                       input(type='hidden' name='csrf_token' value=csrfToken)
                       button.btn.btn-create.btn-sm(type='submit') Deploy
-
-  section.card.card-pad#enroll
-    h2.section-title Enroll an intern
-    form.form(action='/adviser/interns' method='POST')
-      input(type='hidden' name='csrf_token' value=csrfToken)
-      .field
-        label(for='studentID') Student ID
-        input.input#studentID(type='text' name='studentID' inputmode='numeric' value=values.studentID required aria-invalid=(errors.studentID ? 'true' : undefined) aria-describedby=(errors.studentID ? 'studentID-error' : undefined))
-        if errors.studentID
-          span.error#studentID-error= errors.studentID
-      .field
-        label(for='name') Full name
-        input.input#name(type='text' name='name' placeholder='Torres, Sam' value=values.name required)
-        span.help Last name, then first name.
-      .field
-        label(for='course') Course
-        select.input#course(name='course' required)
-          option(value='') Select a course
-          option(value='BSIT' selected=values.course === 'BSIT') BSIT
-          option(value='BSCS' selected=values.course === 'BSCS') BSCS
-      .field
-        label(for='year') Year
-        input.input#year(type='text' name='year' inputmode='numeric' placeholder='4' value=values.year required)
-      .field
-        label(for='classcode') Class code
-        input.input#classcode(type='text' name='classcode' value=values.classcode required)
-      .field
-        label(for='email') SLU email
-        input.input#email(type='email' name='email' autocomplete='off' value=values.email required aria-invalid=(errors.email ? 'true' : undefined) aria-describedby=(errors.email ? 'email-error' : 'email-help'))
-        if errors.email
-          span.error#email-error= errors.email
-        else
-          span.help#email-help The student signs in with this account.
-      .btn-row
-        button.btn.btn-create(type='submit') Enroll intern
