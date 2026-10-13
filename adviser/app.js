@@ -1,33 +1,41 @@
 require('dotenv').config();
 
+const path = require('path');
 const express = require('express');
 const session = require('express-session');
-const path = require('path');
+
 const { sessionStore } = require('./db/sessionStore');
+const { ssoEnabled } = require('./lib/sso');
+const { statusOf } = require('./lib/statuses');
+const { provideCsrfToken, verifyCsrf } = require('./middleware/csrf');
+const { currentUser } = require('./middleware/currentUser');
+const { flash } = require('./middleware/flash');
 const { idleTimeout } = require('./middleware/idleTimeout');
+const { requirePasswordChange } = require('./middleware/auth');
+const { notFound, handleErrors } = require('./middleware/errorHandler');
+
+const homeRoutes = require('./routes/home');
+const authRoutes = require('./routes/auth');
+const accountRoutes = require('./routes/account');
+const dashboardRoutes = require('./routes/dashboard');
+const internRoutes = require('./routes/interns');
+const requirementRoutes = require('./routes/requirements');
+const reportRoutes = require('./routes/reports');
+const journalRoutes = require('./routes/journals');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const port = process.env.PORT || 8080;
 
+// settings
 app.disable('x-powered-by');
-app.set('trust proxy', 1);
-app.use(express.urlencoded({ extended: true }));
-// for session handling
-app.use(session({
-    secret: process.env.SESSION_SECRET, // A secret key for signing the session ID cookie
-    store: sessionStore,
-    name: 'adviser.sid',
-    resave: false,              // Forces the session to be saved back to the session store
-    saveUninitialized: false,    // set to false so it doesn't save empty sessions for users who never login
-    cookie: { 
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 8 * 60 * 60 * 1000,
-    }   // Set true if using HTTPS, false otherwise
-}));
+app.set('trust proxy', 1); // nginx sits in front, so the visitor's address comes from X-Forwarded-For
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
+app.locals.ssoEnabled = ssoEnabled();
+app.locals.statusOf = statusOf;
 
-// this is so static folders only serve stylesheets and images, not page templates or code
+// serve only stylesheets and images
 const PUBLIC_FILE = /\.(css|png|jpe?g)$/i;
 
 function publicFiles(folder) {
@@ -45,41 +53,32 @@ app.use('/ojt-about-us', publicFiles(path.join(__dirname, 'ojt-monitoring-files'
 app.use('/ojt-login-page', publicFiles(path.join(__dirname, 'ojt-monitoring-files', 'ojt-login-page')));
 app.use('/ojt-dashboard', publicFiles(path.join(__dirname, 'ojt-monitoring-files', 'ojt-dashboard')));
 
-app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, 'ojt-monitoring-files'));
-const { ssoEnabled } = require('./lib/sso');
-app.locals.ssoEnabled = ssoEnabled();
-
-const { provideCsrfToken, verifyCsrf } = require('./middleware/csrf');
-const { currentUser } = require('./middleware/currentUser');
-const { flash } = require('./middleware/flash');
-const { requirePasswordChange } = require('./middleware/auth');
-const homeRoutes = require('./routes/home');
-const adminRoutes = require('./routes/admin');
-const internRoutes = require('./routes/interns');
-const authRoutes = require('./routes/auth');
-const dashboardRoutes = require('./routes/dashboard');
-const journalRoutes = require('./routes/journals');
-const reportRoutes = require('./routes/reports');
-const requirementRoutes = require('./routes/requirements');
-const accountRoutes = require('./routes/account');
-const { notFound, handleErrors } = require('./middleware/errorHandler');
-
+app.use(express.urlencoded({ extended: true }));
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    store: sessionStore,
+    name: 'adviser.sid',
+    resave: false,
+    saveUninitialized: false, // no session row for visitors who never log in
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // HTTPS-only cookie once hosted
+        sameSite: 'lax',
+        maxAge: 8 * 60 * 60 * 1000,
+    },
+}));
 app.use(provideCsrfToken);
 app.use(verifyCsrf);
 app.use(currentUser);
 app.use(flash);
 app.use(idleTimeout);
 app.use(requirePasswordChange);
+
+// pages
 app.use(homeRoutes);
-app.use('/adviser', adminRoutes);
-app.use('/adviser', internRoutes);
-app.use('/adviser', authRoutes);
-app.use('/adviser', dashboardRoutes);
-app.use('/adviser', journalRoutes);
-app.use('/adviser', reportRoutes);
-app.use('/adviser', requirementRoutes);
-app.use('/adviser', accountRoutes);
+app.use('/adviser', authRoutes, accountRoutes, dashboardRoutes, internRoutes,
+    requirementRoutes, reportRoutes, journalRoutes, adminRoutes);
+
 app.use(notFound);
 app.use(handleErrors);
 
