@@ -3,7 +3,8 @@
 function getAnnouncementsForIntern($internID)
 {
     return db()->execute_query(
-        "SELECT a.subject, a.message, DATE_FORMAT(a.created_at, '%b %e, %Y') AS date
+        "SELECT a.subject, a.message, DATE_FORMAT(a.created_at, '%b %e, %Y') AS date,
+                a.updated_at IS NOT NULL AS edited
          FROM interns i
          JOIN students s ON s.studentID = i.studentid
          JOIN announcements a ON a.senderid = i.adviserid

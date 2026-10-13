@@ -126,7 +126,7 @@ require __DIR__ . '/../views/header.php';
             <?php foreach (array_slice($announcements, 0, 3) as $announcement): ?>
                 <article class="item">
                     <h3><?= e($announcement['subject']) ?></h3>
-                    <p class="meta"><?= e((string) $announcement['date']) ?></p>
+                    <p class="meta"><?= e((string) $announcement['date']) ?><?= $announcement['edited'] ? ' · Edited' : '' ?></p>
                     <p><?= e($announcement['message']) ?></p>
                 </article>
             <?php endforeach; ?>

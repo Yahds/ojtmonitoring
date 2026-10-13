@@ -33,4 +33,14 @@ class AnnouncementTest extends TestCase
 
         $this->assertSame([self::SUBJECT . ' to my section', self::SUBJECT . ' to all'], $mine);
     }
+
+    public function testAnEditedPostIsMarkedEdited(): void
+    {
+        $this->post(1, null, 'edited');
+        db()->execute_query("UPDATE announcements SET updated_at = NOW() WHERE subject = ?", [self::SUBJECT . ' edited']);
+
+        $posts = array_column(getAnnouncementsForIntern(self::MARIA), 'edited', 'subject');
+
+        $this->assertEquals(1, $posts[self::SUBJECT . ' edited']);
+    }
 }

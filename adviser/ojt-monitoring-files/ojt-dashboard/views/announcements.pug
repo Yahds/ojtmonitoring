@@ -7,26 +7,7 @@ block content
     h2.section-title New announcement
     form.form(action='/adviser/announcements' method='POST')
       input(type='hidden' name='csrf_token' value=csrfToken)
-      .field
-        label(for='audience') Send to
-        select.input#audience(name='audience' aria-invalid=(errors.audience ? 'true' : undefined) aria-describedby=(errors.audience ? 'audience-error' : 'audience-help'))
-          option(value='') All my sections
-          each section in sections
-            option(value=section selected=values.audience === section) Section #{section}
-        if errors.audience
-          span.error#audience-error= errors.audience
-        else
-          span.help#audience-help Interns in the chosen section see it on their Announcements page.
-      .field
-        label(for='subject') Subject
-        input.input#subject(type='text' name='subject' maxlength='255' value=values.subject required aria-invalid=(errors.subject ? 'true' : undefined) aria-describedby=(errors.subject ? 'subject-error' : undefined))
-        if errors.subject
-          span.error#subject-error= errors.subject
-      .field
-        label(for='message') Message
-        textarea.input#message(name='message' rows='6' maxlength='5000' required aria-invalid=(errors.message ? 'true' : undefined) aria-describedby=(errors.message ? 'message-error' : undefined))= values.message
-        if errors.message
-          span.error#message-error= errors.message
+      include ../../partials/announcement-fields
       .btn-row
         button.btn.btn-create(type='submit') Post announcement
 
@@ -42,6 +23,8 @@ block content
         article.item
           .item-head
             h3= announcement.subject
-            a.btn.btn-reject.btn-sm(href=`/adviser/announcements/${announcement.announcementid}/delete`) Delete
-          p.meta #{announcement.date} · #{announcement.audience ? `Section ${announcement.audience}` : 'All my sections'}
+            .btn-row
+              a.btn.btn-outline.btn-sm(href=`/adviser/announcements/${announcement.announcementid}/edit`) Edit
+              a.btn.btn-reject.btn-sm(href=`/adviser/announcements/${announcement.announcementid}/delete`) Delete
+          p.meta #{announcement.date} · #{announcement.audience ? `Section ${announcement.audience}` : 'All my sections'}#{announcement.edited ? ' · Edited' : ''}
           p= announcement.message

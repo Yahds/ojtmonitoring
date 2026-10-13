@@ -13,12 +13,16 @@ let agent;
 let csrfToken;
 let internId;
 
-async function createAnnouncement(senderId, subject) {
+async function createAnnouncement(senderId, subject, audience = null) {
     const [result] = await pool.query(
-        'INSERT INTO announcements (senderid, audience_classcode, subject, message) VALUES (?, NULL, ?, ?)',
-        [senderId, subject, 'test message']
+        'INSERT INTO announcements (senderid, audience_classcode, subject, message) VALUES (?, ?, ?, ?)',
+        [senderId, audience, subject, 'test message']
     );
     return result.insertId;
+}
+
+function edit(id, fields) {
+    return agent.post(`/adviser/announcements/${id}/edit`).type('form').send({ csrf_token: csrfToken, ...fields });
 }
 
 async function findAnnouncements(subject) {
@@ -126,4 +130,61 @@ test('can delete their own announcement', async () => {
 
     expect(res.headers.location).toBe('/adviser/announcements');
     expect(await findAnnouncements(subject)).toHaveLength(0);
+});
+
+test('the edit page is filled in with the post', async () => {
+    const id = await createAnnouncement(adviser.adviserID, `${TAG} edit page`, 'T9');
+
+    const res = await agent.get(`/adviser/announcements/${id}/edit`);
+
+    expect(res.status).toBe(200);
+    expect(res.text).toContain(`${TAG} edit page`);
+    expect(res.text).toContain('<option value="T9" selected');
+});
+
+test('saving an edit changes the post, marks it edited and adds an audit row', async () => {
+    const id = await createAnnouncement(adviser.adviserID, `${TAG} before edit`);
+
+    const res = await edit(id, { audience: 'T9', subject: `${TAG} after edit`, message: 'new text' });
+
+    expect(res.headers.location).toBe('/adviser/announcements');
+    const [[row]] = await pool.query('SELECT * FROM announcements WHERE announcementid = ?', [id]);
+    expect(row.subject).toBe(`${TAG} after edit`);
+    expect(row.message).toBe('new text');
+    expect(row.audience_classcode).toBe('T9');
+    expect(row.updated_at).not.toBeNull();
+    const [events] = await pool.query("SELECT target FROM audit_log WHERE actor_adviser_id = ? AND action = 'announcement_edited'", [adviser.adviserID]);
+    expect(events.map(e => e.target)).toContain(String(id));
+});
+
+test('an empty subject on edit shows the error and keeps the post as it was', async () => {
+    const subject = `${TAG} keep me`;
+    const id = await createAnnouncement(adviser.adviserID, subject);
+
+    const res = await edit(id, { audience: '', subject: '', message: 'changed' });
+
+    expect(res.status).toBe(400);
+    expect(res.text).toContain('Write a subject');
+    expect((await findAnnouncements(subject))[0].message).toBe('test message');
+});
+
+test('an old post can keep a section the adviser no longer has', async () => {
+    const id = await createAnnouncement(adviser.adviserID, `${TAG} old section`, 'OLD1');
+
+    const res = await edit(id, { audience: 'OLD1', subject: `${TAG} old section`, message: 'still there' });
+
+    expect(res.headers.location).toBe('/adviser/announcements');
+    const [[row]] = await pool.query('SELECT audience_classcode FROM announcements WHERE announcementid = ?', [id]);
+    expect(row.audience_classcode).toBe('OLD1');
+});
+
+test("cannot open or save another adviser's announcement", async () => {
+    const subject = `${TAG} not mine to edit`;
+    const id = await createAnnouncement(OTHER_ADVISER_ID, subject);
+
+    expect((await agent.get(`/adviser/announcements/${id}/edit`)).status).toBe(404);
+    const res = await edit(id, { audience: '', subject: `${TAG} hacked`, message: 'hacked' });
+
+    expect(res.status).toBe(404);
+    expect(await findAnnouncements(subject)).toHaveLength(1);
 });

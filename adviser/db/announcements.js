@@ -24,7 +24,7 @@ async function insertAnnouncement(adviserID, audience, subject, message) {
 async function fetchAnnouncements(adviserID) {
     const [rows] = await pool.query(
         `SELECT announcementid, audience_classcode AS audience, subject, message,
-                DATE_FORMAT(created_at, '%b %e, %Y') AS date
+                DATE_FORMAT(created_at, '%b %e, %Y') AS date, updated_at IS NOT NULL AS edited
          FROM announcements
          WHERE senderid = ?
          ORDER BY created_at DESC, announcementid DESC`,
@@ -36,12 +36,21 @@ async function fetchAnnouncements(adviserID) {
 async function fetchAnnouncement(announcementID, adviserID) {
     const [rows] = await pool.query(
         `SELECT announcementid, audience_classcode AS audience, subject, message,
-                DATE_FORMAT(created_at, '%b %e, %Y') AS date
+                DATE_FORMAT(created_at, '%b %e, %Y') AS date, updated_at IS NOT NULL AS edited
          FROM announcements
          WHERE announcementid = ? AND senderid = ?`,
         [announcementID, adviserID]
     );
     return rows[0] || null;
+}
+
+async function updateAnnouncement(announcementID, adviserID, audience, subject, message) {
+    const [result] = await pool.query(
+        `UPDATE announcements SET audience_classcode = ?, subject = ?, message = ?, updated_at = NOW()
+         WHERE announcementid = ? AND senderid = ?`,
+        [audience, subject, message, announcementID, adviserID]
+    );
+    return result.affectedRows;
 }
 
 async function deleteAnnouncement(announcementID, adviserID) {
@@ -57,5 +66,6 @@ module.exports = {
     insertAnnouncement,
     fetchAnnouncements,
     fetchAnnouncement,
+    updateAnnouncement,
     deleteAnnouncement,
 };
