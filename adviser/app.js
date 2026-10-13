@@ -13,6 +13,7 @@ const { flash } = require('./middleware/flash');
 const { idleTimeout } = require('./middleware/idleTimeout');
 const { requirePasswordChange } = require('./middleware/auth');
 const { notFound, handleErrors } = require('./middleware/errorHandler');
+const { parseAttachment } = require('./lib/attachments');
 
 const homeRoutes = require('./routes/home');
 const authRoutes = require('./routes/auth');
@@ -25,6 +26,7 @@ const journalRoutes = require('./routes/journals');
 const endorsementRoutes = require('./routes/endorsements');
 const finishRoutes = require('./routes/finish');
 const withdrawRoutes = require('./routes/withdraw');
+const announcementRoutes = require('./routes/announcements');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
@@ -71,6 +73,7 @@ app.use(session({
     },
 }));
 app.use(provideCsrfToken);
+app.use('/adviser/announcements', parseAttachment); // file forms are multipart, so read them before the CSRF check
 app.use(verifyCsrf);
 app.use(currentUser);
 app.use(flash);
@@ -80,7 +83,7 @@ app.use(requirePasswordChange);
 // pages
 app.use(homeRoutes);
 app.use('/adviser', authRoutes, accountRoutes, dashboardRoutes, internRoutes,
-    requirementRoutes, reportRoutes, journalRoutes, endorsementRoutes, finishRoutes, withdrawRoutes, adminRoutes);
+    requirementRoutes, reportRoutes, journalRoutes, endorsementRoutes, finishRoutes, withdrawRoutes, announcementRoutes, adminRoutes);
 
 app.use(notFound);
 app.use(handleErrors);

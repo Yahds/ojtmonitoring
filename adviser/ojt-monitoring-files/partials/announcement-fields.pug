@@ -1,0 +1,28 @@
+//- shared by the new and edit forms; needs sections, values and errors
+.field
+  label(for='audience') Send to
+  select.input#audience(name='audience' aria-invalid=(errors.audience ? 'true' : undefined) aria-describedby=(errors.audience ? 'audience-error' : 'audience-help'))
+    option(value='') All my sections
+    each section in sections
+      option(value=section selected=values.audience === section) Section #{section}
+  if errors.audience
+    span.error#audience-error= errors.audience
+  else
+    span.help#audience-help Interns in the chosen section see it on their Announcements page.
+.field
+  label(for='subject') Subject
+  input.input#subject(type='text' name='subject' maxlength='255' value=values.subject required aria-invalid=(errors.subject ? 'true' : undefined) aria-describedby=(errors.subject ? 'subject-error' : undefined))
+  if errors.subject
+    span.error#subject-error= errors.subject
+.field
+  label(for='message') Message
+  textarea.input#message(name='message' rows='6' maxlength='5000' required aria-invalid=(errors.message ? 'true' : undefined) aria-describedby=(errors.message ? 'message-error' : undefined))= values.message
+  if errors.message
+    span.error#message-error= errors.message
+.field
+  label(for='attachment') Attachment (optional)
+  input.input#attachment(type='file' name='attachment' accept='.pdf,.jpg,.jpeg,.png,.doc,.docx' aria-invalid=(errors.attachment ? 'true' : undefined) aria-describedby=(errors.attachment ? 'attachment-error' : 'attachment-help'))
+  if errors.attachment
+    span.error#attachment-error= errors.attachment
+  else
+    span.help#attachment-help PDF, JPG, PNG, DOC or DOCX, up to 5 MB.

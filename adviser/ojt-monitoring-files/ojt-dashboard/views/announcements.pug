@@ -1,0 +1,46 @@
+extends ../../layouts/main
+
+block content
+  h1.page-title Announcements
+
+  section.card.card-pad
+    h2.section-title New announcement
+    form.form(action='/adviser/announcements' method='POST' enctype='multipart/form-data')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      include ../../partials/announcement-fields
+      .btn-row
+        button.btn.btn-create(type='submit') Post announcement
+
+  section.card
+    .card-head
+      h2 Posted
+        span.sub #{total} #{total === 1 ? 'post' : 'posts'}#{search ? ` matching "${search}"` : ''}
+    form.search-row(action='/adviser/announcements' method='GET' role='search')
+      .field
+        label(for='q') Search posts
+        input.input#q(type='search' name='q' value=search maxlength='100' placeholder='Subject or message')
+      button.btn.btn-outline(type='submit') Search
+      if search
+        a.btn.btn-outline(href='/adviser/announcements') Clear
+    if announcements.length === 0 && search
+      .empty
+        b No posts match "#{search}"
+        | Check the spelling or try fewer words.
+    else if announcements.length === 0
+      .empty
+        b No announcements yet
+        | Posts you make show up here.
+    else
+      each announcement in announcements
+        article.item
+          .item-head
+            h3= announcement.subject
+            .btn-row
+              a.btn.btn-outline.btn-sm(href=`/adviser/announcements/${announcement.announcementid}/edit`) Edit
+              a.btn.btn-reject.btn-sm(href=`/adviser/announcements/${announcement.announcementid}/delete`) Delete
+          p.meta #{announcement.date} · #{announcement.audience ? `Section ${announcement.audience}` : 'All my sections'}#{announcement.edited ? ' · Edited' : ''}
+          p= announcement.message
+          if announcement.file_name
+            p
+              a(href=`/adviser/announcements/${announcement.announcementid}/file`) #{announcement.file_name}
+    include ../../partials/pager

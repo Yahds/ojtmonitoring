@@ -1,0 +1,22 @@
+extends ../../layouts/main
+
+block content
+  p.crumb
+    a(href='/adviser/announcements') Announcements
+    |  / Edit
+  h1.page-title Edit announcement
+
+  section.card.card-pad
+    form.form(action=`/adviser/announcements/${announcement.announcementid}/edit` method='POST' enctype='multipart/form-data')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      include ../../partials/announcement-fields
+      if announcement.file_name
+        .field
+          span.help Current file: #[a(href=`/adviser/announcements/${announcement.announcementid}/file`) #{announcement.file_name}]. Choosing a new file replaces it.
+          label.check-row
+            input(type='checkbox' name='remove_attachment' value='1')
+            | Remove this file
+      p.muted Interns will see that this post was edited.
+      .btn-row
+        button.btn.btn-create(type='submit') Save changes
+        a.btn.btn-outline(href='/adviser/announcements') Cancel

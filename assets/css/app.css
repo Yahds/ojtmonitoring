@@ -101,6 +101,10 @@ table, .num { font-variant-numeric: tabular-nums; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label, .field .label { font-size: 13px; font-weight: 700; }
 .field .help { font-size: 12.5px; color: var(--muted); }
+.check-row { display: flex; align-items: center; gap: 8px; font-weight: 400; }
+.search-row { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; padding: 0 24px 14px; }
+.search-row .field { flex: 1 1 220px; }
+.pager { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 24px; border-top: 1px solid var(--line); font-size: 14px; }
 .field .error { font-size: 13px; font-weight: 600; color: var(--red); }
 .input { font: 400 14px var(--font); color: var(--text); border: 1px solid #8a8a94; border-radius: 10px; padding: 9px 12px; background: #fff; width: 100%; }
 textarea.input { min-height: 80px; resize: vertical; }

@@ -8,6 +8,7 @@ const UPLOAD_TYPES = [
 ];
 const UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 const UPLOAD_DIR = '/var/www/uploads/';
+const ANNOUNCEMENT_DIR = '/var/www/announcement-files/'; // the adviser app writes here, this app only reads
 
 // checks type of file via the bytes instead of filename
 function mimeOf(string $path): string
@@ -41,9 +42,9 @@ function saveUpload(array $file, string $prefix): string
     return $name;
 }
 
-function sendUpload(?string $fileName): never
+function sendUpload(?string $fileName, string $dir = UPLOAD_DIR): never
 {
-    $path = $fileName ? UPLOAD_DIR . basename($fileName) : null;
+    $path = $fileName ? $dir . basename($fileName) : null;
     if ($path === null || !is_file($path)) {
         http_response_code(404);
         require __DIR__ . '/pages/404.php';

@@ -1,0 +1,12 @@
+//- needs page, pages and pageHref(n)
+if pages > 1
+  nav.pager(aria-label='Pages')
+    if page > 1
+      a(href=pageHref(page - 1) rel='prev') Previous
+    else
+      span
+    span Page #{page} of #{pages}
+    if page < pages
+      a(href=pageHref(page + 1) rel='next') Next
+    else
+      span

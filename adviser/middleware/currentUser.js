@@ -10,16 +10,21 @@ const ENDORSEMENTS_LINK = {
     label: 'Endorsements',
 };
 
+const ANNOUNCEMENTS_LINK = {
+    href: '/adviser/announcements',
+    label: 'Announcements',
+};
+
 const NAV = {
     adviser: [
         { href: '/adviser/dashboard', label: 'Dashboard', exact: true },
-        INTERNS_LINK, ENDORSEMENTS_LINK,
+        INTERNS_LINK, ENDORSEMENTS_LINK, ANNOUNCEMENTS_LINK,
         { href: '/adviser/about', label: 'About us' },
     ],
     dept_head: [
         { href: '/adviser/admin', label: 'Overview', exact: true },
         { href: '/adviser/admin/advisers', label: 'Advisers' },
-        INTERNS_LINK, ENDORSEMENTS_LINK,
+        INTERNS_LINK, ENDORSEMENTS_LINK, ANNOUNCEMENTS_LINK,
         { href: '/adviser/about', label: 'About us' },
     ],
 };

@@ -10,5 +10,6 @@ function navFor(string $status, string $path): array
         $links[] = ['href' => '/weekly-reports', 'label' => 'Weekly reports'];
         $links[] = ['href' => '/journals', 'label' => 'Journals'];
     }
+    $links[] = ['href' => '/announcements', 'label' => 'Announcements'];
     return array_map(fn ($link) => $link + ['current' => $link['href'] === $path], $links);
 }
