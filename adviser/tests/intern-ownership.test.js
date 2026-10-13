@@ -74,7 +74,7 @@ describe("an adviser cannot use another adviser's intern", () => {
         expect(res.headers.location).toBe(url);
 
         const page = await agent.get(url);
-        expect(page.text).toContain('That requirement was not found.');
+        expect(page.text).toContain('Only a submitted requirement can be approved or rejected.');
         expect(await requirementsOf(OTHER_INTERN_ID)).toEqual(before);
     });
 });

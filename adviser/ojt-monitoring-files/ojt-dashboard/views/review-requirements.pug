@@ -21,7 +21,7 @@ block content
           - const status = statusOf('requirement', req.status)
           span.tag(class=status.tag)= status.label
         if req.datesubmitted
-          p.meta Submitted #{req.datesubmitted}
+          p.meta Submitted #{req.datesubmitted}#{req.versions > 1 ? ` · Version ${req.versions}` : ''}
         if req.intern_remarks
           p.note
             b Intern:
@@ -31,13 +31,18 @@ block content
             a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/file`) View submitted file
         if req.status === 'PENDING'
           p.meta Waiting for the intern to submit.
+        else if req.status !== 'SUBMITTED'
+          if req.remarks
+            p.note
+              b Your remark:
+              |  #{req.remarks}
         else
           form.form(action=`/adviser/interns/${internId}/requirements` method='POST')
             input(type='hidden' name='csrf_token' value=csrfToken)
             input(type='hidden' name='reqid' value=req.reqid)
             .field
               label(for=`remarks-${req.reqid}`) Your remark
-              textarea.input(id=`remarks-${req.reqid}` name='remarks' rows='2')= req.remarks
+              textarea.input(id=`remarks-${req.reqid}` name='remarks' rows='2' maxlength='200')
             .btn-row
               button.btn.btn-create.btn-sm(type='submit' name='decision' value='APPROVED') Approve
               button.btn.btn-reject.btn-sm(type='submit' name='decision' value='REJECTED') Reject

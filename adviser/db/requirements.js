@@ -24,7 +24,9 @@ async function fetchRequirementsForReview(internID, adviserID) {
             internrequirements.intern_remarks,
             internrequirements.file_path,
             internrequirements.remarks,
-            internrequirements.status
+            internrequirements.status,
+            (SELECT MAX(v.version_no) FROM requirement_versions v
+             WHERE v.internid = internrequirements.internid AND v.reqid = internrequirements.reqid) AS versions
         FROM
             internrequirements
         JOIN
@@ -51,15 +53,35 @@ async function fetchRequirementFile(internID, reqID, adviserID) {
     return rows[0] ? rows[0].file_path : null; 
 }
 
+// only a submitted requirement can be decided; the decision is also kept on its latest version
 async function updateRequirementReview(internID, reqID, adviserID, decision, remarks) {
-    const [result] = await pool.query(
-        `UPDATE internrequirements ir
-            JOIN interns i ON ir.internid = i.internid
-            SET ir.status = ?, ir.remarks = ?
-            WHERE ir.internid = ? AND ir.reqid = ? AND i.adviserid = ?`,
-        [decision, remarks, internID, reqID, adviserID]
-    );
-    return result;
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        const [result] = await connection.query(
+            `UPDATE internrequirements ir
+                JOIN interns i ON ir.internid = i.internid
+                SET ir.status = ?, ir.remarks = ?
+                WHERE ir.internid = ? AND ir.reqid = ? AND i.adviserid = ? AND ir.status = 'SUBMITTED'`,
+            [decision, remarks, internID, reqID, adviserID]
+        );
+        if (result.affectedRows === 1) {
+            await connection.query(
+                `UPDATE requirement_versions
+                    SET decision = ?, remarks = ?, reviewed_at = NOW(), reviewed_by = ?
+                    WHERE internid = ? AND reqid = ?
+                    ORDER BY version_no DESC LIMIT 1`,
+                [decision, remarks, adviserID, internID, reqID]
+            );
+        }
+        await connection.commit();
+        return result.affectedRows;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 }
 
 async function insertNewRequirement(requirementName) {

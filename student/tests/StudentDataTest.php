@@ -21,7 +21,8 @@ class StudentDataTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->db->query("UPDATE internrequirements SET status = 'PENDING', datesubmitted = NULL, intern_remarks = NULL
+        $this->db->query("DELETE FROM requirement_versions WHERE internid IN (" . self::MARIA . ", " . self::JOSE . ") AND submitted_at >= CURDATE()");
+        $this->db->query("UPDATE internrequirements SET status = 'PENDING', datesubmitted = NULL, intern_remarks = NULL, file_path = NULL, remarks = NULL
                           WHERE internid = " . self::JOSE . " AND reqid = " . self::APPLICATION_LETTER);
         $this->db->query("DELETE FROM weeklyreports WHERE internid = " . self::JOSE);
         $this->db->query("DELETE FROM journals WHERE internid = " . self::JOSE);
@@ -51,7 +52,39 @@ class StudentDataTest extends TestCase
         $this->assertSame('my remark', $row['intern_remarks']);
     }
 
-        public function testSubmittingAWeeklyReportSavesItAsPending(): void
+    public function testEverySubmitIsKeptAsANewVersion(): void
+    {
+        submitRequirement(self::JOSE, self::APPLICATION_LETTER, 'first try', 'req_first.pdf');
+        submitRequirement(self::JOSE, self::APPLICATION_LETTER, 'only a new note', null);
+
+        $versions = $this->db->query("SELECT version_no, file_path, intern_note FROM requirement_versions
+                                      WHERE internid = " . self::JOSE . " AND reqid = " . self::APPLICATION_LETTER . " ORDER BY version_no")->fetch_all(MYSQLI_ASSOC);
+
+        $this->assertEquals([
+            ['version_no' => 1, 'file_path' => 'req_first.pdf', 'intern_note' => 'first try'],
+            // a note without a new file keeps the file the adviser already has
+            ['version_no' => 2, 'file_path' => 'req_first.pdf', 'intern_note' => 'only a new note'],
+        ], $versions);
+    }
+
+    public function testResubmittingClearsTheOldRemark(): void
+    {
+        $this->db->query("UPDATE internrequirements SET status = 'REJECTED', remarks = 'wrong file' WHERE internid = " . self::JOSE . " AND reqid = " . self::APPLICATION_LETTER);
+
+        submitRequirement(self::JOSE, self::APPLICATION_LETTER, 'fixed it', null);
+
+        $row = $this->db->query("SELECT status, remarks FROM internrequirements WHERE internid = " . self::JOSE . " AND reqid = " . self::APPLICATION_LETTER)->fetch_assoc();
+        $this->assertSame(['status' => 'SUBMITTED', 'remarks' => null], $row);
+    }
+
+    public function testSubmittingTheSameNoteTwiceStillWorks(): void
+    {
+        submitRequirement(self::JOSE, self::APPLICATION_LETTER, 'same note', null);
+
+        $this->assertSame(1, submitRequirement(self::JOSE, self::APPLICATION_LETTER, 'same note', null));
+    }
+
+    public function testSubmittingAWeeklyReportSavesItAsPending(): void
     {
         submitWeeklyReport(self::JOSE, 3, 8, 'set up the database', null);
 
@@ -114,6 +147,8 @@ class StudentDataTest extends TestCase
         $changed = submitRequirement(self::MARIA, self::DATA_PRIVACY_CERTIFICATE, 'trying to change it', null);
 
         $this->assertSame(0, $changed);
+        $versions = $this->db->query("SELECT COUNT(*) FROM requirement_versions WHERE internid = " . self::MARIA . " AND reqid = " . self::DATA_PRIVACY_CERTIFICATE . " AND submitted_at >= CURDATE()")->fetch_row()[0];
+        $this->assertSame(0, (int) $versions);
         $row = $this->db->query("SELECT status FROM internrequirements WHERE internid = " . self::MARIA . " AND reqid = " . self::DATA_PRIVACY_CERTIFICATE)->fetch_assoc();
         $this->assertSame('APPROVED', $row['status']);
     }

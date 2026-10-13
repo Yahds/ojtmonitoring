@@ -3,6 +3,7 @@ const path = require('path');
 const { fetchInternId, fetchRequirementsForReview, updateRequirementReview, fetchRequirementFile,
     fetchUnassignedRequirements, insertNewRequirement, insertInternRequirement, isAdvisersIntern } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
+const { audit } = require('../lib/audit');
 
 const router = express.Router();
 
@@ -61,20 +62,26 @@ router.get("/interns/:internId/requirements", requireAdviser, async (req, res, n
 router.post("/interns/:internId/requirements", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
-        const { reqid, decision, remarks } = req.body;
+        const { reqid, decision } = req.body;
+        const remarks = typeof req.body.remarks === 'string' ? req.body.remarks.trim() : '';
         const backTo = `/adviser/interns/${internId}/requirements`;
 
         if (decision !== 'APPROVED' && decision !== 'REJECTED') {
             req.flash('error', 'Choose Approve or Reject.');
             return res.redirect(backTo);
         }
-
-        const result = await updateRequirementReview(internId, reqid, req.session.adviserID, decision, remarks);
-        if (result.affectedRows === 0) {
-            req.flash('error', 'That requirement was not found.');
-        } else {
-            req.flash('success', decision === 'APPROVED' ? 'Requirement approved.' : 'Requirement rejected.');
+        if (remarks.length > 200) {
+            req.flash('error', 'Keep your remark to 200 characters or fewer.');
+            return res.redirect(backTo);
         }
+
+        const changed = await updateRequirementReview(internId, reqid, req.session.adviserID, decision, remarks || null);
+        if (changed === 0) {
+            req.flash('error', 'Only a submitted requirement can be approved or rejected.');
+            return res.redirect(backTo);
+        }
+        await audit(req, decision === 'APPROVED' ? 'requirement_approved' : 'requirement_rejected', `intern ${internId} requirement ${reqid}`);
+        req.flash('success', decision === 'APPROVED' ? 'Requirement approved.' : 'Requirement rejected.');
         res.redirect(backTo);
     } catch (error) {
         next(error);
