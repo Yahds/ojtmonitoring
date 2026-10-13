@@ -1,0 +1,20 @@
+extends ../../layouts/main
+
+block content
+  p.crumb
+    a(href='/adviser/announcements') Announcements
+    |  / Delete
+  h1.page-title Delete announcement?
+
+  section.card.card-pad
+    article.item
+      h3= announcement.subject
+      p.meta #{announcement.date} · #{announcement.audience ? `Section ${announcement.audience}` : 'All my sections'}
+      p= announcement.message
+    p Interns will no longer see this announcement. This cannot be undone.
+    form(action='/adviser/announcements/delete' method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      input(type='hidden' name='announcementid' value=announcement.announcementid)
+      .btn-row
+        button.btn.btn-danger(type='submit') Delete announcement
+        a.btn.btn-outline(href='/adviser/announcements') Cancel

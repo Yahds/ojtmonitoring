@@ -176,99 +176,18 @@ main.container
         | ANNOUNCEMENTS
       .announcement-container
         .scroll-container
-          each announcement in announcements
+          each announcement in announcements.slice(0, 3)
             .announcement-box
               .announcement-box-title
                 text #{announcement.subject}
-                a.announcement-x(href="#popUpConfirmation") 
-                  .announcement-box-x#announcement-box-x-id
-                    input#announcementInput(type="submit" value='X' ) 
               .announcement-box-date
                 text #{announcement.date}
               .announcement-box-recipient TO: 
-                text #{announcement.studentName}
+                text #{announcement.audience ? `Section ${announcement.audience}` : 'All my sections'}
               .announcement-box-content
                 text #{announcement.message}
               .gray-horizontal-divider
-
-              
-              form(action="/adviser/announcements/delete"  id="confirmation-form" method='POST') 
-                input(type='hidden' name='csrf_token' value=csrfToken)
-                #popUpConfirmation.modalConfirmation(action='submit')
-                  .content
-                    a.close(href='#main') &Cross;
-                    .content_info_holder
-                      .header
-                        .text CONFIRMATION
-                      div
-                        .horizontal-gray-ruler
-                      .confirmation-text
-                        text #{"Are you sure you want to delete this announcement?"}
-                      .button-options
-                        //- a.create-post-button(href="#" id="submit-button")
-                        input.create-post-button(type="submit" value="YES")
-                        input(type="hidden" name="announcementid" value=announcement.announcementid)
-                        a.cancel-post-button(href="#" id="cancel-button")
-                          | CANCEL
-                          
-        button.create-post-button(type='button')
-          a(href='#announcement-pop-up') CREATE POST
-form(action='/adviser/announcements' id="recipient-form" method='POST')
-  input(type='hidden' name='csrf_token' value=csrfToken)
-  #announcement-pop-up.modal(action='submit')
-    .content
-      a.close(href='#main') &Cross;
-      .form(action="postannouncement" method="POST" target="_blank" )
-        .content_info_holder
-          .header ANNOUNCEMENT
-          .filter TO:   
-            .rec-option-text#recipients  
-              a(href='#announcement-pop-up1')
-                span.material-symbols-outlined#message-recipient(style="vertical-align= middle")
-                  | TO ALL
-                  | add
-          .horizontal-gray-ruler
-          .pop-up-subject
-            .title SUBJECT
-            // populate with subject txt
-            textarea#description-text-area.content-holder-subject(name='subject-text' cols='30' rows='3')
-            .horizontal-gray-ruler
-            .title DESCRIPTION
-            textarea#description-text-area.content-holder-description(name='description-text' cols='30' rows='10')
-            input(type="hidden" name="recipient", value="0")
-            input.create-post-button(id="submitbutton" type="submit" value="SUBMIT") 
-  
-  #announcement-pop-up1.modal(action='submit')
-    .content
-      a.close(href='#main') &Cross;
-      .content_info_holder
-        .header
-          div
-            a(href='#announcement-pop-up')
-              span.material-symbols-outlined#back-button
-                | keyboard_return
-          .text SPECIFIC INTERNS
-        div
-        .horizontal-gray-ruler
-        .input-box
-          input#search-bar(type='text' placeholder='Search here...')
-          i#search-icon.uil.uil-search
-
-        .interns-placeholder
-          each intern in interns
-            .intern-row-checkbox
-              .flex-container
-                .img-holder
-                  img.profile-image(src='../ojt-images/user-profile.png' alt='Profile')
-                .intern-details
-                  .intern-name 
-                    text #{intern.studentname}
-                  .companyname
-                    text #{intern.companyname}
-                  .companyaddress 
-                    text #{intern.companyaddress} 
-              input(type='checkbox' name="recipient" value=intern.studentname checked)    
-              input(type='checkbox' name="recipient" value=intern.studentname)  
+        a.create-post-button(href='/adviser/announcements') MANAGE ANNOUNCEMENTS
 
 
 form(action='/adviser/assign-requirement' id="requirement-form" method='POST')
@@ -486,87 +405,6 @@ script.
     }
   })
 
-  
-  document.getElementById("back-button").addEventListener('click', () => {
-    const form = document.getElementById('recipients');
-
-      const checkedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-      const checkedValues = Array.from(checkedCheckboxes).map((checkbox) => checkbox.value);
-
-      if (checkedValues.length > 0) {
-        document.getElementById("message-recipient").remove();
-          checkedCheckboxes.forEach(checkbox => {
-          // Create a wrapper div for each input/button pair
-              const wrapperDiv = document.createElement('div');
-              wrapperDiv.classList.add('input-wrapper');
-
-              // Create the hidden input element to store the checkbox value
-              const hiddenInput = document.createElement('input');
-              hiddenInput.type = 'hidden';
-              hiddenInput.name = 'recipients[]';
-              hiddenInput.value = checkbox.value;
-              
-              // Create a visible text input to display the checkbox value
-              const textInput = document.createElement('input');
-              textInput.type = 'text';
-              textInput.value = checkbox.value;
-              textInput.readOnly = true; // Prevent editing the text input
-              textInput.classList.add('display-input');
-              textInput.style.border = "none";
-
-              // Create the "X" button element to remove the input
-              const removeButton = document.createElement('span');
-              removeButton.textContent = 'close';
-              removeButton.classList.add('material-symbols-outlined');
-              removeButton.style.verticalAlign = "middle";
-              removeButton.style.cursor = "pointer";
-              
-              // Append the hidden input, text input, and remove button to the wrapper
-              wrapperDiv.appendChild(hiddenInput);
-              wrapperDiv.appendChild(textInput);
-              wrapperDiv.appendChild(removeButton);
-              
-              // Append the wrapper div to the form
-              form.appendChild(wrapperDiv);
-
-              // Add an event listener to the remove button to handle the click event
-              removeButton.addEventListener('click', function() {
-                // Remove the wrapper div from the form to remove both the button and the input
-
-              const checkboxValueToUncheck = checkbox.value; // Replace this with the actual value
-              const checkboxToUncheck = document.querySelector(`input[type="checkbox"][value="${checkboxValueToUncheck}"]`);
-
-              if (checkboxToUncheck) {
-                  checkboxToUncheck.checked = false;
-              }
-                wrapperDiv.remove();
-                console.log ("removing " + checkbox.value);
-                console.log(form.children.length)
-
-                 if (form.children.length == 1) {
-                  while (form.firstChild) {
-                    form.removeChild(form.firstChild);
-                  }
-
-                  const aLink = document.createElement('a');
-                  aLink.href = '#announcement-pop-up1';
-
-                  const rec = document.createElement('pan');
-                  rec.id = 'message-recipient';
-                  rec.classList.add('material-symbols-outlined');
-                  rec.style.verticalAlign = 'middle';
-                  rec.textContent = 'TO ALL add';
-
-                  aLink.appendChild(rec);
-
-                  form.appendChild(aLink)
-                }
-              });
-        });
-      }
-
-  })
-   
   // opens the popup container and populates the student details
       function openPopup(studentName) {
           document.getElementById('studentName').innerHTML = studentName;
@@ -674,40 +512,6 @@ script.
 
     
 
-    document.addEventListener('DOMContentLoaded', function() {
-    // Add a click event listener to each delete button
-    document.querySelectorAll('.announcement-x').forEach(function(deleteButton) {
-      deleteButton.addEventListener('click', function() {
-        // Get the announcementid associated with the clicked announcement
-        var announcementId = this.closest('.announcement-box').querySelector('input[name="announcementid"]').value;
-        
-        // Set the value of the hidden input in the confirmation form
-        document.getElementById('confirmation-form').querySelector('input[name="announcementid"]').value = announcementId;
-      });
-    });
-  });
-
-      // JavaScript code for search functionality --- FOR ANNOUNCEMENT SPECIFIC INTERNS
-  const searchInput = document.getElementById('search-bar');
-  const internRows = document.querySelectorAll('.intern-row-checkbox');
-
-  searchInput.addEventListener('input', function () {
-    console.log("ASdas")
-    const searchTerm = searchInput.value.toLowerCase();
-
-    internRows.forEach(row => {
-      const internName = row.querySelector('.intern-name').innerText.toLowerCase();
-      const company = row.querySelector('.companyname').innerText.toLowerCase();
-      const companyAddress = row.querySelector('.companyaddress').innerText.toLowerCase();
-
-      const isMatch =
-        internName.includes(searchTerm) ||
-        company.includes(searchTerm) ||
-        companyAddress.includes(searchTerm);
-
-      row.style.display = isMatch ? 'flex' : 'none';
-    });
-  });
 
   document.addEventListener('DOMContentLoaded', (event) => {
       const reportLinks = document.querySelectorAll('.report-links a');

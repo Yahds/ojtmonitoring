@@ -116,11 +116,14 @@ require __DIR__ . '/../views/header.php';
         </section>
 
         <section class="card">
-            <div class="card-head"><h2>Announcements</h2></div>
+            <div class="card-head">
+                <h2>Announcements</h2>
+                <?php if ($announcements): ?><a href="/student/announcements">See all</a><?php endif; ?>
+            </div>
             <?php if (!$announcements): ?>
                 <div class="empty"><b>No announcements yet</b>Posts from your adviser will show up here.</div>
             <?php endif; ?>
-            <?php foreach ($announcements as $announcement): ?>
+            <?php foreach (array_slice($announcements, 0, 3) as $announcement): ?>
                 <article class="item">
                     <h3><?= e($announcement['subject']) ?></h3>
                     <p class="meta"><?= e((string) $announcement['date']) ?></p>

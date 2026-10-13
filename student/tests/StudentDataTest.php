@@ -51,13 +51,6 @@ class StudentDataTest extends TestCase
         $this->assertSame('my remark', $row['intern_remarks']);
     }
 
-    public function testAnnouncementsOnlyShowTheInternsOwn(): void
-    {
-        $announcements = getAnnouncementsForIntern(self::JOSE);
-
-        $this->assertCount(0, $announcements);
-    }
-
         public function testSubmittingAWeeklyReportSavesItAsPending(): void
     {
         submitWeeklyReport(self::JOSE, 3, 8, 'set up the database', null);

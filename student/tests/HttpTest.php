@@ -166,6 +166,20 @@ class HttpTest extends TestCase
         }
     }
 
+    public function testAnInternStillOnboardingCanReadAnnouncements(): void
+    {
+        db()->execute_query("INSERT INTO announcements (senderid, subject, message) VALUES (1, 'Http test post', 'hello')");
+        try {
+            $this->logIn('2299001', '1234');
+            $response = $this->request('GET', '/announcements');
+
+            $this->assertSame(200, $response['status']);
+            $this->assertStringContainsString('Http test post', $response['body']);
+        } finally {
+            db()->execute_query("DELETE FROM announcements WHERE subject = 'Http test post'");
+        }
+    }
+
     public function testAWithdrawnInternOnlySeesTheWithdrawnPage(): void
     {
         db()->execute_query("UPDATE interns SET status = 'WITHDRAWN' WHERE internid = 300");

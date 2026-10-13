@@ -1,5 +1,5 @@
 const express = require('express');
-const { fetchAdviser, fetchInterns, fetchAnnouncements, insertAnnouncement, deleteAnnouncement } = require('../db');
+const { fetchAdviser, fetchInterns, fetchAnnouncements } = require('../db');
 const { requireAuth, requireAdviser } = require('../middleware/auth');
 
 const router = express.Router();
@@ -51,34 +51,6 @@ router.get("/dashboard", requireAdviser, async (req, res, next) => {
         next(error);
     }
 });
-
-router.post('/announcements', requireAdviser, async (req, res, next) => {
-    const sender = req.session.adviserID;
-    const recipient = req.body.recipient;
-    const subject = req.body['subject-text'];
-    const description = req.body['description-text'];
-
-    try {
-        await insertAnnouncement(sender, recipient, subject, description);
-        res.redirect('/adviser/dashboard');
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.post('/announcements/delete', requireAdviser, async (req, res, next) => {
-    const announcementid = req.body['announcementid'];
-
-    try {
-        const deleted = await deleteAnnouncement(announcementid, req.session.adviserID);
-        if (deleted === 0) {
-            return res.status(404).send('Announcement not found');
-        }
-        res.redirect('/adviser/dashboard');
-    } catch (error) {
-        next(error);
-    }
-})
 
 // note: added it here for now since it only needs adviser info like dashboard 
 router.get("/about", requireAuth, async (req, res, next) => {

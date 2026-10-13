@@ -10,14 +10,14 @@ class NavTest extends TestCase
         return array_column($nav, 'label');
     }
 
-    public function testAPendingInternSeesOnlyDashboardAndRequirements(): void
+    public function testAPendingInternSeesDashboardRequirementsAndAnnouncements(): void
     {
-        $this->assertSame(['Dashboard', 'Requirements'], $this->labels(navFor('PENDING', '/requirements')));
+        $this->assertSame(['Dashboard', 'Requirements', 'Announcements'], $this->labels(navFor('PENDING', '/requirements')));
     }
 
     public function testADeployedInternAlsoSeesWeeklyReportsAndJournals(): void
     {
-        $this->assertSame(['Dashboard', 'Requirements', 'Weekly reports', 'Journals'], $this->labels(navFor('ACTIVE', '/dashboard')));
+        $this->assertSame(['Dashboard', 'Requirements', 'Weekly reports', 'Journals', 'Announcements'], $this->labels(navFor('ACTIVE', '/dashboard')));
     }
 
     public function testTheCurrentPageIsMarked(): void
@@ -28,6 +28,6 @@ class NavTest extends TestCase
 
     public function testAFinishedInternStillSeesTheirReportsAndJournals(): void
     {
-        $this->assertSame(['Dashboard', 'Requirements', 'Weekly reports', 'Journals'], $this->labels(navFor('FINISHED', '/dashboard')));
+        $this->assertSame(['Dashboard', 'Requirements', 'Weekly reports', 'Journals', 'Announcements'], $this->labels(navFor('FINISHED', '/dashboard')));
     }
 }
