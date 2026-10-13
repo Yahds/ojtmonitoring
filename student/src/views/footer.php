@@ -16,6 +16,14 @@ $icons = [
         </a>
     <?php endforeach; ?>
 </nav>
+<dialog class="idle-dialog" id="idle-warning" aria-labelledby="idle-warning-title" data-keep-alive="/student/session/keep-alive">
+    <h2 id="idle-warning-title">Are you still there?</h2>
+    <p>You will be logged out in 2 minutes due to inactivity.</p>
+    <div class="btn-row">
+        <button class="btn btn-primary" type="button" data-stay-logged-in>Stay logged in</button>
+    </div>
+</dialog>
+<script src="/assets/js/idle-warning.js" defer></script>
 <script src="/assets/js/file-size.js" defer></script>
 </body>
 </html>

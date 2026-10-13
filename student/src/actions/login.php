@@ -7,17 +7,6 @@ $password = $_POST['password'] ?? '';
 $row = $studentId !== '' ? internLogIn($studentId, $password) : false;
 
 if (!$row) {
-    http_response_code(401);
-    $error = 'Your student ID or password is wrong. Try again.';
-    require __DIR__ . '/../pages/login.php';
-    exit();
+    showLogin(401, 'Your student ID or password is wrong. After 5 wrong tries, please wait for 15 minutes and try again.', $studentId);
 }
-
-session_regenerate_id(true);
-$_SESSION['id'] = $row['studentid'];
-$_SESSION['studentName'] = $row['studentName'];
-$_SESSION['course'] = $row['course'];
-$_SESSION['year'] = $row['year'];
-$_SESSION['internid'] = $row['internid'];
-$_SESSION['status'] = $row['status'];
-redirect('/');
+startStudentSession($row);

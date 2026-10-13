@@ -17,4 +17,16 @@ class LoginTest extends TestCase
     {
         $this->assertFalse(internLogIn(2299001, 'wrong-password'));
     }
+    
+    public function testInternIsFoundByTheirSluEmail(): void
+    {
+        $row = findInternByEmail('maria.santos@example.com');
+
+        $this->assertSame(300, $row['internid']);
+    }
+
+    public function testUnknownEmailFindsNobody(): void
+    {
+        $this->assertNull(findInternByEmail('nobody@example.com'));
+    }
 }

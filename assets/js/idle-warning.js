@@ -1,4 +1,4 @@
-// warns 2 minutes before the 30-minute idle logout in middleware/idleTimeout.js
+// warns 2 minutes before the 30-minute idle logout
 const MINUTE = 60 * 1000;
 const dialog = document.getElementById('idle-warning');
 let warnTimer;
@@ -12,7 +12,7 @@ function startTimers() {
 }
 
 dialog.querySelector('[data-stay-logged-in]').addEventListener('click', async () => {
-    const res = await fetch('/adviser/session/keep-alive');
+    const res = await fetch(dialog.dataset.keepAlive);
     if (res.status !== 204) {
         window.location.reload();
         return;

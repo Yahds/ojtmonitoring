@@ -47,26 +47,31 @@ block content
       input(type='hidden' name='csrf_token' value=csrfToken)
       .field
         label(for='studentID') Student ID
-        input.input#studentID(type='text' name='studentID' inputmode='numeric' required)
+        input.input#studentID(type='text' name='studentID' inputmode='numeric' value=values.studentID required aria-invalid=(errors.studentID ? 'true' : undefined) aria-describedby=(errors.studentID ? 'studentID-error' : undefined))
+        if errors.studentID
+          span.error#studentID-error= errors.studentID
       .field
         label(for='name') Full name
-        input.input#name(type='text' name='name' placeholder='Torres, Sam' required)
+        input.input#name(type='text' name='name' placeholder='Torres, Sam' value=values.name required)
         span.help Last name, then first name.
       .field
         label(for='course') Course
         select.input#course(name='course' required)
           option(value='') Select a course
-          option(value='BSIT') BSIT
-          option(value='BSCS') BSCS
+          option(value='BSIT' selected=values.course === 'BSIT') BSIT
+          option(value='BSCS' selected=values.course === 'BSCS') BSCS
       .field
         label(for='year') Year
-        input.input#year(type='text' name='year' inputmode='numeric' placeholder='4' required)
+        input.input#year(type='text' name='year' inputmode='numeric' placeholder='4' value=values.year required)
       .field
         label(for='classcode') Class code
-        input.input#classcode(type='text' name='classcode' required)
+        input.input#classcode(type='text' name='classcode' value=values.classcode required)
       .field
-        label(for='password') Temporary password
-        input.input#password(type='text' name='password' autocomplete='off' required)
-        span.help The student logs in with this. Share it with them privately.
+        label(for='email') SLU email
+        input.input#email(type='email' name='email' autocomplete='off' value=values.email required aria-invalid=(errors.email ? 'true' : undefined) aria-describedby=(errors.email ? 'email-error' : 'email-help'))
+        if errors.email
+          span.error#email-error= errors.email
+        else
+          span.help#email-help The student signs in with this account.
       .btn-row
         button.btn.btn-create(type='submit') Enroll intern

@@ -11,4 +11,8 @@ router.get('/', (req, res) => {
     res.render('home', { title: 'Welcome' });
 });
 
+router.get('/privacy', (req, res) => {
+    res.render('privacy', { title: 'Privacy notice' });
+});
+
 module.exports = router;

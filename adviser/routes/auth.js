@@ -2,7 +2,7 @@ const express = require('express');
 const { authenticateAdviser, findAdviserByEmail } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { homeFor } = require('../middleware/currentUser');
-const { startLogin, finishLogin } = require('../lib/sso');
+const { startLogin, finishLogin, logoutUrl } = require('../lib/sso');
 const { audit } = require('../lib/audit');
 
 const router = express.Router();
@@ -12,7 +12,7 @@ function showLogin(res, status, error, email) {
 }
 
 // a new session id on every login, so an old one cannot be reused
-function startSession(req, res, next, adviser, how) {
+function startSession(req, res, next, adviser, how, idToken) {
     req.session.regenerate(async (err) => {
         if (err) {
             return next(err);
@@ -23,6 +23,9 @@ function startSession(req, res, next, adviser, how) {
         req.session.name = adviser.adviserName;
         req.session.mustChangePassword = adviser.must_change_password === 1;
         req.session.lastSeen = Date.now();
+        if (idToken) {
+            req.session.idToken = idToken;
+        }
         try {
             await audit(req, 'login', how);
         } catch (error) {
@@ -41,16 +44,25 @@ router.get('/login', (req, res) => {
 });
 
 router.post('/logout', requireAuth, async (req, res, next) => {
+    const idToken = req.session.idToken;
     try {
         await audit(req, 'logout');
     } catch (error) {
         return next(error);
     }
-    req.session.destroy(err => {
+    req.session.destroy(async err => {
         if (err) {
             return next(err);
         }
-        res.redirect('/adviser/login');
+        if (!idToken) {
+            return res.redirect('/adviser/login');
+        }
+        try {
+            res.redirect(await logoutUrl(idToken));
+        } catch (error) {
+            console.warn('SLU sign-out is not available:', error.message);
+            res.redirect('/adviser/login');
+        }
     });
 });
 
@@ -86,21 +98,21 @@ router.get('/sso/callback', async (req, res, next) => {
         return showLogin(res, 400, 'Your SLU sign-in expired or was not started here. Please try again.');
     }
 
-    let email;
+    let result;
     try {
-        email = await finishLogin(req.originalUrl, pending);
+        result = await finishLogin(req.originalUrl, pending);
     } catch (error) {
         console.warn('SLU sign-in failed:', error.message);
         return showLogin(res, 400, 'Sign-in with your SLU account did not finish. Please try again.');
     }
 
     try {
-        const adviser = email ? await findAdviserByEmail(email) : null;
+        const adviser = result.email ? await findAdviserByEmail(result.email) : null;
         if (!adviser) {
-            await audit(req, 'login_refused', email);
+            await audit(req, 'login_refused', result.email);
             return showLogin(res, 403, 'Your SLU account is not registered in the OJT Portal. Ask your department head to add you.');
         }
-        startSession(req, res, next, adviser, 'slu');
+        startSession(req, res, next, adviser, 'slu', result.idToken);
     } catch (error) {
         next(error);
     }

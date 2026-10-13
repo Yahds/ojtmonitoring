@@ -101,4 +101,10 @@ describe('route smoke tests', () => {
         expect(res.text).toMatch(/name="csrf_token" value="[0-9a-f]{64}"/);
     });
 
+    test('the privacy notice is public', async () => {
+        const res = await request(app).get('/privacy');
+
+        expect(res.status).toBe(200);
+        expect(res.text).toContain('Data Privacy Act of 2012');
+    });
 });

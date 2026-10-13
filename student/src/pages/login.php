@@ -21,8 +21,16 @@ require __DIR__ . '/../views/head.php';
         <img class="login-logo" src="/assets/img/slu-logo.png" alt="Saint Louis University">
         <h1>Log in</h1>
         <p class="lead">For interns</p>
+        <?php $flash = takeFlash(); ?>
+        <?php if ($flash): ?>
+            <div class="flash flash-<?= e($flash['type']) ?>" role="status"><?= e($flash['text']) ?></div>
+        <?php endif; ?>
         <?php if (!empty($error)): ?>
             <div class="flash flash-error" role="alert"><?= e($error) ?></div>
+        <?php endif; ?>
+        <?php if (ssoEnabled()): ?>
+            <a class="btn btn-primary big-btn" href="/student/sso/start">Sign in with SLU account</a>
+            <p class="login-or">or log in with your student ID and password</p>
         <?php endif; ?>
         <form class="form" action="/student/login" method="post">
             <?= csrf_field() ?>
@@ -37,9 +45,10 @@ require __DIR__ . '/../views/head.php';
                     <button class="btn btn-outline btn-sm" type="button" data-toggle-password="password" aria-pressed="false">Show</button>
                 </div>
             </div>
-            <button class="btn btn-primary big-btn" type="submit">Log in</button>
+            <button class="btn btn-outline big-btn" type="submit">Log in</button>
         </form>
         <p class="muted"><a href="/">Not an intern? Go back</a></p>
+        <p class="muted"><a href="/privacy">How we use your data</a></p>
     </main>
 </div>
 <script src="/assets/js/show-password.js" defer></script>
