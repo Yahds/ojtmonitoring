@@ -11,12 +11,16 @@ const router = express.Router();
 const MAX_MESSAGE = 5000;
 
 async function showAnnouncements(req, res, status, values, errors) {
-    const [sections, announcements] = await Promise.all([
+    const search = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 100) : '';
+    const page = Number.parseInt(req.query.page, 10) || 1;
+    const [sections, list] = await Promise.all([
         fetchAdviserSections(req.session.adviserID),
-        fetchAnnouncements(req.session.adviserID),
+        fetchAnnouncements(req.session.adviserID, search, page),
     ]);
+    // keeps the search when moving between pages
+    const pageHref = n => `/adviser/announcements?${new URLSearchParams(search ? { q: search, page: n } : { page: n })}`;
     res.status(status).render('ojt-dashboard/views/announcements', {
-        title: 'Announcements', sections, announcements, values, errors,
+        title: 'Announcements', sections, values, errors, search, pageHref, ...list,
     });
 }
 

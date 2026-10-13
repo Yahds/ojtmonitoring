@@ -2,7 +2,7 @@
 requireDeployed(true);
 $profile = getInternProfile($_SESSION['internid']);
 $summary = summarize(getRequirements($_SESSION['internid']), getWeeklyReports($_SESSION['internid']));
-$announcements = getAnnouncementsForIntern($_SESSION['internid']);
+$announcements = findAnnouncementsForIntern($_SESSION['internid'])['announcements'];
 $target = $profile['target_hours'];
 $adviser = displayName($profile['adviserName']);
 $supervisor = getSupervisor($_SESSION['internid']);

@@ -31,7 +31,7 @@ router.get("/dashboard", requireAdviser, async (req, res, next) => {
         const reports = {}; // Temporary still doing
 
         if (adviser) {
-            const announcements = await fetchAnnouncements(adviser.adviserID)
+            const { announcements } = await fetchAnnouncements(adviser.adviserID);
 
             res.render('ojt-dashboard/index', {
                 adviser,

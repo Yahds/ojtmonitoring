@@ -188,3 +188,43 @@ test("cannot open or save another adviser's announcement", async () => {
     expect(res.status).toBe(404);
     expect(await findAnnouncements(subject)).toHaveLength(1);
 });
+
+test('search finds posts by subject or message and treats % as plain text', async () => {
+    await createAnnouncement(adviser.adviserID, `${TAG} search 100% done`);
+    await createAnnouncement(adviser.adviserID, `${TAG} search 1000 forms`);
+
+    const res = await agent.get('/adviser/announcements').query({ q: `${TAG} search 100%` });
+
+    expect(res.text).toContain(`${TAG} search 100% done`);
+    expect(res.text).not.toContain(`${TAG} search 1000 forms`);
+    expect(res.text).toContain('1 post matching');
+});
+
+test('a search with no matches says so and offers to clear it', async () => {
+    const res = await agent.get('/adviser/announcements').query({ q: `${TAG} nothing like this` });
+
+    expect(res.text).toContain(`No posts match "${TAG} nothing like this"`);
+    expect(res.text).toContain('Clear');
+});
+
+test('posts come 10 per page and the page links keep the search', async () => {
+    for (let i = 1; i <= 11; i++) {
+        await createAnnouncement(adviser.adviserID, `${TAG} paged ${i}`);
+    }
+    const q = `${TAG} paged`;
+
+    const first = await agent.get('/adviser/announcements').query({ q });
+    const second = await agent.get('/adviser/announcements').query({ q, page: 2 });
+
+    expect(first.text.match(/<article class="item">/g)).toHaveLength(10);
+    expect(first.text).toContain('Page 1 of 2');
+    expect(first.text).toContain(`href="/adviser/announcements?${new URLSearchParams({ q, page: 2 }).toString().replace(/&/g, '&amp;')}"`);
+    expect(second.text.match(/<article class="item">/g)).toHaveLength(1);
+    expect(second.text).toContain('Page 2 of 2');
+});
+
+test('a page number past the end shows the last page', async () => {
+    const res = await agent.get('/adviser/announcements').query({ q: `${TAG} paged`, page: 99 });
+
+    expect(res.text).toContain('Page 2 of 2');
+});

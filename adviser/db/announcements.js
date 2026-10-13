@@ -25,15 +25,31 @@ async function insertAnnouncement(adviserID, post) {
     return result.insertId;
 }
 
-async function fetchAnnouncements(adviserID) {
+const PAGE_SIZE = 10;
+
+// % and _ are wildcards in LIKE, so a search for "100%" must match the text "100%"
+function likePattern(search) {
+    return `%${search.replace(/[\\%_]/g, '\\$&')}%`;
+}
+
+// one page of posts, newest first, optionally only those whose subject or message has the search text
+async function fetchAnnouncements(adviserID, search = '', page = 1) {
+    const filter = search ? 'AND (subject LIKE ? OR message LIKE ?)' : '';
+    const params = search ? [adviserID, likePattern(search), likePattern(search)] : [adviserID];
+
+    const [[{ total }]] = await pool.query(`SELECT COUNT(*) AS total FROM announcements WHERE senderid = ? ${filter}`, params);
+    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const current = Math.min(Math.max(1, page), pages);
+
     const [rows] = await pool.query(
         `SELECT ${COLUMNS}
          FROM announcements
-         WHERE senderid = ?
-         ORDER BY created_at DESC, announcementid DESC`,
-        [adviserID]
+         WHERE senderid = ? ${filter}
+         ORDER BY created_at DESC, announcementid DESC
+         LIMIT ? OFFSET ?`,
+        [...params, PAGE_SIZE, (current - 1) * PAGE_SIZE]
     );
-    return rows;
+    return { announcements: rows, total, page: current, pages };
 }
 
 async function fetchAnnouncement(announcementID, adviserID) {
