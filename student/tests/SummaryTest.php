@@ -35,13 +35,6 @@ class SummaryTest extends TestCase
         $this->assertSame(['Consent form', 'MOA'], array_map(fn ($r) => $r->reqName, $summary['todo']));
     }
 
-    public function testEachCourseHasItsOwnHoursTarget(): void
-    {
-        $this->assertSame(240, targetHoursFor('BSCS'));
-        $this->assertSame(600, targetHoursFor('BSIT'));
-        $this->assertNull(targetHoursFor('UNKNOWN'));
-    }
-
     public function testRequirementsAreGroupedByWhoActsNext(): void
     {
         $groups = groupRequirements([

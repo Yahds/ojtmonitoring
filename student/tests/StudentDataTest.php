@@ -111,6 +111,7 @@ class StudentDataTest extends TestCase
 
         $this->assertSame('Microsoft', $profile['companyname']);
         $this->assertSame('Stevens, Amelia', $profile['adviserName']);
+        $this->assertSame(240, $profile['target_hours']);
     }
     
     public function testAnApprovedRequirementCannotBeChanged(): void

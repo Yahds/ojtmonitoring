@@ -3,7 +3,7 @@ requireDeployed();
 $profile = getInternProfile($_SESSION['internid']);
 $summary = summarize(getRequirements($_SESSION['internid']), getWeeklyReports($_SESSION['internid']));
 $announcements = getAnnouncementsForIntern($_SESSION['internid']);
-$target = targetHoursFor($profile['course']);
+$target = $profile['target_hours'];
 $adviser = displayName($profile['adviserName']);
 $todoCount = count($summary['todo']);
 $title = 'Dashboard';

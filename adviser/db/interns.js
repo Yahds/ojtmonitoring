@@ -48,8 +48,21 @@ async function enrollIntern(student, adviserID) {
     }
 }
 
+// deployed interns with approved hours, status FINISHED means the course's target is reached
 async function fetchInterns(adviserID) {
-    const [rows] = await pool.query("SELECT students.studentid, studentname, classcode, companyname, companyaddress, COALESCE(subquery.totalhours, 0) AS totalhours, CASE WHEN COALESCE(subquery.totalhours, 0) < 240 THEN 'ON GOING' WHEN COALESCE(subquery.totalhours, 0) > 240 THEN 'FINISHED' ELSE 'ON GOING' END AS 'status' FROM students LEFT JOIN interns ON students.studentid = interns.studentid LEFT JOIN (SELECT interns.internid, SUM(weeklyreports.hours) AS totalhours FROM interns LEFT JOIN weeklyreports ON interns.internid = weeklyreports.internid AND weeklyreports.status = 'APPROVED' WHERE interns.status = 'ACTIVE' GROUP BY interns.internid) AS subquery ON interns.internid = subquery.internid LEFT JOIN company ON interns.companyid = company.companyid LEFT JOIN advisers ON advisers.adviserID = interns.adviserID WHERE advisers.adviserID = ? AND interns.status = 'ACTIVE'", [adviserID]);
+    const [rows] = await pool.query(
+        `SELECT s.studentid, s.studentname, s.classcode, c.companyname, c.companyaddress,
+                COALESCE(h.totalhours, 0) AS totalhours, co.target_hours,
+                CASE WHEN COALESCE(h.totalhours, 0) >= co.target_hours THEN 'FINISHED' ELSE 'ON GOING' END AS status
+         FROM interns i
+         JOIN students s ON s.studentID = i.studentid
+         JOIN courses co ON co.code = s.course
+         LEFT JOIN company c ON c.companyid = i.companyid
+         LEFT JOIN (SELECT internid, SUM(hours) AS totalhours FROM weeklyreports WHERE status = 'APPROVED' GROUP BY internid) h
+                ON h.internid = i.internid
+         WHERE i.adviserid = ? AND i.status = 'ACTIVE'`,
+        [adviserID]
+    );
     return rows;
 }
 
