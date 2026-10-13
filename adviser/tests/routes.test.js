@@ -55,6 +55,7 @@ describe('route smoke tests', () => {
         ['get', '/adviser/interns/1/requirements'],
         ['post', '/adviser/interns/1/requirements'],
         ['get', '/adviser/interns/1/requirements/1/file'],
+        ['get', '/adviser/review'],
         ['get', '/adviser/interns/1/requirements/new'],
         ['post', '/adviser/interns/1/requirements/new'],
         ['get', '/adviser/interns/1/requirements/1/deadline'],

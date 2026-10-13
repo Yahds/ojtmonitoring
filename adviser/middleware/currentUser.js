@@ -1,5 +1,10 @@
 const ROLE_LABELS = { adviser: 'Adviser', dept_head: 'Dept head' };
 
+const REVIEW_LINK = {
+    href: '/adviser/review',
+    label: 'To review',
+};
+
 const INTERNS_LINK = {
     href: '/adviser/interns',
     label: 'Interns',
@@ -18,13 +23,13 @@ const ANNOUNCEMENTS_LINK = {
 const NAV = {
     adviser: [
         { href: '/adviser/dashboard', label: 'Dashboard', exact: true },
-        INTERNS_LINK, ENDORSEMENTS_LINK, ANNOUNCEMENTS_LINK,
+        REVIEW_LINK, INTERNS_LINK, ENDORSEMENTS_LINK, ANNOUNCEMENTS_LINK,
         { href: '/adviser/about', label: 'About us' },
     ],
     dept_head: [
         { href: '/adviser/admin', label: 'Overview', exact: true },
         { href: '/adviser/admin/advisers', label: 'Advisers' },
-        INTERNS_LINK, ENDORSEMENTS_LINK, ANNOUNCEMENTS_LINK,
+        REVIEW_LINK, INTERNS_LINK, ENDORSEMENTS_LINK, ANNOUNCEMENTS_LINK,
         { href: '/adviser/about', label: 'About us' },
     ],
 };
