@@ -24,6 +24,7 @@ require __DIR__ . '/../views/header.php';
                     <span class="tag">Not submitted</span>
                 <?php endif; ?>
             </div>
+            <?php require __DIR__ . '/../views/requirement-due.php'; ?>
             <?php if ($requirement->remarks): ?>
                 <div class="remark"><?= e($adviser) ?>: “<?= e($requirement->remarks) ?>”</div>
             <?php endif; ?>
@@ -45,6 +46,7 @@ require __DIR__ . '/../views/header.php';
                 <h3><?= e($requirement->reqName) ?></h3>
                 <span class="tag tag-warn">Submitted</span>
             </div>
+            <?php require __DIR__ . '/../views/requirement-due.php'; ?>
             <p class="meta">
                 Submitted <?= e($requirement->dateSubmitted) ?>
                 <?php if ($requirement->filePath): ?>

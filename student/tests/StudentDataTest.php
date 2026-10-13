@@ -25,7 +25,7 @@ class StudentDataTest extends TestCase
     protected function tearDown(): void
     {
         $this->db->query("DELETE FROM requirement_versions WHERE versionid > " . $this->lastVersionBeforeTest);
-        $this->db->query("UPDATE internrequirements SET status = 'PENDING', datesubmitted = NULL, intern_remarks = NULL, file_path = NULL, remarks = NULL
+        $this->db->query("UPDATE internrequirements SET status = 'PENDING', datesubmitted = NULL, intern_remarks = NULL, file_path = NULL, remarks = NULL, due_date = NULL
                           WHERE internid = " . self::JOSE . " AND reqid = " . self::APPLICATION_LETTER);
         $this->db->query("DELETE FROM weeklyreports WHERE internid = " . self::JOSE);
         $this->db->query("DELETE FROM journals WHERE internid = " . self::JOSE);
@@ -87,6 +87,16 @@ class StudentDataTest extends TestCase
 
         $this->assertSame('req_jose.pdf', getRequirementVersionFile(self::JOSE, self::APPLICATION_LETTER, $versionNo));
         $this->assertNull(getRequirementVersionFile(self::MARIA, self::APPLICATION_LETTER, $versionNo + 100));
+    }
+
+    public function testARequirementNotSentByItsDeadlineIsOverdue(): void
+    {
+        $this->db->query("UPDATE internrequirements SET due_date = CURDATE() - INTERVAL 1 DAY WHERE internid = " . self::JOSE . " AND reqid = " . self::APPLICATION_LETTER);
+
+        $letter = array_values(array_filter(getRequirements(self::JOSE), fn ($r) => $r->reqID === self::APPLICATION_LETTER))[0];
+
+        $this->assertSame('OVERDUE', $letter->deadline);
+        $this->assertSame(date('M j, Y', strtotime('-1 day')), $letter->dueLabel);
     }
 
     public function testResubmittingClearsTheOldRemark(): void

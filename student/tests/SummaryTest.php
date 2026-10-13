@@ -49,4 +49,13 @@ class SummaryTest extends TestCase
         $this->assertSame(['Endorsement letter'], $names($groups['waiting']));
         $this->assertSame(['Resume'], $names($groups['approved']));
     }
+
+    public function testUnsubmittedRequirementsWithTheNearestDeadlineComeFirst(): void
+    {
+        $due = fn (string $name, ?string $date) => new Requirement(1, 1, $name, null, 'PENDING', null, null, null, $date);
+
+        $groups = groupRequirements([$due('No deadline', null), $due('Later', '2099-03-01'), $due('Sooner', '2099-01-10')]);
+
+        $this->assertSame(['Sooner', 'Later', 'No deadline'], array_map(fn ($r) => $r->reqName, $groups['action']));
+    }
 }

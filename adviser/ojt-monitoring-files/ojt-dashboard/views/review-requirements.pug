@@ -19,19 +19,25 @@ block content
         .item-head
           h3= req.requirementname
           - const status = statusOf('requirement', req.status)
-          span.tag(class=status.tag)= status.label
+          .btn-row
+            if req.deadline
+              - const deadline = statusOf('deadline', req.deadline)
+              span.tag(class=deadline.tag)= deadline.label
+            span.tag(class=status.tag)= status.label
+        if req.due
+          p.meta Due #{req.due}
         if req.datesubmitted
           p.meta Submitted #{req.datesubmitted}#{req.versions > 1 ? ` · Version ${req.versions}` : ''}
         if req.intern_remarks
           p.note
             b Intern:
             |  #{req.intern_remarks}
-        if req.file_path || req.versions > 1
-          p.btn-row
-            if req.file_path
-              a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/file`) View submitted file
-            if req.versions > 1
-              a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/versions`) All versions (#{req.versions})
+        p.btn-row
+          if req.file_path
+            a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/file`) View submitted file
+          if req.versions > 1
+            a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/versions`) All versions (#{req.versions})
+          a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/deadline`) #{req.due ? 'Change deadline' : 'Set deadline'}
         if req.status === 'PENDING'
           p.meta Waiting for the intern to submit.
         else if req.status !== 'SUBMITTED'

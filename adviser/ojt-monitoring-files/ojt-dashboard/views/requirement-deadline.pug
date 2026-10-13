@@ -1,0 +1,42 @@
+extends ../../layouts/main
+
+block content
+  - const show = date => (date ? new Date(`${date}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'None')
+  p.crumb #[a(href='/adviser/interns') Interns] / #[a(href=`/adviser/interns/${internId}/requirements`) Requirements] / Deadline
+  h1.page-title Deadline · #{deadlines.requirementname}
+  p.muted If more than one applies, the most specific wins: this intern, then the section, then all your sections.
+
+  section.card.card-pad
+    h2.section-title Deadlines that apply to #{deadlines.studentName}
+    p.meta Only #{deadlines.studentName}: #[b #{show(deadlines.intern)}]
+    p.meta Section #{deadlines.classcode}: #[b #{show(deadlines.section)}]
+    p.meta All my sections: #[b #{show(deadlines.everyone)}]
+
+  section.card.card-pad
+    h2.section-title Set or remove a deadline
+    form.form(action=`/adviser/interns/${internId}/requirements/${reqid}/deadline` method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      fieldset.field(aria-describedby=(errors.scope ? 'scope-error' : undefined))
+        legend.label For
+        label.check-row
+          input(type='radio' name='scope' value='intern' checked=values.scope === 'intern')
+          | Only #{deadlines.studentName}
+        label.check-row
+          input(type='radio' name='scope' value='section' checked=values.scope === 'section')
+          | Everyone in section #{deadlines.classcode}, including interns enrolled later
+        label.check-row
+          input(type='radio' name='scope' value='all' checked=values.scope === 'all')
+          | All my sections, including interns enrolled later
+        if errors.scope
+          span.error#scope-error= errors.scope
+      .field
+        label(for='dueDate') Due date
+        input.input#dueDate(type='date' name='dueDate' value=values.dueDate min=today aria-invalid=(errors.dueDate ? 'true' : undefined) aria-describedby=(errors.dueDate ? 'dueDate-error' : 'dueDate-help'))
+        if errors.dueDate
+          span.error#dueDate-error= errors.dueDate
+        else
+          span.help#dueDate-help Late submissions are still accepted and marked "Sent late".
+      .btn-row
+        button.btn.btn-create(type='submit' name='action' value='save') Save deadline
+        button.btn.btn-outline(type='submit' name='action' value='remove' formnovalidate) Remove deadline
+        a.btn.btn-outline(href=`/adviser/interns/${internId}/requirements`) Cancel
