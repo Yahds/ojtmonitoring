@@ -2,13 +2,33 @@ const { pool } = require('./pool');
 
 // -- functions for changing of intern status
 
-async function deployIntern(internID, adviserID) {
+const DATA_PRIVACY_CERTIFICATE = 6; // requirements.reqid
+
+async function fetchDeployCheck(internID, adviserID) {
+    const [rows] = await pool.query(
+        `SELECT i.internid, i.status, s.studentName, c.companyname,
+                e.status = 'ACCEPTED' AND e.companyid = i.companyid AS replyReceived,
+                ir.status = 'APPROVED' AS privacyApproved,
+                DATE_FORMAT(e.start_date, '%Y-%m-%d') AS plannedStart
+         FROM interns i
+         JOIN students s ON s.studentID = i.studentid
+         LEFT JOIN company c ON c.companyid = i.companyid
+         LEFT JOIN endorsements e ON e.internid = i.internid
+         LEFT JOIN internrequirements ir ON ir.internid = i.internid AND ir.reqid = ?
+         WHERE i.internid = ? AND i.adviserid = ?`,
+        [DATA_PRIVACY_CERTIFICATE, internID, adviserID]
+    );
+    return rows[0] || null;
+}
+
+async function deployIntern(internID, adviserID, startDate) {
     const [result] = await pool.query(
         `UPDATE interns i
             JOIN endorsements e ON e.internid = i.internid AND e.companyid = i.companyid AND e.status = 'ACCEPTED'
-            SET i.status = 'ACTIVE'
+            JOIN internrequirements ir ON ir.internid = i.internid AND ir.reqid = ? AND ir.status = 'APPROVED'
+            SET i.status = 'ACTIVE', i.deployed_on = ?
             WHERE i.internid = ? AND i.adviserid = ? AND i.status = 'PENDING'`,
-        [internID, adviserID]
+        [DATA_PRIVACY_CERTIFICATE, startDate, internID, adviserID]
     );
     return result;
 }
@@ -93,6 +113,7 @@ async function isAdvisersIntern(internId, adviserID) {
 
 module.exports = {
     deployIntern,
+    fetchDeployCheck,
     updateInternRemarks,
     enrollIntern,
     fetchInterns,

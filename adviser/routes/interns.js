@@ -1,8 +1,10 @@
 const express = require('express');
 const { fetchInternsByAdviser, fetchCourses, enrollIntern,
-    updateInternRemarks, deployIntern, isAdvisersIntern } = require('../db');
+    updateInternRemarks, deployIntern, isAdvisersIntern, fetchDeployCheck } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 const { audit } = require('../lib/audit')
+const { statusOf } = require('../lib/statuses');
+const { isRealDate, today } = require('../lib/dates');
 
 const router = express.Router();
 
@@ -79,14 +81,57 @@ router.post('/interns', requireAdviser, async (req, res, next) => {
     }
 });
 
-router.post('/interns/:internId/deploy', requireAdviser, async (req, res, next) => {
+const DEPLOYABLE = ['ENROLLED', 'PENDING'];
+
+function deployChecklist(intern) {
+    return [
+        { label: 'Company chosen', done: Boolean(intern.companyname), hint: 'The intern selects it on their own page.' },
+        { label: 'Endorsement reply form received', done: intern.replyReceived === 1, hint: 'Mark it on the Endorsements page once the company replies.' },
+        { label: 'Data Privacy Certificate approved', done: intern.privacyApproved === 1, hint: "Review it on the intern's requirements page." },
+    ];
+}
+
+async function showDeployPage(req, res, next, status, startDate, errors) {
+    const intern = await fetchDeployCheck(req.params.internId, req.session.adviserID);
+    if (!intern) {
+        return next(); 
+    }
+    if (!DEPLOYABLE.includes(intern.status)) {
+        req.flash('info', `${intern.studentName} is already ${statusOf('intern', intern.status).label.toLowerCase()}.`);
+        return res.redirect('/adviser/interns');
+    }
+    const checklist = deployChecklist(intern);
+    res.status(status).render('ojt-dashboard/views/deploy', {
+        title: 'Deploy intern',
+        intern,
+        checklist,
+        ready: checklist.every(item => item.done),
+        startDate: startDate || intern.plannedStart || today(),
+        errors,
+    });
+}
+
+router.get('/interns/:internId/deploy', requireAdviser, async (req, res, next) => {
     try {
-        const internID = req.params.internId;
-        const result = await deployIntern(internID, req.session.adviserID);
-        if (result.affectedRows === 0) {
-            req.flash('error', 'Cannot deploy yet. The company has not sent back the endorsement reply form.');
-            return res.redirect('/adviser/interns');
+        await showDeployPage(req, res, next, 200, null, {});
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/interns/:internId/deploy', requireAdviser, async (req, res, next) => {
+    const { internId } = req.params;
+    const startDate = typeof req.body.startDate === 'string' ? req.body.startDate : '';
+    try {
+        if (!isRealDate(startDate)) {
+            return await showDeployPage(req, res, next, 400, startDate, { startDate: 'Enter a real date.' });
         }
+        const result = await deployIntern(internId, req.session.adviserID, startDate);
+        if (result.affectedRows === 0) {
+            req.flash('error', 'Cannot deploy yet. Finish the items marked as missing first.');
+            return res.redirect(`/adviser/interns/${internId}/deploy`);
+        }
+        await audit(req, 'intern_deployed', internId);
         req.flash('success', 'Intern deployed.');
         res.redirect('/adviser/interns');
     } catch (error) {

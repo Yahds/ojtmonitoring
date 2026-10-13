@@ -38,6 +38,4 @@ block content
                     a(href=`/adviser/interns/${i.internid}/journals`) Journals
                 td
                   if i.status === 'PENDING'
-                    form(action=`/adviser/interns/${i.internid}/deploy` method='POST')
-                      input(type='hidden' name='csrf_token' value=csrfToken)
-                      button.btn.btn-create.btn-sm(type='submit') Deploy
+                    a.btn.btn-create.btn-sm(href=`/adviser/interns/${i.internid}/deploy`) Deploy

@@ -112,18 +112,19 @@ test('after enrolling, the interns page shows a success message once', async () 
     expect(again.text).not.toContain('class="flash');
 });
 
-test('deploying an intern who is not ready shows an error instead of a blank page', async () => {
+test('deploying an intern who is not ready goes back to the checklist with a message', async () => {
     const [[intern]] = await pool.query('SELECT internid FROM interns WHERE studentid = ?', [FLASH_STUDENT_ID]);
+    const deployUrl = `/adviser/interns/${intern.internid}/deploy`;
 
     const res = await agent
-        .post(`/adviser/interns/${intern.internid}/deploy`)
+        .post(deployUrl)
         .type('form')
-        .send({ csrf_token: csrfToken });
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toBe('/adviser/interns');
+        .send({ startDate: '2026-11-03', csrf_token: csrfToken });
+    expect(res.headers.location).toBe(deployUrl);
 
-    const page = await agent.get('/adviser/interns');
+    const page = await agent.get(deployUrl);
     expect(page.text).toContain('Cannot deploy yet.');
+    expect(page.text).toContain('Missing');
 });
 
 test('the enroll page lists the courses from the database', async () => {
