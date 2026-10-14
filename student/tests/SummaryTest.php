@@ -19,8 +19,8 @@ class SummaryTest extends TestCase
             ['hours' => 8, 'status' => 'REJECTED'],
         ]);
 
-        $this->assertSame(40, $summary['approvedHours']);
-        $this->assertSame(32, $summary['waitingHours']);
+        $this->assertSame(40.0, $summary['approvedHours']);
+        $this->assertSame(32.0, $summary['waitingHours']);
     }
 
     public function testToDoShowsRejectedRequirementsFirstThenUnsubmittedOnes(): void

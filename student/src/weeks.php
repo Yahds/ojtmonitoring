@@ -74,3 +74,13 @@ function reportingWeek(string $deployedOn, array $dueRules, array $reportedWeeks
     }
     return ['week' => null, 'range' => null, 'due' => null, 'opensOn' => weekRange($deployedOn, $upcoming)[1]];
 }
+
+// week dates + the weekend after
+function reportDays(array $range): array
+{
+    $days = [];
+    for ($day = $range[0]; $day <= $range[1]->modify('+2 days'); $day = $day->modify('+1 day')) {
+        $days[] = ['date' => $day->format('Y-m-d'), 'weekend' => (int) $day->format('N') >= 6];
+    }
+    return $days;
+}

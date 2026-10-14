@@ -11,6 +11,7 @@ async function fetchWeeklyReportsForReview(internID, adviserID) {
             wr.status,
             wr.remark,
             wr.datesubmitted,
+            wr.supervisor_name,
             students.studentName
         FROM weeklyreports wr
         JOIN interns ON wr.internid = interns.internid
@@ -18,6 +19,21 @@ async function fetchWeeklyReportsForReview(internID, adviserID) {
         WHERE wr.internid = ? AND interns.adviserid = ?
         ORDER BY wr.weeknumber
     `, [internID, adviserID]);
+    return rows;
+}
+
+async function fetchWeeklyReportDays(internID, adviserID) {
+    const [rows] = await pool.query(
+        `SELECT d.reportid, DATE_FORMAT(d.work_date, '%a, %b %e') AS day,
+                TIME_FORMAT(d.am_in, '%l:%i %p') AS am_in, TIME_FORMAT(d.am_out, '%l:%i %p') AS am_out,
+                TIME_FORMAT(d.pm_in, '%l:%i %p') AS pm_in, TIME_FORMAT(d.pm_out, '%l:%i %p') AS pm_out, d.hours
+         FROM weeklyreport_days d
+         JOIN weeklyreports w ON w.reportid = d.reportid
+         JOIN interns i ON i.internid = w.internid
+         WHERE w.internid = ? AND i.adviserid = ?
+         ORDER BY d.work_date`,
+        [internID, adviserID]
+    );
     return rows;
 }
 
@@ -43,6 +59,7 @@ async function updateWeeklyReportReview(reportID, adviserID, decision, remark) {
 
 module.exports = {
     fetchWeeklyReportsForReview,
+    fetchWeeklyReportDays,
     fetchWeeklyReportFileForAdviser,
     updateWeeklyReportReview,
 };

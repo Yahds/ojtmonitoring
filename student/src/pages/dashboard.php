@@ -66,12 +66,12 @@ require __DIR__ . '/../views/header.php';
         <section class="prog" aria-label="Progress">
             <div class="card">
                 <div class="k">Approved hours</div>
-                <div class="big"><?= $summary['approvedHours'] ?><?php if ($target): ?> <small>/ <?= $target ?></small><?php endif; ?></div>
+                <div class="big"><?= hoursText($summary['approvedHours']) ?><?php if ($target): ?> <small>/ <?= $target ?></small><?php endif; ?></div>
                 <?php if ($target): ?>
                     <div class="bar"><span style="width: <?= min(100, round($summary['approvedHours'] / $target * 100)) ?>%"></span></div>
                     <div class="d">
-                        <?= $summary['approvedHours'] >= $target ? 'Target reached' : ($target - $summary['approvedHours']) . ' hours to go' ?>
-                        · <?= $summary['waitingHours'] ?> hours waiting for review
+                        <?= $summary['approvedHours'] >= $target ? 'Target reached' : hoursText($target - $summary['approvedHours']) . ' hours to go' ?>
+                        · <?= hoursText($summary['waitingHours']) ?> hours waiting for review
                     </div>
                 <?php endif; ?>
             </div>

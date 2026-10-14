@@ -120,14 +120,20 @@ class StudentDataTest extends TestCase
 
     public function testSubmittingAWeeklyReportSavesItAsPending(): void
     {
-        submitWeeklyReport(self::JOSE, 3, null, 8, 'set up the database', null);
+        $days = [
+            '2026-09-14' => ['am_in' => '08:00', 'am_out' => '12:00', 'pm_in' => '13:00', 'pm_out' => '17:00', 'hours' => 8.0],
+            '2026-09-15' => ['am_in' => '08:00', 'am_out' => '11:30', 'pm_in' => null, 'pm_out' => null, 'hours' => 3.5],
+        ];
+        $reportID = submitWeeklyReport(self::JOSE, 3, '2026-09-14', $days, 'set up the database', 'Joel Bautista', null);
 
-        $row = $this->db->query("SELECT hours, status, datesubmitted FROM weeklyreports
-                                 WHERE internid = " . self::JOSE . " AND weeknumber = 3")->fetch_assoc();
+        $row = $this->db->query("SELECT hours, status, datesubmitted, supervisor_name FROM weeklyreports WHERE reportid = $reportID")->fetch_assoc();
+        $saved = $this->db->query("SELECT work_date, hours FROM weeklyreport_days WHERE reportid = $reportID ORDER BY work_date")->fetch_all(MYSQLI_ASSOC);
 
-        $this->assertEquals(8, $row['hours']);
+        $this->assertEquals(11.5, $row['hours']);
         $this->assertSame('PENDING', $row['status']);
         $this->assertSame(date('Y-m-d'), $row['datesubmitted']);
+        $this->assertSame('Joel Bautista', $row['supervisor_name']);
+        $this->assertEquals([['work_date' => '2026-09-14', 'hours' => 8], ['work_date' => '2026-09-15', 'hours' => 3.5]], $saved);
     }
 
     public function testSubmittingAJournalSavesItAsPending(): void

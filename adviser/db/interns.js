@@ -35,7 +35,7 @@ async function deployIntern(internID, adviserID, startDate) {
 
 const CERTIFICATE_OF_COMPLETION = 8; // requirements.reqid
 
-const APPROVED_HOURS = `(SELECT CAST(COALESCE(SUM(w.hours), 0) AS UNSIGNED)
+const APPROVED_HOURS = `(SELECT COALESCE(SUM(w.hours), 0)
                          FROM weeklyreports w WHERE w.internid = i.internid AND w.status = 'APPROVED')`;
 
 async function fetchFinishCheck(internID, adviserID) {

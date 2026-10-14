@@ -21,9 +21,27 @@ block content
           - const status = statusOf('review', report.status)
           span.tag(class=status.tag)= status.label
         if report.datesubmitted
-          p.meta Submitted #{report.datesubmitted}
+          p.meta Submitted #{report.datesubmitted}#{report.supervisor_name ? ` · Supervisor: ${report.supervisor_name}` : ''}
+        if report.days.length
+          .table-wrap
+            table
+              thead
+                tr
+                  th(scope='col') Date
+                  th(scope='col') Morning
+                  th(scope='col') Afternoon
+                  th.num(scope='col') Hours
+              tbody
+                each day in report.days
+                  tr
+                    th(scope='row')= day.day
+                    td= day.am_in ? `${day.am_in} – ${day.am_out}` : '–'
+                    td= day.pm_in ? `${day.pm_in} – ${day.pm_out}` : '–'
+                    td.num= day.hours
         if report.workdescription
-          p.note= report.workdescription
+          p.note
+            b Work accomplishment:
+            |  #{report.workdescription}
         if report.file_path
           p
             a(href=`/adviser/weekly-reports/${report.reportid}/file`) View signed report

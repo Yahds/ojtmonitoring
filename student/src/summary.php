@@ -4,7 +4,7 @@
 function summarize(array $requirements, array $reports): array
 {
     $hoursWith = fn (string $status) => array_sum(array_map(
-        fn ($report) => $report['status'] === $status ? (int) $report['hours'] : 0,
+        fn ($report) => $report['status'] === $status ? (float) $report['hours'] : 0,
         $reports
     ));
     $requirementsWith = fn (string $status) => count(array_filter($requirements, fn ($r) => $r->status === $status));

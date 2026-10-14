@@ -35,11 +35,35 @@ function getReportedWeeks($internID): array
     return array_map(fn ($row) => (int) $row['weeknumber'], $rows);
 }
 
-function submitWeeklyReport($internID, $weeknumber, $weekStart, $hours, $workdescription, $filePath)
+function submitWeeklyReport($internID, int $week, string $weekStart, array $days, string $accomplishment, string $supervisorName, ?string $filePath): int
 {
-    return db()->execute_query(
-        "INSERT INTO weeklyreports (internid, weeknumber, week_start, hours, workdescription, file_path, status, datesubmitted)
-         VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?)",
-        [$internID, $weeknumber, $weekStart, $hours, $workdescription, $filePath, date('Y-m-d')]
-    ) ? db()->affected_rows : 0;
+    $db = db();
+    $db->begin_transaction();
+    try {
+        $db->execute_query(
+            "INSERT INTO weeklyreports (internid, weeknumber, week_start, hours, workdescription, supervisor_name, file_path, status, datesubmitted)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)",
+            [$internID, $week, $weekStart, array_sum(array_column($days, 'hours')), $accomplishment, $supervisorName, $filePath, date('Y-m-d')]
+        );
+        $reportID = $db->insert_id;
+        foreach ($days as $date => $day) {
+            $db->execute_query(
+                "INSERT INTO weeklyreport_days (reportid, work_date, am_in, am_out, pm_in, pm_out, hours) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [$reportID, $date, $day['am_in'], $day['am_out'], $day['pm_in'], $day['pm_out'], $day['hours']]
+            );
+        }
+        $db->commit();
+        return $reportID;
+    } catch (Throwable $error) {
+        $db->rollback();
+        throw $error;
+    }
+}
+
+function getApprovedHours($internID): float
+{
+    return (float) db()->execute_query(
+        "SELECT COALESCE(SUM(hours), 0) FROM weeklyreports WHERE internid = ? AND status = 'APPROVED'",
+        [$internID]
+    )->fetch_row()[0];
 }

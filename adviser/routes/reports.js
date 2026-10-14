@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const { fetchWeeklyReportsForReview, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser } = require('../db');
+const { fetchWeeklyReportsForReview, fetchWeeklyReportDays, updateWeeklyReportReview, fetchWeeklyReportFileForAdviser } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 
 const router = express.Router();
@@ -8,9 +8,13 @@ const router = express.Router();
 router.get("/interns/:internId/weekly-reports", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
-        const weeklyReports = await fetchWeeklyReportsForReview(internId, req.session.adviserID);
+        const [weeklyReports, days] = await Promise.all([
+            fetchWeeklyReportsForReview(internId, req.session.adviserID),
+            fetchWeeklyReportDays(internId, req.session.adviserID),
+        ]);
         weeklyReports.forEach(report => {
             if (report.datesubmitted) report.datesubmitted = new Date(report.datesubmitted).toDateString();
+            report.days = days.filter(day => day.reportid === report.reportid);
         });
         res.render('ojt-dashboard/views/weekly-reports-review', { title: 'Weekly reports', weeklyReports, internId });
     } catch (error) {

@@ -207,6 +207,26 @@ class HttpTest extends TestCase
         $this->assertStringNotContainsString('name="weeknumber"', $body);
     }
 
+    public function testAWeeklyReportWithAMistakeKeepsWhatTheInternTyped(): void
+    {
+        $ana = db()->execute_query("SELECT internid, adviserid, DATE_FORMAT(deployed_on, '%Y-%m-%d') AS deployed FROM interns WHERE studentid = 2299003")->fetch_assoc();
+        $now = reportingWeek($ana['deployed'], getDueRules($ana['adviserid']), getReportedWeeks($ana['internid']), date('Y-m-d'));
+        $firstDay = reportDays($now['range'])[0]['date'];
+        $this->logIn('2299003', '1234');
+        $token = $this->tokenFrom($this->request('GET', '/weekly-reports')['body']);
+
+        $response = $this->request('POST', '/weekly-reports', [
+            'csrf_token' => $token,
+            'days' => [$firstDay => ['am_in' => '08:00', 'am_out' => '12:00']],
+            'accomplishment' => 'Wrote tests',
+        ]);
+
+        $this->assertSame(400, $response['status']);
+        $this->assertStringContainsString('Attach the copy your supervisor signed.', $response['body']);
+        $this->assertStringContainsString('value="08:00"', $response['body']);
+        $this->assertStringContainsString('Wrote tests', $response['body']);
+    }
+
     public function testAWithdrawnInternOnlySeesTheWithdrawnPage(): void
     {
         db()->execute_query("UPDATE interns SET status = 'WITHDRAWN' WHERE internid = 300");
