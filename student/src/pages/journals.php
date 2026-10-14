@@ -2,7 +2,8 @@
 requireDeployed(true);
 $journals = getMonthlyJournals($_SESSION['internid']);
 $adviser = displayName(getInternProfile($_SESSION['internid'])['adviserName']);
-$nextMonth = $journals ? max(array_column($journals, 'monthnumber')) + 1 : 1;
+$needsChanges = array_column(array_filter($journals, fn ($journal) => $journal['status'] === 'REJECTED'), 'monthnumber');
+$nextMonth = $needsChanges ? min($needsChanges) : ($journals ? max(array_column($journals, 'monthnumber')) + 1 : 1);
 $title = 'Journals';
 require __DIR__ . '/../views/header.php';
 ?>
@@ -10,10 +11,13 @@ require __DIR__ . '/../views/header.php';
 <p class="muted">Submit one journal for each month of your OJT.</p>
 
 <?php if ($_SESSION['status'] === 'ACTIVE'): ?>
-<h2 class="section-title">Submit a report</h2>
+<h2 class="section-title">Submit a journal</h2>
 <section class="card card-pad">
     <form class="form" action="/student/journals" method="post" enctype="multipart/form-data">
         <?= csrf_field() ?>
+        <?php if ($needsChanges): ?>
+            <p class="note">Your adviser asked for changes on month <?= implode(', ', array_map('intval', $needsChanges)) ?>. Sending that month again replaces the journal that needed changes.</p>
+        <?php endif; ?>
         <div class="field">
             <label for="monthnumber">Month number</label>
             <input class="input" id="monthnumber" type="number" name="monthnumber" min="1" max="12" value="<?= (int) min($nextMonth, 12) ?>" required>

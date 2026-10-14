@@ -177,6 +177,34 @@ class StudentDataTest extends TestCase
         $this->assertEquals(0, getWeeklyReports(self::JOSE)[0]['late']);
     }
 
+    public function testAWeekThatNeedsChangesOpensAgainAndTheNewReportReplacesIt(): void
+    {
+        submitWeeklyReport(self::JOSE, self::WEEK_3, [], 'first try', 'Joel Bautista', null);
+        $this->db->query("UPDATE weeklyreports SET status = 'REJECTED', submitted_at = '2026-09-20 09:00:00' WHERE internid = " . self::JOSE);
+        $this->assertSame([], getReportedWeeks(self::JOSE));
+
+        submitWeeklyReport(self::JOSE, self::WEEK_3, [], 'fixed', 'Joel Bautista', null);
+
+        $reports = getWeeklyReports(self::JOSE);
+        $this->assertCount(1, $reports);
+        $this->assertSame(['fixed', 'PENDING', '2026-09-20 09:00:00'], [$reports[0]['workdescription'], $reports[0]['status'], $reports[0]['submitted_at']]);
+        $this->assertEquals(0, $reports[0]['late'], 'it was on time the first time, so fixing it is not late');
+        $this->assertSame([3], getReportedWeeks(self::JOSE));
+    }
+
+    public function testAJournalMonthCanOnlyBeSentAgainAfterChangesAreAsked(): void
+    {
+        $this->assertTrue(submitJournal(self::JOSE, 1, 'first', null));
+        $this->assertFalse(submitJournal(self::JOSE, 1, 'again while waiting', null));
+
+        $this->db->query("UPDATE journals SET status = 'REJECTED' WHERE internid = " . self::JOSE);
+        $this->assertTrue(submitJournal(self::JOSE, 1, 'fixed', null));
+
+        $journals = getMonthlyJournals(self::JOSE);
+        $this->assertCount(1, $journals);
+        $this->assertSame(['fixed', 'PENDING'], [$journals[0]['notes'], $journals[0]['status']]);
+    }
+
     public function testSubmittingAJournalSavesItAsPending(): void
     {
         submitJournal(self::JOSE, 1, 'first month notes', null);

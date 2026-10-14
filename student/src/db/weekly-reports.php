@@ -33,7 +33,8 @@ function getDueRules($adviserID): array
 
 function getReportedWeeks($internID): array
 {
-    $rows = db()->execute_query("SELECT DISTINCT weeknumber FROM weeklyreports WHERE internid = ?", [$internID])->fetch_all(MYSQLI_ASSOC);
+    // a week that needs changes is open again
+    $rows = db()->execute_query("SELECT DISTINCT weeknumber FROM weeklyreports WHERE internid = ? AND status <> 'REJECTED'", [$internID])->fetch_all(MYSQLI_ASSOC);
     return array_map(fn ($row) => (int) $row['weeknumber'], $rows);
 }
 
@@ -46,13 +47,36 @@ function currentWeekFor($internID, array $profile): ?array
     return reportingWeek($profile['deployedOn'], getDueRules($profile['adviserid']), getReportedWeeks($internID), date('Y-m-d'));
 }
 
+// a report sent again replaces the one that needed changes (no history kept).
+// it keeps the first send time, so fixing an on-time report doesn't make it late
+function replaceRejectedWeek(mysqli $db, $internID, int $week): string
+{
+    $rejected = $db->execute_query(
+        "SELECT reportid, submitted_at FROM weeklyreports WHERE internid = ? AND weeknumber = ? AND status = 'REJECTED' FOR UPDATE",
+        [$internID, $week]
+    )->fetch_assoc();
+    if ($rejected) {
+        $db->execute_query("DELETE FROM weeklyreports WHERE reportid = ?", [$rejected['reportid']]);
+    }
+    return $rejected['submitted_at'] ?? date('Y-m-d H:i:s');
+}
+
 function submitNoWorkWeek($internID, array $week, string $reason, string $details, ?string $filePath, ?string $lateLetter = null): void
 {
-    db()->execute_query(
-        "INSERT INTO weeklyreports (internid, weeknumber, week_start, due_at, kind, no_work_reason, hours, workdescription, file_path, late_letter_path, status, datesubmitted, submitted_at)
-         VALUES (?, ?, ?, ?, 'NO_WORK', ?, 0, ?, ?, ?, 'PENDING', ?, ?)",
-        [$internID, $week['number'], $week['start'], $week['due'], $reason, $details, $filePath, $lateLetter, date('Y-m-d'), date('Y-m-d H:i:s')]
-    );
+    $db = db();
+    $db->begin_transaction();
+    try {
+        $firstSent = replaceRejectedWeek($db, $internID, $week['number']);
+        $db->execute_query(
+            "INSERT INTO weeklyreports (internid, weeknumber, week_start, due_at, kind, no_work_reason, hours, workdescription, file_path, late_letter_path, status, datesubmitted, submitted_at)
+             VALUES (?, ?, ?, ?, 'NO_WORK', ?, 0, ?, ?, ?, 'PENDING', ?, ?)",
+            [$internID, $week['number'], $week['start'], $week['due'], $reason, $details, $filePath, $lateLetter, date('Y-m-d'), $firstSent]
+        );
+        $db->commit();
+    } catch (Throwable $error) {
+        $db->rollback();
+        throw $error;
+    }
 }
 
 function submitWeeklyReport($internID, array $week, array $days, string $accomplishment, string $supervisorName, ?string $filePath, array $absences = [], ?string $lateLetter = null): int
@@ -60,10 +84,11 @@ function submitWeeklyReport($internID, array $week, array $days, string $accompl
     $db = db();
     $db->begin_transaction();
     try {
+        $firstSent = replaceRejectedWeek($db, $internID, $week['number']);
         $db->execute_query(
             "INSERT INTO weeklyreports (internid, weeknumber, week_start, due_at, hours, workdescription, supervisor_name, file_path, late_letter_path, status, datesubmitted, submitted_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)",
-            [$internID, $week['number'], $week['start'], $week['due'], array_sum(array_column($days, 'hours')), $accomplishment, $supervisorName, $filePath, $lateLetter, date('Y-m-d'), date('Y-m-d H:i:s')]
+            [$internID, $week['number'], $week['start'], $week['due'], array_sum(array_column($days, 'hours')), $accomplishment, $supervisorName, $filePath, $lateLetter, date('Y-m-d'), $firstSent]
         );
         $reportID = $db->insert_id;
         foreach ($days as $date => $day) {

@@ -117,14 +117,16 @@ async function fetchWeeklyReportFileForAdviser(reportID, adviserID) {
     return rows[0] ? rows[0].file_path : null;    
 }
 
-async function updateWeeklyReportReview(reportID, adviserID, decision, remark) {
+// excused weeks were decided when they were excused, so they can't be reviewed
+async function updateWeeklyReportReview(reportID, internID, adviserID, decision, remark, fromStatuses) {
     const [result] = await pool.query(
         `UPDATE weeklyreports wr
-            JOIN interns i ON wr.internid = i.internid
-            SET wr.status = ?, wr.remark = ?
-            WHERE wr.reportid = ? AND i.adviserid = ?`,
-            [decision, remark, reportID, adviserID]);
-    return result;
+         JOIN interns i ON wr.internid = i.internid
+         SET wr.status = ?, wr.remark = ?
+         WHERE wr.reportid = ? AND wr.internid = ? AND i.adviserid = ? AND wr.status IN (?) AND wr.kind <> 'EXCUSED'`,
+        [decision, remark, reportID, internID, adviserID, fromStatuses]
+    );
+    return result.affectedRows;
 }
 
 module.exports = {

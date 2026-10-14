@@ -1,5 +1,7 @@
 extends ../../layouts/main
 
+include ../../partials/review-decision
+
 block content
   p.crumb
     a(href='/adviser/interns') Interns
@@ -27,12 +29,4 @@ block content
         if journal.file_path
           p
             a(href=`/adviser/journals/${journal.journalid}/file`) View journal file
-        form.form(action=`/adviser/interns/${internId}/journals` method='POST')
-          input(type='hidden' name='csrf_token' value=csrfToken)
-          input(type='hidden' name='journalid' value=journal.journalid)
-          .field
-            label(for=`remark-${journal.journalid}`) Your remark
-            textarea.input(id=`remark-${journal.journalid}` name='remark' rows='2')= journal.remark
-          .btn-row
-            button.btn.btn-create.btn-sm(type='submit' name='decision' value='APPROVED') Approve
-            button.btn.btn-reject.btn-sm(type='submit' name='decision' value='REJECTED') Reject
+        +reviewDecision(`/adviser/interns/${internId}/journals`, 'journalid', journal.journalid, journal.status, journal.remark)

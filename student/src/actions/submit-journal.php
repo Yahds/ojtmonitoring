@@ -23,7 +23,11 @@ if ($error !== null) {
 }
 
 $fileName = saveUpload($file, 'journal');
-submitJournal($_SESSION['internid'], $month, $notes, $fileName);
+if (!submitJournal($_SESSION['internid'], $month, $notes, $fileName)) {
+    unlink(UPLOAD_DIR . $fileName);
+    flash('error', "You already sent your month $month journal. You can send it again only if your adviser asks for changes.");
+    redirect('/journals');
+}
 
 flash('success', "Your month $month journal has been submitted for your adviser's review.");
 redirect('/journals');

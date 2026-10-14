@@ -7,6 +7,7 @@ const {
 } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 const { audit } = require('../lib/audit');
+const { reviewHandler } = require('../lib/review-handler');
 const { today } = require('../lib/dates');
 const { missingWeeks, isPastNoon, weekLabel, dueLabel } = require('../lib/weeks');
 
@@ -55,28 +56,27 @@ router.get("/interns/:internId/weekly-reports", requireAdviser, async (req, res,
     }
 });
 
-router.post("/interns/:internId/weekly-reports", requireAdviser, async (req, res, next) => {
-    try {
-        const internId = req.params.internId;
-        const { reportid, decision, remark } = req.body;
-        const backTo = `/adviser/interns/${internId}/weekly-reports`;
+router.post('/interns/:internId/weekly-reports', requireAdviser, reviewHandler({
+    page: 'weekly-reports',
+    idField: 'reportid',
+    what: 'weekly report',
+    update: updateWeeklyReportReview,
+    fromStatuses: ['PENDING'],
+    notAllowed: 'Only a report waiting for review can be approved or rejected.',
+    auditAction: decision => (decision === 'APPROVED' ? 'weekly_report_approved' : 'weekly_report_rejected'),
+    success: decision => (decision === 'APPROVED' ? 'Weekly report approved.' : 'Weekly report sent back for changes.'),
+}));
 
-        if (decision !== 'APPROVED' && decision !== 'REJECTED') {
-            req.flash('error', 'Choose Approve or Reject.');
-            return res.redirect(backTo);
-        }
-
-        const result = await updateWeeklyReportReview(reportid, req.session.adviserID, decision, remark);
-        if (result.affectedRows === 0) {
-            req.flash('error', 'That weekly report was not found.');
-        } else {
-            req.flash('success', decision === 'APPROVED' ? 'Weekly report approved.' : 'Weekly report rejected.');
-        }
-        res.redirect(backTo);
-    } catch (error) {
-        next(error);
-    }
-});
+router.post('/interns/:internId/weekly-reports/change', requireAdviser, reviewHandler({
+    page: 'weekly-reports',
+    idField: 'reportid',
+    what: 'weekly report',
+    update: updateWeeklyReportReview,
+    fromStatuses: ['APPROVED', 'REJECTED'],
+    notAllowed: 'Only an approved or rejected report can be changed. If the intern sent the week again, review that one.',
+    auditAction: () => 'weekly_report_review_changed',
+    success: () => 'Your decision and remark were saved.',
+}));
 
 router.post('/interns/:internId/weekly-reports/excuse', requireAdviser, async (req, res, next) => {
     try {

@@ -8,6 +8,9 @@ $approvedHours = getApprovedHours($_SESSION['internid']);
 $now = currentWeekFor($_SESSION['internid'], $profile);
 $noWork = $noWork ?? ($_GET['week'] ?? '') === 'no-work';
 $late = isLate($now, new DateTimeImmutable());
+$sendingAgain = $now && $now['week'] !== null
+    ? current(array_filter($reports, fn ($report) => (int) $report['weeknumber'] === $now['week'] && $report['status'] === 'REJECTED'))
+    : false;
 $form = $form ?? ['days' => [], 'accomplishment' => '', 'absences' => []];
 $acceptsLetter = (bool) $profile['accepts_parent_letter'];
 $errors = $errors ?? [];
@@ -32,6 +35,12 @@ require __DIR__ . '/../views/header.php';
     <p class="meta"><?= e(weekLabel($now['range'])) ?><?= $profile['companyname'] ? ' · ' . e($profile['companyname']) : '' ?> · due <?= e($now['due']->format('l, M j')) ?>, 12 noon
         <?php if ($late): ?><span class="tag tag-bad">Late</span><?php endif; ?>
     </p>
+    <?php if ($sendingAgain): ?>
+        <div class="remark">
+            <?= e($adviser) ?> asked for changes<?= $sendingAgain['remark'] ? ': “' . e($sendingAgain['remark']) . '”' : '.' ?>
+            Send this week again below. It replaces the report that needed changes.
+        </div>
+    <?php endif; ?>
     <?php if ($late): ?>
         <p class="note">This report is past its due date. You can still send it, and it will be marked late.</p>
     <?php endif; ?>

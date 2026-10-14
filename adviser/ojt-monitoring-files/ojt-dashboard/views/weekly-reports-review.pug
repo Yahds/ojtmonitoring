@@ -1,5 +1,7 @@
 extends ../../layouts/main
 
+include ../../partials/review-decision
+
 block content
   p.crumb
     a(href='/adviser/interns') Interns
@@ -110,12 +112,4 @@ block content
           p
             a(href=`/adviser/weekly-reports/${report.reportid}/file`)= report.kind === 'NO_WORK' ? 'View proof' : 'View signed report'
         unless report.kind === 'EXCUSED'
-          form.form(action=`/adviser/interns/${internId}/weekly-reports` method='POST')
-            input(type='hidden' name='csrf_token' value=csrfToken)
-            input(type='hidden' name='reportid' value=report.reportid)
-            .field
-              label(for=`remark-${report.reportid}`) Your remark
-              textarea.input(id=`remark-${report.reportid}` name='remark' rows='2')= report.remark
-            .btn-row
-              button.btn.btn-create.btn-sm(type='submit' name='decision' value='APPROVED') Approve
-              button.btn.btn-reject.btn-sm(type='submit' name='decision' value='REJECTED') Reject
+          +reviewDecision(`/adviser/interns/${internId}/weekly-reports`, 'reportid', report.reportid, report.status, report.remark)
