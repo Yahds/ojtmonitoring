@@ -14,6 +14,8 @@ async function fetchWeeklyReportsForReview(internID, adviserID) {
             wr.supervisor_name,
             wr.kind,
             wr.no_work_reason,
+            wr.submitted_at > wr.due_at AS late,
+            wr.late_letter_path,
             students.studentName
         FROM weeklyreports wr
         JOIN interns ON wr.internid = interns.internid
@@ -65,6 +67,46 @@ async function fetchAbsenceProofForAdviser(reportID, date, adviserID) {
     return rows[0] ? rows[0].proof_path : null;
 }
 
+async function fetchLateLetterForAdviser(reportID, adviserID) {
+    const [rows] = await pool.query(
+        `SELECT wr.late_letter_path
+         FROM weeklyreports wr
+         JOIN interns i ON wr.internid = i.internid
+         WHERE wr.reportid = ? AND i.adviserid = ?`,
+        [reportID, adviserID]
+    );
+    return rows[0] ? rows[0].late_letter_path : null;
+}
+
+// the week counts as done, so the intern doesn't need to send it
+async function excuseWeek(internID, adviserID, week, weekStart, reason) {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        const [[intern]] = await connection.query(
+            "SELECT internid FROM interns WHERE internid = ? AND adviserid = ? AND status = 'ACTIVE' FOR UPDATE",
+            [internID, adviserID]
+        );
+        const [sent] = await connection.query('SELECT reportid FROM weeklyreports WHERE internid = ? AND weeknumber = ?', [internID, week]);
+        if (!intern || sent.length) {
+            await connection.rollback();
+            return false;
+        }
+        await connection.query(
+            `INSERT INTO weeklyreports (internid, weeknumber, week_start, kind, hours, status, remark)
+             VALUES (?, ?, ?, 'EXCUSED', 0, 'APPROVED', ?)`,
+            [internID, week, weekStart, reason]
+        );
+        await connection.commit();
+        return true;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+}
+
 async function fetchWeeklyReportFileForAdviser(reportID, adviserID) {
     const [rows] = await pool.query(
         `SELECT wr.file_path
@@ -90,6 +132,8 @@ module.exports = {
     fetchWeeklyReportDays,
     fetchWeeklyReportAbsences,
     fetchAbsenceProofForAdviser,
+    fetchLateLetterForAdviser,
+    excuseWeek,
     fetchWeeklyReportFileForAdviser,
     updateWeeklyReportReview,
 };

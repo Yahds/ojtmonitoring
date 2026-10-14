@@ -9,6 +9,7 @@ class StudentDataTest extends TestCase
     private const JOSE = 301;
     private const APPLICATION_LETTER = 1;
     private const DATA_PRIVACY_CERTIFICATE = 6;
+    private const WEEK_3 = ['number' => 3, 'start' => '2026-09-14', 'due' => '2026-09-21 12:00:00'];
 
     private mysqli $db;
     private int $lastVersionBeforeTest;
@@ -124,7 +125,7 @@ class StudentDataTest extends TestCase
             '2026-09-14' => ['am_in' => '08:00', 'am_out' => '12:00', 'pm_in' => '13:00', 'pm_out' => '17:00', 'hours' => 8.0],
             '2026-09-15' => ['am_in' => '08:00', 'am_out' => '11:30', 'pm_in' => null, 'pm_out' => null, 'hours' => 3.5],
         ];
-        $reportID = submitWeeklyReport(self::JOSE, 3, '2026-09-14', $days, 'set up the database', 'Joel Bautista', null);
+        $reportID = submitWeeklyReport(self::JOSE, self::WEEK_3, $days, 'set up the database', 'Joel Bautista', null);
 
         $row = $this->db->query("SELECT hours, status, datesubmitted, supervisor_name FROM weeklyreports WHERE reportid = $reportID")->fetch_assoc();
         $saved = $this->db->query("SELECT work_date, hours FROM weeklyreport_days WHERE reportid = $reportID ORDER BY work_date")->fetch_all(MYSQLI_ASSOC);
@@ -139,7 +140,7 @@ class StudentDataTest extends TestCase
     public function testAbsencesAreSavedWithTheReport(): void
     {
         $absences = ['2026-09-16' => ['part' => 'DAY', 'reason' => 'Flu', 'proof_type' => 'MEDICAL', 'proof_path' => 'test-proof.pdf']];
-        $reportID = submitWeeklyReport(self::JOSE, 3, '2026-09-14', [], 'out sick', 'Joel Bautista', null, $absences);
+        $reportID = submitWeeklyReport(self::JOSE, self::WEEK_3, [], 'out sick', 'Joel Bautista', null, $absences);
 
         $saved = $this->db->query("SELECT absent_date, part, reason, proof_type, proof_path FROM weeklyreport_absences WHERE reportid = $reportID")->fetch_all(MYSQLI_ASSOC);
 
@@ -149,12 +150,31 @@ class StudentDataTest extends TestCase
 
     public function testANoWorkWeekIsSavedWithZeroHoursAndCountsAsReported(): void
     {
-        submitNoWorkWeek(self::JOSE, 4, '2026-09-21', 'HOLIDAY', 'Company closed for the fiesta', null);
+        submitNoWorkWeek(self::JOSE, ['number' => 4, 'start' => '2026-09-21', 'due' => '2026-09-28 12:00:00'], 'HOLIDAY', 'Company closed for the fiesta', null);
 
         $row = $this->db->query("SELECT kind, no_work_reason, hours, workdescription, status FROM weeklyreports WHERE internid = " . self::JOSE)->fetch_assoc();
 
         $this->assertSame(['kind' => 'NO_WORK', 'no_work_reason' => 'HOLIDAY', 'hours' => '0.00', 'workdescription' => 'Company closed for the fiesta', 'status' => 'PENDING'], $row);
         $this->assertSame([4], getReportedWeeks(self::JOSE));
+    }
+
+    public function testAReportSentAfterItsDueTimeIsLateAndKeepsTheLetter(): void
+    {
+        $alreadyDue = ['number' => 3, 'start' => '2026-09-14', 'due' => '2026-09-21 12:00:00'];
+        submitWeeklyReport(self::JOSE, $alreadyDue, [], 'late one', 'Joel Bautista', null, [], 'late-letter.pdf');
+
+        $report = getWeeklyReports(self::JOSE)[0];
+
+        $this->assertEquals(1, $report['late']);
+        $this->assertSame('late-letter.pdf', $report['late_letter_path']);
+        $this->assertSame('2026-09-21 12:00:00', $report['due_at']);
+    }
+
+    public function testAReportSentBeforeItsDueTimeIsNotLate(): void
+    {
+        submitWeeklyReport(self::JOSE, ['number' => 3, 'start' => '2026-09-14', 'due' => date('Y-m-d H:i:s', strtotime('+1 day'))], [], 'on time', 'Joel Bautista', null);
+
+        $this->assertEquals(0, getWeeklyReports(self::JOSE)[0]['late']);
     }
 
     public function testSubmittingAJournalSavesItAsPending(): void

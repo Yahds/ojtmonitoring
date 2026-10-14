@@ -22,6 +22,8 @@ $record = readTimeRecord($form['days'], array_column($days, 'date'));
 $weekdays = array_column(array_filter($days, fn ($day) => !$day['weekend']), 'date');
 $absent = readAbsences($form['absences'], $weekdays, (bool) $profile['accepts_parent_letter'], $record['days']);
 $proofs = uploadedFiles('absence_proof');
+$late = isLate($now, new DateTimeImmutable());
+$letter = $late ? ($_FILES['late_letter'] ?? null) : null;
 
 $errors = [];
 if ($record['error'] !== null) {
@@ -55,6 +57,10 @@ if ($file === null || $file['error'] === UPLOAD_ERR_NO_FILE) {
     $errors['report_file'] = $fileError;
 }
 
+if (($letterError = uploadError($letter)) !== null) {
+    $errors['late_letter'] = $letterError;
+}
+
 if ($errors) {
     http_response_code(400);
     require __DIR__ . '/../pages/weekly-reports.php';
@@ -66,8 +72,9 @@ $absences = $absent['absences'];
 foreach ($absences as $date => $absence) {
     $absences[$date]['proof_path'] = saveUpload($proofs[$date], 'absence');
 }
-submitWeeklyReport($_SESSION['internid'], $now['week'], $now['range'][0]->format('Y-m-d'), $record['days'],
-    $form['accomplishment'], $supervisor['supervisorname'], $fileName, $absences);
+$letterName = $letter && $letter['error'] !== UPLOAD_ERR_NO_FILE ? saveUpload($letter, 'late') : null;
+submitWeeklyReport($_SESSION['internid'], weekRow($now), $record['days'], $form['accomplishment'], $supervisor['supervisorname'],
+    $fileName, $absences, $letterName);
 
 flash('success', "Your week {$now['week']} report has been sent for your adviser's review.");
 redirect('/weekly-reports');

@@ -28,6 +28,7 @@ $error = fn (string $field) => isset($errors[$field]) ? '<span class="error" id=
             <span class="help" id="proof_file-help">For example, a notice from the company. Up to 5 MB.</span>
         <?php endif; ?>
     </div>
+    <?php require __DIR__ . '/late-letter.php'; ?>
     <p class="note">Your adviser checks it. Absences on work days still go in a normal report with proof.</p>
     <div class="btn-row">
         <button class="btn btn-create" type="submit">Send for week <?= (int) $now['week'] ?></button>

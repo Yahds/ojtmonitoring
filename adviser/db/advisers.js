@@ -79,6 +79,14 @@ async function fetchWeeklyDueDays(adviserID) {
     return rule ? rule.due_days : 3;
 }
 
+async function fetchWeeklyDueRules(adviserID) {
+    const [rules] = await pool.query(
+        "SELECT DATE_FORMAT(starts_on, '%Y-%m-%d') AS starts_on, due_days FROM weekly_due_rules WHERE adviserid = ? ORDER BY starts_on",
+        [adviserID]
+    );
+    return rules;
+}
+
 // starts tomorrow so weeks that already ended keep their due date
 async function setWeeklyDueDays(adviserID, dueDays) {
     await pool.query(
@@ -99,6 +107,7 @@ async function setAcceptsParentLetter(adviserID, accepts) {
 
 module.exports = {
     fetchWeeklyDueDays,
+    fetchWeeklyDueRules,
     setWeeklyDueDays,
     fetchAcceptsParentLetter,
     setAcceptsParentLetter,

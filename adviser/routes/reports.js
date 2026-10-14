@@ -2,9 +2,13 @@ const express = require('express');
 const path = require('path');
 const {
     fetchWeeklyReportsForReview, fetchWeeklyReportDays, fetchWeeklyReportAbsences, fetchAbsenceProofForAdviser,
-    updateWeeklyReportReview, fetchWeeklyReportFileForAdviser,
+    updateWeeklyReportReview, fetchWeeklyReportFileForAdviser, fetchLateLetterForAdviser, fetchInternForAdviser,
+    fetchWeeklyDueRules, excuseWeek,
 } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
+const { audit } = require('../lib/audit');
+const { today } = require('../lib/dates');
+const { missingWeeks, isPastNoon, weekLabel, dueLabel } = require('../lib/weeks');
 
 const router = express.Router();
 
@@ -17,14 +21,26 @@ function sendUpload(res, fileName) {
     res.sendFile(safePath, (err) => { if (err) { console.error('Error sending file:', err.message); if (!res.headersSent) res.status(404).send("File not found"); } });
 }
 
+function notSentWeeks(intern, weeklyReports, dueRules) {
+    if (intern.status !== 'ACTIVE' || !intern.deployedOn) return [];
+    return missingWeeks(intern.deployedOn, today(), weeklyReports.map(report => report.weeknumber), dueRules);
+}
+
 router.get("/interns/:internId/weekly-reports", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
-        const [weeklyReports, days, absences] = await Promise.all([
-            fetchWeeklyReportsForReview(internId, req.session.adviserID),
-            fetchWeeklyReportDays(internId, req.session.adviserID),
-            fetchWeeklyReportAbsences(internId, req.session.adviserID),
+        const adviserID = req.session.adviserID;
+        const [intern, weeklyReports, days, absences, dueRules] = await Promise.all([
+            fetchInternForAdviser(internId, adviserID),
+            fetchWeeklyReportsForReview(internId, adviserID),
+            fetchWeeklyReportDays(internId, adviserID),
+            fetchWeeklyReportAbsences(internId, adviserID),
+            fetchWeeklyDueRules(adviserID),
         ]);
+        if (!intern) return next();
+        const notSent = notSentWeeks(intern, weeklyReports, dueRules).map(missing => ({
+            ...missing, label: weekLabel(missing.range), dueLabel: dueLabel(missing.due), overdue: isPastNoon(missing.due),
+        }));
         weeklyReports.forEach(report => {
             if (report.datesubmitted) report.datesubmitted = new Date(report.datesubmitted).toDateString();
             report.days = days.filter(day => day.reportid === report.reportid);
@@ -33,7 +49,7 @@ router.get("/interns/:internId/weekly-reports", requireAdviser, async (req, res,
                 .filter(absence => absence.reportid === report.reportid)
                 .map(absence => ({ ...absence, part: ABSENCE_PARTS[absence.part], proof: PROOF_TYPES[absence.proof_type] }));
         });
-        res.render('ojt-dashboard/views/weekly-reports-review', { title: 'Weekly reports', weeklyReports, internId });
+        res.render('ojt-dashboard/views/weekly-reports-review', { title: 'Weekly reports', intern, weeklyReports, notSent, internId });
     } catch (error) {
         next(error);
     }
@@ -57,6 +73,47 @@ router.post("/interns/:internId/weekly-reports", requireAdviser, async (req, res
             req.flash('success', decision === 'APPROVED' ? 'Weekly report approved.' : 'Weekly report rejected.');
         }
         res.redirect(backTo);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/interns/:internId/weekly-reports/excuse', requireAdviser, async (req, res, next) => {
+    try {
+        const internId = req.params.internId;
+        const adviserID = req.session.adviserID;
+        const backTo = `/adviser/interns/${internId}/weekly-reports`;
+        const week = Number(req.body.week);
+        const reason = typeof req.body.reason === 'string' ? req.body.reason.trim() : '';
+        if (!reason || reason.length > 255) {
+            req.flash('error', 'Write why you are excusing the week, up to 255 characters.');
+            return res.redirect(backTo);
+        }
+
+        const [intern, weeklyReports, dueRules] = await Promise.all([
+            fetchInternForAdviser(internId, adviserID),
+            fetchWeeklyReportsForReview(internId, adviserID),
+            fetchWeeklyDueRules(adviserID),
+        ]);
+        if (!intern) return next();
+        const chosen = notSentWeeks(intern, weeklyReports, dueRules).find(missing => missing.week === week);
+        if (!chosen || !await excuseWeek(internId, adviserID, week, chosen.range[0], reason)) {
+            req.flash('error', 'That week was already sent or cannot be excused.');
+            return res.redirect(backTo);
+        }
+        await audit(req, 'weekly_week_excused', `intern ${internId} week ${week}`);
+        req.flash('success', `Week ${week} excused. ${intern.studentName} won't need to send it.`);
+        res.redirect(backTo);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/weekly-reports/:reportId/late-letter', requireAdviser, async (req, res, next) => {
+    try {
+        const letterPath = await fetchLateLetterForAdviser(req.params.reportId, req.session.adviserID);
+        if (!letterPath) return next();
+        sendUpload(res, letterPath);
     } catch (error) {
         next(error);
     }

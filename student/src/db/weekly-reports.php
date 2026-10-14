@@ -1,7 +1,8 @@
 <?php
 function getWeeklyReports($internID)
 {
-    $query = "SELECT w.*, (SELECT COUNT(*) FROM weeklyreport_absences a WHERE a.reportid = w.reportid) AS absences
+    $query = "SELECT w.*, (SELECT COUNT(*) FROM weeklyreport_absences a WHERE a.reportid = w.reportid) AS absences,
+                     w.submitted_at > w.due_at AS late
               FROM weeklyreports w WHERE w.internid = ? ORDER BY w.weeknumber";
     $statement = db()->prepare($query);
     $statement->bind_param("i", $internID);
@@ -45,24 +46,24 @@ function currentWeekFor($internID, array $profile): ?array
     return reportingWeek($profile['deployedOn'], getDueRules($profile['adviserid']), getReportedWeeks($internID), date('Y-m-d'));
 }
 
-function submitNoWorkWeek($internID, int $week, string $weekStart, string $reason, string $details, ?string $filePath): void
+function submitNoWorkWeek($internID, array $week, string $reason, string $details, ?string $filePath, ?string $lateLetter = null): void
 {
     db()->execute_query(
-        "INSERT INTO weeklyreports (internid, weeknumber, week_start, kind, no_work_reason, hours, workdescription, file_path, status, datesubmitted)
-         VALUES (?, ?, ?, 'NO_WORK', ?, 0, ?, ?, 'PENDING', ?)",
-        [$internID, $week, $weekStart, $reason, $details, $filePath, date('Y-m-d')]
+        "INSERT INTO weeklyreports (internid, weeknumber, week_start, due_at, kind, no_work_reason, hours, workdescription, file_path, late_letter_path, status, datesubmitted, submitted_at)
+         VALUES (?, ?, ?, ?, 'NO_WORK', ?, 0, ?, ?, ?, 'PENDING', ?, ?)",
+        [$internID, $week['number'], $week['start'], $week['due'], $reason, $details, $filePath, $lateLetter, date('Y-m-d'), date('Y-m-d H:i:s')]
     );
 }
 
-function submitWeeklyReport($internID, int $week, string $weekStart, array $days, string $accomplishment, string $supervisorName, ?string $filePath, array $absences = []): int
+function submitWeeklyReport($internID, array $week, array $days, string $accomplishment, string $supervisorName, ?string $filePath, array $absences = [], ?string $lateLetter = null): int
 {
     $db = db();
     $db->begin_transaction();
     try {
         $db->execute_query(
-            "INSERT INTO weeklyreports (internid, weeknumber, week_start, hours, workdescription, supervisor_name, file_path, status, datesubmitted)
-             VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)",
-            [$internID, $week, $weekStart, array_sum(array_column($days, 'hours')), $accomplishment, $supervisorName, $filePath, date('Y-m-d')]
+            "INSERT INTO weeklyreports (internid, weeknumber, week_start, due_at, hours, workdescription, supervisor_name, file_path, late_letter_path, status, datesubmitted, submitted_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)",
+            [$internID, $week['number'], $week['start'], $week['due'], array_sum(array_column($days, 'hours')), $accomplishment, $supervisorName, $filePath, $lateLetter, date('Y-m-d'), date('Y-m-d H:i:s')]
         );
         $reportID = $db->insert_id;
         foreach ($days as $date => $day) {

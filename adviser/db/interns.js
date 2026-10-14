@@ -81,7 +81,7 @@ const WITHDRAWABLE = ['ENROLLED', 'PENDING', 'ACTIVE'];
 
 async function fetchInternForAdviser(internID, adviserID) {
     const [rows] = await pool.query(
-        `SELECT i.internid, i.status, s.studentName, s.classcode
+        `SELECT i.internid, i.status, s.studentName, s.classcode, DATE_FORMAT(i.deployed_on, '%Y-%m-%d') AS deployedOn
          FROM interns i JOIN students s ON s.studentID = i.studentid
          WHERE i.internid = ? AND i.adviserid = ?`,
         [internID, adviserID]

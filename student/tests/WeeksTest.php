@@ -87,4 +87,13 @@ class WeeksTest extends TestCase
         $this->assertSame('Sep 1 – 4', weekLabel($now['range']));
         $this->assertSame('2026-09-07 12:00', $now['due']->format('Y-m-d H:i'));
     }
+
+    public function testAReportIsLateOnlyAfterTheDueTime(): void
+    {
+        $now = reportingWeek('2026-09-01', [], [], '2026-09-10');
+
+        $this->assertFalse(isLate($now, new DateTimeImmutable('2026-09-07 11:59')));
+        $this->assertTrue(isLate($now, new DateTimeImmutable('2026-09-07 12:01')));
+        $this->assertFalse(isLate(null, new DateTimeImmutable('2026-09-07 12:01')));
+    }
 }

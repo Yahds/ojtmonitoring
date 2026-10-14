@@ -7,6 +7,7 @@ $supervisor = getSupervisor($_SESSION['internid']);
 $approvedHours = getApprovedHours($_SESSION['internid']);
 $now = currentWeekFor($_SESSION['internid'], $profile);
 $noWork = $noWork ?? ($_GET['week'] ?? '') === 'no-work';
+$late = isLate($now, new DateTimeImmutable());
 $form = $form ?? ['days' => [], 'accomplishment' => '', 'absences' => []];
 $acceptsLetter = (bool) $profile['accepts_parent_letter'];
 $errors = $errors ?? [];
@@ -28,7 +29,12 @@ require __DIR__ . '/../views/header.php';
 <?php $days = reportDays($now['range']); ?>
 <h2 class="section-title">Week <?= (int) $now['week'] ?> report</h2>
 <section class="card card-pad">
-    <p class="meta"><?= e(weekLabel($now['range'])) ?><?= $profile['companyname'] ? ' · ' . e($profile['companyname']) : '' ?> · due <?= e($now['due']->format('l, M j')) ?>, 12 noon</p>
+    <p class="meta"><?= e(weekLabel($now['range'])) ?><?= $profile['companyname'] ? ' · ' . e($profile['companyname']) : '' ?> · due <?= e($now['due']->format('l, M j')) ?>, 12 noon
+        <?php if ($late): ?><span class="tag tag-bad">Late</span><?php endif; ?>
+    </p>
+    <?php if ($late): ?>
+        <p class="note">This report is past its due date. You can still send it, and it will be marked late.</p>
+    <?php endif; ?>
     <?php if ($errors): ?>
         <div class="flash flash-error" role="alert">Please fix the items marked below. Attach your files again too.</div>
     <?php endif; ?>
@@ -121,6 +127,7 @@ require __DIR__ . '/../views/header.php';
                 <span class="help" id="report_file-help">Photo or PDF of the form your supervisor signed, up to 5 MB.</span>
             <?php endif; ?>
         </div>
+        <?php require __DIR__ . '/../views/late-letter.php'; ?>
         <p class="note">
             This week: <b><output data-week-total>0</output> hours</b> · Approved so far: <b><?= e(hoursText($approvedHours)) ?> of <?= (int) $profile['target_hours'] ?> hours</b><br>
             This week's hours count toward your total after your adviser approves the report.
@@ -142,25 +149,41 @@ require __DIR__ . '/../views/header.php';
     <?php foreach ($reports as $report): ?>
         <article class="item">
             <div class="item-head">
-                <?php if ($report['kind'] === 'NO_WORK'): ?>
+                <?php if ($report['kind'] === 'EXCUSED'): ?>
+                    <h3>Week <?= (int) $report['weeknumber'] ?> · Excused</h3>
+                <?php elseif ($report['kind'] === 'NO_WORK'): ?>
                     <h3>Week <?= (int) $report['weeknumber'] ?> · No work · <?= e(NO_WORK_REASONS[$report['no_work_reason']]) ?></h3>
                 <?php else: ?>
                     <h3>Week <?= (int) $report['weeknumber'] ?> · <?= e(hoursText($report['hours'])) ?> hours</h3>
                 <?php endif; ?>
-                <?php $status = $report['status']; require __DIR__ . '/../views/status-tag.php'; ?>
+                <span>
+                    <?php if ($report['late']): ?><span class="tag tag-bad">Late</span><?php endif; ?>
+                    <?php if ($report['kind'] === 'EXCUSED'): ?>
+                        <span class="tag tag-ok">Excused by your adviser</span>
+                    <?php else: ?>
+                        <?php $status = $report['status']; require __DIR__ . '/../views/status-tag.php'; ?>
+                    <?php endif; ?>
+                </span>
             </div>
-            <p class="meta">
-                <?php if ($profile['deployedOn'] && $report['week_start']): ?>
-                    <?= e(weekLabel(weekRange($profile['deployedOn'], (int) $report['weeknumber']))) ?> ·
-                <?php endif; ?>
-                Submitted <?= e($report['datesubmitted']) ?>
-                <?php if ($report['absences']): ?>
-                    · <?= (int) $report['absences'] ?> <?= $report['absences'] == 1 ? 'absence' : 'absences' ?>
-                <?php endif; ?>
-                <?php if ($report['file_path']): ?>
-                    · <a href="/student/weekly-reports/file?reportid=<?= (int) $report['reportid'] ?>">View your file</a>
-                <?php endif; ?>
-            </p>
+            <?php
+            $meta = [];
+            if ($profile['deployedOn'] && $report['week_start']) {
+                $meta[] = e(weekLabel(weekRange($profile['deployedOn'], (int) $report['weeknumber'])));
+            }
+            if ($report['datesubmitted']) {
+                $meta[] = 'Submitted ' . e($report['datesubmitted']);
+            }
+            if ($report['late_letter_path']) {
+                $meta[] = 'late letter attached';
+            }
+            if ($report['absences']) {
+                $meta[] = (int) $report['absences'] . ($report['absences'] == 1 ? ' absence' : ' absences');
+            }
+            if ($report['file_path']) {
+                $meta[] = '<a href="/student/weekly-reports/file?reportid=' . (int) $report['reportid'] . '">View your file</a>';
+            }
+            ?>
+            <p class="meta"><?= implode(' · ', $meta) ?></p>
             <?php if ($report['workdescription']): ?>
                 <p class="note"><?= e($report['workdescription']) ?></p>
             <?php endif; ?>

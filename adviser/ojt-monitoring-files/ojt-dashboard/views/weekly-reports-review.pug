@@ -4,11 +4,33 @@ block content
   p.crumb
     a(href='/adviser/interns') Interns
     |  / Weekly reports
-  h1.page-title
-    | Weekly reports
-    if weeklyReports.length
-      |  · #{weeklyReports[0].studentName}
+  h1.page-title Weekly reports · #{intern.studentName}
 
+  if notSent.length
+    h2.section-title Not sent · #{notSent.length}
+    section.card
+      each missing in notSent
+        article.item
+          .item-head
+            h3 Week #{missing.week} · #{missing.label}
+            if missing.overdue
+              span.tag.tag-bad Overdue
+            else
+              span.tag Not sent yet
+          p.meta Due #{missing.dueLabel}, 12 noon
+          details
+            summary.link-btn Excuse week #{missing.week}
+            form.form(action=`/adviser/interns/${internId}/weekly-reports/excuse` method='POST')
+              input(type='hidden' name='csrf_token' value=csrfToken)
+              input(type='hidden' name='week' value=missing.week)
+              .field
+                label(for=`excuse-${missing.week}`) Reason
+                textarea.input(id=`excuse-${missing.week}` name='reason' rows='2' maxlength='255' required)
+                span.help #{intern.studentName} won't need to send this week. Use it for holidays or company closures.
+              .btn-row
+                button.btn.btn-create.btn-sm(type='submit') Excuse week #{missing.week}
+
+  h2.section-title Sent · #{weeklyReports.length}
   section.card
     if weeklyReports.length === 0
       .empty
@@ -17,14 +39,30 @@ block content
     each report in weeklyReports
       article.item
         .item-head
-          if report.kind === 'NO_WORK'
+          if report.kind === 'EXCUSED'
+            h3 Week #{report.weeknumber} · Excused
+          else if report.kind === 'NO_WORK'
             h3 Week #{report.weeknumber} · No work this week
           else
             h3 Week #{report.weeknumber} · #{report.hours} hours
-          - const status = statusOf('review', report.status)
-          span.tag(class=status.tag)= status.label
+          span
+            if report.late
+              span.tag.tag-bad Late
+              = ' '
+            if report.kind === 'EXCUSED'
+              span.tag.tag-ok Excused
+            else
+              - const status = statusOf('review', report.status)
+              span.tag(class=status.tag)= status.label
         if report.datesubmitted
           p.meta Submitted #{report.datesubmitted}#{report.supervisor_name ? ` · Supervisor: ${report.supervisor_name}` : ''}
+        if report.late_letter_path
+          p
+            a(href=`/adviser/weekly-reports/${report.reportid}/late-letter`) View late letter
+        if report.kind === 'EXCUSED'
+          p.note
+            b You excused this week:
+            |  #{report.remark}
         if report.days.length
           .table-wrap
             table
@@ -71,12 +109,13 @@ block content
         if report.file_path
           p
             a(href=`/adviser/weekly-reports/${report.reportid}/file`)= report.kind === 'NO_WORK' ? 'View proof' : 'View signed report'
-        form.form(action=`/adviser/interns/${internId}/weekly-reports` method='POST')
-          input(type='hidden' name='csrf_token' value=csrfToken)
-          input(type='hidden' name='reportid' value=report.reportid)
-          .field
-            label(for=`remark-${report.reportid}`) Your remark
-            textarea.input(id=`remark-${report.reportid}` name='remark' rows='2')= report.remark
-          .btn-row
-            button.btn.btn-create.btn-sm(type='submit' name='decision' value='APPROVED') Approve
-            button.btn.btn-reject.btn-sm(type='submit' name='decision' value='REJECTED') Reject
+        unless report.kind === 'EXCUSED'
+          form.form(action=`/adviser/interns/${internId}/weekly-reports` method='POST')
+            input(type='hidden' name='csrf_token' value=csrfToken)
+            input(type='hidden' name='reportid' value=report.reportid)
+            .field
+              label(for=`remark-${report.reportid}`) Your remark
+              textarea.input(id=`remark-${report.reportid}` name='remark' rows='2')= report.remark
+            .btn-row
+              button.btn.btn-create.btn-sm(type='submit' name='decision' value='APPROVED') Approve
+              button.btn.btn-reject.btn-sm(type='submit' name='decision' value='REJECTED') Reject

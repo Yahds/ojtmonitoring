@@ -75,6 +75,17 @@ function reportingWeek(string $deployedOn, array $dueRules, array $reportedWeeks
     return ['week' => null, 'range' => null, 'due' => null, 'opensOn' => weekRange($deployedOn, $upcoming)[1]];
 }
 
+// what a report keeps about its week
+function weekRow(array $now): array
+{
+    return ['number' => $now['week'], 'start' => $now['range'][0]->format('Y-m-d'), 'due' => $now['due']->format('Y-m-d H:i:s')];
+}
+
+function isLate(?array $now, DateTimeImmutable $at): bool
+{
+    return $now !== null && $now['due'] !== null && $at > $now['due'];
+}
+
 // week dates + the weekend after
 function reportDays(array $range): array
 {

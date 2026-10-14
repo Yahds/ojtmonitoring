@@ -1,7 +1,7 @@
 const app = require('../app');
 const { closeDatabase } = require('../db');
 const { pool } = require('../db/pool');
-const { createTestAdviser, deleteTestAdviser, loginAs } = require('./helpers/auth');
+const { createTestAdviser, deleteTestAdviser, loginAs, csrfTokenFrom } = require('./helpers/auth');
 
 const STUDENT_ID = 9900095;
 
@@ -9,6 +9,7 @@ let adviser;
 let agent;
 let internId;
 let reportId;
+let csrfToken;
 
 beforeAll(async () => {
     adviser = await createTestAdviser('weekly');
@@ -17,8 +18,10 @@ beforeAll(async () => {
     internId = result.insertId;
 
     const [report] = await pool.query(
-        `INSERT INTO weeklyreports (internid, weeknumber, week_start, hours, workdescription, supervisor_name, status, datesubmitted)
-         VALUES (?, 2, '2026-09-07', 11.5, 'Built the login page', 'Joel Bautista', 'PENDING', '2026-09-14')`,
+        `INSERT INTO weeklyreports (internid, weeknumber, week_start, hours, workdescription, supervisor_name, status, datesubmitted,
+                                    due_at, submitted_at, late_letter_path)
+         VALUES (?, 2, '2026-09-07', 11.5, 'Built the login page', 'Joel Bautista', 'PENDING', '2026-09-14',
+                 '2026-09-14 12:00:00', '2026-09-14 15:00:00', 'missing-letter.pdf')`,
         [internId]
     );
     await pool.query(
@@ -39,9 +42,11 @@ beforeAll(async () => {
     );
 
     agent = await loginAs(app, adviser.email);
+    csrfToken = await csrfTokenFrom(agent, `/adviser/interns/${internId}/weekly-reports`);
 });
 
 afterAll(async () => {
+    await pool.query('DELETE FROM audit_log WHERE actor_adviser_id = ?', [adviser.adviserID]);
     await pool.query('DELETE FROM weeklyreports WHERE internid = ?', [internId]);
     await pool.query('DELETE FROM interns WHERE internid = ?', [internId]);
     await pool.query('DELETE FROM students WHERE studentID = ?', [STUDENT_ID]);
@@ -91,4 +96,57 @@ test('a no-work week shows why instead of hours and is in the review queue', asy
 
     const queue = await agent.get('/adviser/review');
     expect(queue.text).toContain('Week 4 · no work');
+});
+
+test('a report sent after its due time is tagged late with a link to the letter', async () => {
+    const page = await agent.get(`/adviser/interns/${internId}/weekly-reports`);
+
+    expect(page.text).toContain('tag-bad">Late');
+    expect(page.text).toContain(`href="/adviser/weekly-reports/${reportId}/late-letter"`);
+});
+
+test('weeks that ended without a report are listed, overdue after their due time', async () => {
+    const page = await agent.get(`/adviser/interns/${internId}/weekly-reports`);
+
+    // deployed sep 1; weeks 1 to 4 were sent, week 5 (sep 28 – oct 2) was due oct 5
+    expect(page.text).toContain('Week 5 · Sep 28 – Oct 2');
+    expect(page.text).toContain('Due Monday, Oct 5, 12 noon');
+    expect(page.text).toContain('Overdue');
+    expect(page.text).not.toContain('Week 4 · Sep 21');
+});
+
+async function excuse(week, reason) {
+    return agent.post(`/adviser/interns/${internId}/weekly-reports/excuse`).type('form').send({ csrf_token: csrfToken, week, reason });
+}
+
+async function excusedWeeks() {
+    const [rows] = await pool.query("SELECT weeknumber, status, hours, remark FROM weeklyreports WHERE internid = ? AND kind = 'EXCUSED'", [internId]);
+    return rows;
+}
+
+test('excusing a missing week counts it as done and records why', async () => {
+    const res = await excuse('5', 'Company closed for the typhoon');
+
+    expect(res.headers.location).toBe(`/adviser/interns/${internId}/weekly-reports`);
+    expect(await excusedWeeks()).toEqual([{ weeknumber: 5, status: 'APPROVED', hours: 0, remark: 'Company closed for the typhoon' }]);
+    const page = await agent.get(`/adviser/interns/${internId}/weekly-reports`);
+    expect(page.text).toContain('Week 5 · Excused');
+    expect(page.text).not.toContain('Week 5 · Sep 28');
+    const [events] = await pool.query("SELECT target FROM audit_log WHERE actor_adviser_id = ? AND action = 'weekly_week_excused'", [adviser.adviserID]);
+    expect(events.map(e => e.target)).toEqual([`intern ${internId} week 5`]);
+});
+
+test('a week that was sent, has not ended, or has no reason cannot be excused', async () => {
+    await excuse('5', 'again');
+    await excuse('2', 'already sent');
+    await excuse('60', 'far in the future');
+    await excuse('6', ' ');
+
+    expect((await excusedWeeks()).map(row => row.weeknumber)).toEqual([5]);
+});
+
+test('a report without a late letter has nothing to download', async () => {
+    const [[onTime]] = await pool.query('SELECT reportid FROM weeklyreports WHERE internid = ? AND weeknumber = 1', [internId]);
+
+    expect((await agent.get(`/adviser/weekly-reports/${onTime.reportid}/late-letter`)).status).toBe(404);
 });
