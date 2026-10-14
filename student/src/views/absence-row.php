@@ -6,7 +6,7 @@ $label = e(dayLabel($date));
 ?>
 <tr>
     <th scope="row"><?= $label ?></th>
-    <td>
+    <td data-label="Absent">
         <select class="input" name="absences[<?= $date ?>][part]" aria-label="<?= $label ?> absent">
             <option value="">Not absent</option>
             <?php foreach (ABSENCE_PARTS as $value => $text): ?>
@@ -14,10 +14,10 @@ $label = e(dayLabel($date));
             <?php endforeach; ?>
         </select>
     </td>
-    <td>
+    <td data-label="Reason">
         <input class="input" type="text" name="absences[<?= $date ?>][reason]" maxlength="200" value="<?= e((string) ($absence['reason'] ?? '')) ?>" aria-label="<?= $label ?> reason">
     </td>
-    <td class="time-pair">
+    <td class="time-pair" data-label="Proof">
         <?php if ($acceptsLetter): ?>
             <select class="input" name="absences[<?= $date ?>][proof_type]" aria-label="<?= $label ?> proof type">
                 <option value="">Proof type</option>

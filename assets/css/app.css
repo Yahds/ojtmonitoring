@@ -252,7 +252,22 @@ th:last-child, td:last-child { padding-right: 24px; }
 }
 /* ---------- small phones ---------- */
 @media (max-width: 599px) {
-  .nav-name { display: none; }   
+  .nav-name { display: none; }
+
+  /* each day is a block on phones: date, then morning, afternoon, hours */
+  .time-table thead { display: none; }
+  .time-table, .time-table tbody, .time-table tr, .time-table th, .time-table td { display: block; }
+  .time-table tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .time-table th, .time-table td { padding: 4px 0; border: 0; }
+  .time-table td::before { content: attr(data-label); display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .time-table .num::before { display: inline; margin-right: 6px; }
+  .time-pair { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .time-pair .input { flex: 1; min-width: 0; }
+  .time-table td.time-pair::before { flex-basis: 100%; margin-bottom: 0; }
+
+  .switch { display: flex; align-self: stretch; }
+  .switch a { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 6px 10px; text-align: center; }
+  .check-row { min-height: 44px; }
 }
 .big-btn { white-space: normal; }
 
