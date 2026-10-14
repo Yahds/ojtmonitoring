@@ -32,7 +32,7 @@ require __DIR__ . '/../views/header.php';
     <?php if ($errors): ?>
         <div class="flash flash-error" role="alert">Please fix the items marked below. Attach the signed copy again too.</div>
     <?php endif; ?>
-    <form class="form form-wide" action="/student/weekly-reports" method="post" enctype="multipart/form-data" data-time-record>
+    <form class="form form-wide" action="/student/weekly-reports" method="post" enctype="multipart/form-data" data-time-record data-draft="weekly-draft-<?= (int) $_SESSION['internid'] ?>-<?= (int) $now['week'] ?>">
         <?= csrf_field() ?>
         <fieldset class="field" aria-describedby="<?= isset($errors['days']) ? 'days-error' : 'days-help' ?>">
             <legend class="label">Detailed time record</legend>
@@ -50,6 +50,7 @@ require __DIR__ . '/../views/header.php';
                     </tbody>
                 </table>
             </div>
+            <button class="btn btn-outline btn-sm" type="button" data-copy-days hidden>Copy first day to empty weekdays</button>
             <?php $weekend = array_filter($days, fn ($day) => $day['weekend']); ?>
             <?php $weekendFilled = (bool) array_filter(array_column($weekend, 'date'), fn ($date) => array_filter($form['days'][$date] ?? [])); ?>
             <details<?= $weekendFilled ? ' open' : '' ?>>

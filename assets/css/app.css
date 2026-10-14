@@ -95,6 +95,8 @@ table, .num { font-variant-numeric: tabular-nums; }
 .btn[disabled] { opacity: .5; cursor: not-allowed; }
 .logout-btn { border: 2px solid var(--navy); color: var(--navy); background: #fff; border-radius: 999px; padding: 5px 18px; font: 700 13px var(--font); letter-spacing: .03em; text-transform: uppercase; cursor: pointer; }
 .link-btn { background: none; border: 0; padding: 0; font: 700 13px var(--font); color: var(--navy); cursor: pointer; text-decoration: none; }
+.field > .btn { align-self: flex-start; }
+[hidden] { display: none !important; }
 
 /* ---------- forms ---------- */
 .form { display: flex; flex-direction: column; gap: 14px; max-width: 640px; }
@@ -102,6 +104,7 @@ table, .num { font-variant-numeric: tabular-nums; }
 .time-table td, .time-table th { padding: 8px 10px; }
 .time-pair { white-space: nowrap; }
 .time-pair .input { width: auto; padding: 6px 8px; }
+.time-wrong { color: var(--red); font-weight: 600; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label, .field .label { font-size: 13px; font-weight: 700; }
 .field .help { font-size: 12.5px; color: var(--muted); }
