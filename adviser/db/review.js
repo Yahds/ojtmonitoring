@@ -17,7 +17,7 @@ async function fetchReviewQueue(adviserID, section = '') {
              JOIN students s ON s.studentID = i.studentid
              WHERE i.adviserid = ? AND i.status <> 'WITHDRAWN' AND ir.status = 'SUBMITTED'
              UNION ALL
-             SELECT 'weekly', w.internid, s.studentName, s.classcode, CONCAT('Week ', w.weeknumber, ' report'), w.datesubmitted
+             SELECT 'weekly', w.internid, s.studentName, s.classcode, CONCAT('Week ', w.weeknumber, IF(w.kind = 'NO_WORK', ' · no work', ' report')), w.datesubmitted
              FROM weeklyreports w
              JOIN interns i ON i.internid = w.internid
              JOIN students s ON s.studentID = i.studentid

@@ -9,6 +9,7 @@ class StudentDataTest extends TestCase
     private const JOSE = 301;
     private const APPLICATION_LETTER = 1;
     private const DATA_PRIVACY_CERTIFICATE = 6;
+    private const WEEK_3 = ['number' => 3, 'start' => '2026-09-14', 'due' => '2026-09-21 12:00:00'];
 
     private mysqli $db;
     private int $lastVersionBeforeTest;
@@ -38,9 +39,11 @@ class StudentDataTest extends TestCase
 
     public function testInternGetsAllSevenRequirements(): void
     {
-        $requirements = getRequirements(self::MARIA);
+        // advisers can add their own on top, so count only the school's
+        $schoolIds = array_map('intval', array_column($this->db->query("SELECT reqid FROM requirements WHERE created_by IS NULL")->fetch_all(MYSQLI_ASSOC), 'reqid'));
+        $school = array_filter(getRequirements(self::MARIA), fn ($requirement) => in_array($requirement->reqID, $schoolIds, true));
 
-        $this->assertCount(7, $requirements);
+        $this->assertCount(7, $school);
     }
 
     public function testSubmittingARequirementSavesStatusDateAndRemark(): void
@@ -118,14 +121,88 @@ class StudentDataTest extends TestCase
 
     public function testSubmittingAWeeklyReportSavesItAsPending(): void
     {
-        submitWeeklyReport(self::JOSE, 3, 8, 'set up the database', null);
+        $days = [
+            '2026-09-14' => ['am_in' => '08:00', 'am_out' => '12:00', 'pm_in' => '13:00', 'pm_out' => '17:00', 'hours' => 8.0],
+            '2026-09-15' => ['am_in' => '08:00', 'am_out' => '11:30', 'pm_in' => null, 'pm_out' => null, 'hours' => 3.5],
+        ];
+        $reportID = submitWeeklyReport(self::JOSE, self::WEEK_3, $days, 'set up the database', 'Joel Bautista', null);
 
-        $row = $this->db->query("SELECT hours, status, datesubmitted FROM weeklyreports
-                                 WHERE internid = " . self::JOSE . " AND weeknumber = 3")->fetch_assoc();
+        $row = $this->db->query("SELECT hours, status, datesubmitted, supervisor_name FROM weeklyreports WHERE reportid = $reportID")->fetch_assoc();
+        $saved = $this->db->query("SELECT work_date, hours FROM weeklyreport_days WHERE reportid = $reportID ORDER BY work_date")->fetch_all(MYSQLI_ASSOC);
 
-        $this->assertEquals(8, $row['hours']);
+        $this->assertEquals(11.5, $row['hours']);
         $this->assertSame('PENDING', $row['status']);
         $this->assertSame(date('Y-m-d'), $row['datesubmitted']);
+        $this->assertSame('Joel Bautista', $row['supervisor_name']);
+        $this->assertEquals([['work_date' => '2026-09-14', 'hours' => 8], ['work_date' => '2026-09-15', 'hours' => 3.5]], $saved);
+    }
+
+    public function testAbsencesAreSavedWithTheReport(): void
+    {
+        $absences = ['2026-09-16' => ['part' => 'DAY', 'reason' => 'Flu', 'proof_type' => 'MEDICAL', 'proof_path' => 'test-proof.pdf']];
+        $reportID = submitWeeklyReport(self::JOSE, self::WEEK_3, [], 'out sick', 'Joel Bautista', null, $absences);
+
+        $saved = $this->db->query("SELECT absent_date, part, reason, proof_type, proof_path FROM weeklyreport_absences WHERE reportid = $reportID")->fetch_all(MYSQLI_ASSOC);
+
+        $this->assertSame([['absent_date' => '2026-09-16', 'part' => 'DAY', 'reason' => 'Flu', 'proof_type' => 'MEDICAL', 'proof_path' => 'test-proof.pdf']], $saved);
+        $this->assertEquals(1, getWeeklyReports(self::JOSE)[0]['absences']);
+    }
+
+    public function testANoWorkWeekIsSavedWithZeroHoursAndCountsAsReported(): void
+    {
+        submitNoWorkWeek(self::JOSE, ['number' => 4, 'start' => '2026-09-21', 'due' => '2026-09-28 12:00:00'], 'HOLIDAY', 'Company closed for the fiesta', null);
+
+        $row = $this->db->query("SELECT kind, no_work_reason, hours, workdescription, status FROM weeklyreports WHERE internid = " . self::JOSE)->fetch_assoc();
+
+        $this->assertSame(['kind' => 'NO_WORK', 'no_work_reason' => 'HOLIDAY', 'hours' => '0.00', 'workdescription' => 'Company closed for the fiesta', 'status' => 'PENDING'], $row);
+        $this->assertSame([4], getReportedWeeks(self::JOSE));
+    }
+
+    public function testAReportSentAfterItsDueTimeIsLateAndKeepsTheLetter(): void
+    {
+        $alreadyDue = ['number' => 3, 'start' => '2026-09-14', 'due' => '2026-09-21 12:00:00'];
+        submitWeeklyReport(self::JOSE, $alreadyDue, [], 'late one', 'Joel Bautista', null, [], 'late-letter.pdf');
+
+        $report = getWeeklyReports(self::JOSE)[0];
+
+        $this->assertEquals(1, $report['late']);
+        $this->assertSame('late-letter.pdf', $report['late_letter_path']);
+        $this->assertSame('2026-09-21 12:00:00', $report['due_at']);
+    }
+
+    public function testAReportSentBeforeItsDueTimeIsNotLate(): void
+    {
+        submitWeeklyReport(self::JOSE, ['number' => 3, 'start' => '2026-09-14', 'due' => date('Y-m-d H:i:s', strtotime('+1 day'))], [], 'on time', 'Joel Bautista', null);
+
+        $this->assertEquals(0, getWeeklyReports(self::JOSE)[0]['late']);
+    }
+
+    public function testAWeekThatNeedsChangesOpensAgainAndTheNewReportReplacesIt(): void
+    {
+        submitWeeklyReport(self::JOSE, self::WEEK_3, [], 'first try', 'Joel Bautista', null);
+        $this->db->query("UPDATE weeklyreports SET status = 'REJECTED', submitted_at = '2026-09-20 09:00:00' WHERE internid = " . self::JOSE);
+        $this->assertSame([], getReportedWeeks(self::JOSE));
+
+        submitWeeklyReport(self::JOSE, self::WEEK_3, [], 'fixed', 'Joel Bautista', null);
+
+        $reports = getWeeklyReports(self::JOSE);
+        $this->assertCount(1, $reports);
+        $this->assertSame(['fixed', 'PENDING', '2026-09-20 09:00:00'], [$reports[0]['workdescription'], $reports[0]['status'], $reports[0]['submitted_at']]);
+        $this->assertEquals(0, $reports[0]['late'], 'it was on time the first time, so fixing it is not late');
+        $this->assertSame([3], getReportedWeeks(self::JOSE));
+    }
+
+    public function testAJournalMonthCanOnlyBeSentAgainAfterChangesAreAsked(): void
+    {
+        $this->assertTrue(submitJournal(self::JOSE, 1, 'first', null));
+        $this->assertFalse(submitJournal(self::JOSE, 1, 'again while waiting', null));
+
+        $this->db->query("UPDATE journals SET status = 'REJECTED' WHERE internid = " . self::JOSE);
+        $this->assertTrue(submitJournal(self::JOSE, 1, 'fixed', null));
+
+        $journals = getMonthlyJournals(self::JOSE);
+        $this->assertCount(1, $journals);
+        $this->assertSame(['fixed', 'PENDING'], [$journals[0]['notes'], $journals[0]['status']]);
     }
 
     public function testSubmittingAJournalSavesItAsPending(): void

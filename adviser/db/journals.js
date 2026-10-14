@@ -30,14 +30,15 @@ async function fetchJournalFileForAdviser(journalID, adviserID) {
     return rows[0] ? rows[0].file_path : null;
 }
 
-async function updateJournalReview(journalID, adviserID, decision, remark) {
+async function updateJournalReview(journalID, internID, adviserID, decision, remark, fromStatuses) {
     const [result] = await pool.query(
         `UPDATE journals j
-            JOIN interns i ON j.internid = i.internid
-            SET j.status = ?, j.remark = ?
-            WHERE j.journalid = ? AND i.adviserid = ?`,
-            [decision, remark, journalID, adviserID]);
-    return result;
+         JOIN interns i ON j.internid = i.internid
+         SET j.status = ?, j.remark = ?
+         WHERE j.journalid = ? AND j.internid = ? AND i.adviserid = ? AND j.status IN (?)`,
+        [decision, remark, journalID, internID, adviserID, fromStatuses]
+    );
+    return result.affectedRows;
 }
 
 module.exports = {

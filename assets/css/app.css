@@ -95,9 +95,19 @@ table, .num { font-variant-numeric: tabular-nums; }
 .btn[disabled] { opacity: .5; cursor: not-allowed; }
 .logout-btn { border: 2px solid var(--navy); color: var(--navy); background: #fff; border-radius: 999px; padding: 5px 18px; font: 700 13px var(--font); letter-spacing: .03em; text-transform: uppercase; cursor: pointer; }
 .link-btn { background: none; border: 0; padding: 0; font: 700 13px var(--font); color: var(--navy); cursor: pointer; text-decoration: none; }
+.field > .btn { align-self: flex-start; }
+[hidden] { display: none !important; }
 
 /* ---------- forms ---------- */
 .form { display: flex; flex-direction: column; gap: 14px; max-width: 640px; }
+.form-wide { max-width: none; }
+.time-table td, .time-table th { padding: 8px 10px; }
+.time-pair { white-space: nowrap; }
+.time-pair .input { width: auto; padding: 6px 8px; }
+.time-wrong { color: var(--red); font-weight: 600; }
+.switch { display: inline-flex; align-self: flex-start; border: 2px solid var(--navy); border-radius: 999px; overflow: hidden; margin: 6px 0 14px; }
+.switch a { padding: 6px 16px; font: 700 13px var(--font); color: var(--navy); text-decoration: none; }
+.switch a[aria-current="page"] { background: var(--navy); color: #fff; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label, .field .label { font-size: 13px; font-weight: 700; }
 .field .help { font-size: 12.5px; color: var(--muted); }
@@ -242,7 +252,22 @@ th:last-child, td:last-child { padding-right: 24px; }
 }
 /* ---------- small phones ---------- */
 @media (max-width: 599px) {
-  .nav-name { display: none; }   
+  .nav-name { display: none; }
+
+  /* each day is a block on phones: date, then morning, afternoon, hours */
+  .time-table thead { display: none; }
+  .time-table, .time-table tbody, .time-table tr, .time-table th, .time-table td { display: block; }
+  .time-table tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .time-table th, .time-table td { padding: 4px 0; border: 0; }
+  .time-table td::before { content: attr(data-label); display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .time-table .num::before { display: inline; margin-right: 6px; }
+  .time-pair { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .time-pair .input { flex: 1; min-width: 0; }
+  .time-table td.time-pair::before { flex-basis: 100%; margin-bottom: 0; }
+
+  .switch { display: flex; align-self: stretch; }
+  .switch a { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 6px 10px; text-align: center; }
+  .check-row { min-height: 44px; }
 }
 .big-btn { white-space: normal; }
 

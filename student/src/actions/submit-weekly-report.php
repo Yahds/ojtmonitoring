@@ -1,32 +1,80 @@
 <?php
-// saves a weekly report: the week number, hours, what the intern did, and the signed file
 requireDeployed();
 verify_csrf();
 
-$week = wholeNumberIn($_POST['weeknumber'] ?? null, 1, 52);
-$hours = wholeNumberIn($_POST['hours'] ?? null, 1, 168);
-$description = trim($_POST['workdescription'] ?? '');
-$file = $_FILES['report_file'] ?? null;
-
-if ($week === null) {
-    $error = 'Please enter a week number from 1 to 52.';
-} elseif ($hours === null) {
-    $error = 'Please enter the hours you worked, from 1 to 168.';
-} elseif (mb_strlen($description) > 500) {
-    $error = 'Please keep the work description within 500 characters.';
-} elseif ($file === null || $file['error'] === UPLOAD_ERR_NO_FILE) {
-    $error = 'Please attach your supervisor-signed weekly report.';
-} else {
-    $error = uploadError($file);
-}
-
-if ($error !== null) {
-    flash('error', $error);
+// week comes from the deploy date, not the form
+$profile = getInternProfile($_SESSION['internid']);
+$now = currentWeekFor($_SESSION['internid'], $profile);
+if ($now === null || $now['week'] === null) {
+    flash('error', 'There is no week to report right now. A week opens on its Friday.');
     redirect('/weekly-reports');
 }
 
-$fileName = saveUpload($file, 'weekly');
-submitWeeklyReport($_SESSION['internid'], $week, $hours, $description, $fileName);
+$supervisor = getSupervisor($_SESSION['internid']);
+$form = [
+    'days' => is_array($_POST['days'] ?? null) ? $_POST['days'] : [],
+    'accomplishment' => is_string($_POST['accomplishment'] ?? null) ? trim($_POST['accomplishment']) : '',
+    'absences' => is_array($_POST['absences'] ?? null) ? $_POST['absences'] : [],
+];
+$file = $_FILES['report_file'] ?? null;
+$days = reportDays($now['range']);
+$record = readTimeRecord($form['days'], array_column($days, 'date'));
+$weekdays = array_column(array_filter($days, fn ($day) => !$day['weekend']), 'date');
+$absent = readAbsences($form['absences'], $weekdays, (bool) $profile['accepts_parent_letter'], $record['days']);
+$proofs = uploadedFiles('absence_proof');
+$late = isLate($now, new DateTimeImmutable());
+$letter = $late ? ($_FILES['late_letter'] ?? null) : null;
 
-flash('success', "Your week $week report has been submitted for your adviser's review.");
+$errors = [];
+if ($record['error'] !== null) {
+    $errors['days'] = $record['error'];
+} elseif (!$record['days'] && !$absent['absences']) {
+    $errors['days'] = 'Enter your times for at least one day, or report your absences.';
+}
+if ($absent['error'] !== null) {
+    $errors['absences'] = $absent['error'];
+}
+foreach (array_keys($absent['absences']) as $date) {
+    $proof = $proofs[$date] ?? null;
+    if ($proof === null || $proof['error'] === UPLOAD_ERR_NO_FILE) {
+        $errors['absences'] = 'Attach your proof for ' . dayLabel($date) . '.';
+    } elseif (($proofError = uploadError($proof)) !== null) {
+        $errors['absences'] = 'Proof for ' . dayLabel($date) . ': ' . $proofError;
+    }
+    if (isset($errors['absences'])) {
+        break;
+    }
+}
+if ($form['accomplishment'] === '' || mb_strlen($form['accomplishment']) > 2000) {
+    $errors['accomplishment'] = 'Write what you worked on this week, up to 2000 characters.';
+}
+if (!$supervisor) {
+    $errors['supervisor'] = 'Add your supervisor first.';
+}
+if ($file === null || $file['error'] === UPLOAD_ERR_NO_FILE) {
+    $errors['report_file'] = 'Attach the copy your supervisor signed.';
+} elseif (($fileError = uploadError($file)) !== null) {
+    $errors['report_file'] = $fileError;
+}
+
+if (($letterError = uploadError($letter)) !== null) {
+    $errors['late_letter'] = $letterError;
+}
+
+if ($errors) {
+    http_response_code(400);
+    require __DIR__ . '/../pages/weekly-reports.php';
+    exit();
+}
+
+$fileName = saveUpload($file, 'weekly');
+$absences = $absent['absences'];
+foreach ($absences as $date => $absence) {
+    $absences[$date]['proof_path'] = saveUpload($proofs[$date], 'absence');
+}
+$letterName = $letter && $letter['error'] !== UPLOAD_ERR_NO_FILE ? saveUpload($letter, 'late') : null;
+submitWeeklyReport($_SESSION['internid'], weekRow($now), $record['days'], $form['accomplishment'], $supervisor['supervisorname'],
+    $fileName, $absences, $letterName);
+
+flash('success', "Your week {$now['week']} report has been sent for your adviser's review.");
 redirect('/weekly-reports');

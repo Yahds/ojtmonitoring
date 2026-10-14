@@ -11,6 +11,8 @@ require_once __DIR__ . '/nav.php';
 require_once __DIR__ . '/summary.php';
 require_once __DIR__ . '/uploads.php';
 require_once __DIR__ . '/validate.php';
+require_once __DIR__ . '/weeks.php';
+require_once __DIR__ . '/time-record.php';
 require_once __DIR__ . '/sso.php';
 require_once __DIR__ . '/passwords.php';
 

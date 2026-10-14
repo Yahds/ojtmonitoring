@@ -71,7 +71,46 @@ async function endOtherSessions(adviserID, keepSessionID) {
     await pool.query("DELETE FROM sessions WHERE session_id <> ? AND JSON_EXTRACT(data, '$.adviserID') = ?", [keepSessionID, adviserID]);
 }
 
+async function fetchWeeklyDueDays(adviserID) {
+    const [[rule]] = await pool.query(
+        'SELECT due_days FROM weekly_due_rules WHERE adviserid = ? ORDER BY starts_on DESC LIMIT 1',
+        [adviserID]
+    );
+    return rule ? rule.due_days : 3;
+}
+
+async function fetchWeeklyDueRules(adviserID) {
+    const [rules] = await pool.query(
+        "SELECT DATE_FORMAT(starts_on, '%Y-%m-%d') AS starts_on, due_days FROM weekly_due_rules WHERE adviserid = ? ORDER BY starts_on",
+        [adviserID]
+    );
+    return rules;
+}
+
+// starts tomorrow so weeks that already ended keep their due date
+async function setWeeklyDueDays(adviserID, dueDays) {
+    await pool.query(
+        `INSERT INTO weekly_due_rules (adviserid, starts_on, due_days) VALUES (?, CURDATE() + INTERVAL 1 DAY, ?) AS new
+         ON DUPLICATE KEY UPDATE due_days = new.due_days`,
+        [adviserID, dueDays]
+    );
+}
+
+async function fetchAcceptsParentLetter(adviserID) {
+    const [[adviser]] = await pool.query('SELECT accepts_parent_letter FROM advisers WHERE adviserID = ?', [adviserID]);
+    return adviser.accepts_parent_letter === 1;
+}
+
+async function setAcceptsParentLetter(adviserID, accepts) {
+    await pool.query('UPDATE advisers SET accepts_parent_letter = ? WHERE adviserID = ?', [accepts ? 1 : 0, adviserID]);
+}
+
 module.exports = {
+    fetchWeeklyDueDays,
+    fetchWeeklyDueRules,
+    setWeeklyDueDays,
+    fetchAcceptsParentLetter,
+    setAcceptsParentLetter,
     authenticateAdviser,
     fetchAdviser,
     fetchAdvisersByDepartment,

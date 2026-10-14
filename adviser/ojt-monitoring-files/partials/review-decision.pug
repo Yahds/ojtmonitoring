@@ -1,0 +1,36 @@
+//- approve/reject while the item waits for review, then a change form once it's decided
+mixin reviewDecision(action, idField, id, status, remark)
+  if status === 'PENDING'
+    form.form(action=action method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      input(type='hidden' name=idField value=id)
+      .field
+        label(for=`remark-${id}`) Your remark
+        textarea.input(id=`remark-${id}` name='remark' rows='2' maxlength='255')= remark
+      .btn-row
+        button.btn.btn-create.btn-sm(type='submit' name='decision' value='APPROVED') Approve
+        button.btn.btn-reject.btn-sm(type='submit' name='decision' value='REJECTED') Needs changes
+  else
+    if remark
+      p.note
+        b Your remark:
+        |  #{remark}
+    details
+      summary.link-btn Change decision or remark
+      form.form(action=`${action}/change` method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        input(type='hidden' name=idField value=id)
+        fieldset.field
+          legend.label Decision
+          label.check-row
+            input(type='radio' name='decision' value='APPROVED' checked=status === 'APPROVED')
+            | Approved
+          label.check-row
+            input(type='radio' name='decision' value='REJECTED' checked=status === 'REJECTED')
+            | Needs changes
+        .field
+          label(for=`change-remark-${id}`) Your remark
+          textarea.input(id=`change-remark-${id}` name='remark' rows='2' maxlength='255')= remark
+        p.muted Needs changes lets the intern send it again.
+        .btn-row
+          button.btn.btn-create.btn-sm(type='submit') Save changes

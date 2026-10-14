@@ -59,7 +59,8 @@ function getInternStatus($internID)
 
 function getInternProfile($internID)
 {
-    $query = "SELECT s.studentName, s.course, s.classcode, co.target_hours, DATE_FORMAT(i.finished_on, '%M %e, %Y') AS finishedOn, i.companyid, c.companyname, a.adviserName, a.adviserEmail
+    $query = "SELECT s.studentName, s.course, s.classcode, co.target_hours, DATE_FORMAT(i.finished_on, '%M %e, %Y') AS finishedOn, i.companyid, c.companyname, a.adviserName, a.adviserEmail,
+                     DATE_FORMAT(i.deployed_on, '%Y-%m-%d') AS deployedOn, i.adviserid, a.accepts_parent_letter
               FROM interns i
               JOIN students s ON s.studentID = i.studentid
               JOIN courses co ON co.code = s.course

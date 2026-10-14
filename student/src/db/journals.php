@@ -21,12 +21,30 @@ function getMonthlyJournalFile($internID, $journalID)
     return $row ? $row['file_path'] : null;
 }
 
-function submitJournal($internID, $monthnumber, $notes, $filePath)
+// false when the month was already sent and isn't waiting for changes.
+// sending a month again replaces the journal that needed changes
+function submitJournal($internID, $monthnumber, $notes, $filePath): bool
 {
-    $date = date("Y-m-d");
-    $query = "INSERT INTO journals (internid, monthnumber, notes, file_path, status, datesubmitted) VALUES (?, ?, ?, ?, 'PENDING', ?)";
-    $statement = db()->prepare($query);
-    $statement->bind_param("iisss", $internID, $monthnumber, $notes, $filePath, $date);
-    $statement->execute();
-    return $statement->affected_rows;
+    $db = db();
+    $db->begin_transaction();
+    try {
+        $sent = $db->execute_query(
+            "SELECT journalid, status FROM journals WHERE internid = ? AND monthnumber = ? FOR UPDATE",
+            [$internID, $monthnumber]
+        )->fetch_all(MYSQLI_ASSOC);
+        if (array_filter($sent, fn ($journal) => $journal['status'] !== 'REJECTED')) {
+            $db->rollback();
+            return false;
+        }
+        $db->execute_query("DELETE FROM journals WHERE internid = ? AND monthnumber = ? AND status = 'REJECTED'", [$internID, $monthnumber]);
+        $db->execute_query(
+            "INSERT INTO journals (internid, monthnumber, notes, file_path, status, datesubmitted) VALUES (?, ?, ?, ?, 'PENDING', ?)",
+            [$internID, $monthnumber, $notes, $filePath, date('Y-m-d')]
+        );
+        $db->commit();
+        return true;
+    } catch (Throwable $error) {
+        $db->rollback();
+        throw $error;
+    }
 }

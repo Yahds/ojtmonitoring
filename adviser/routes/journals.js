@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const { fetchJournalsForReview, updateJournalReview, fetchJournalFileForAdviser } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
+const { reviewHandler } = require('../lib/review-handler');
 
 const router = express.Router();
 
@@ -18,28 +19,27 @@ router.get("/interns/:internId/journals", requireAdviser, async (req, res, next)
     }
 });
 
-router.post("/interns/:internId/journals", requireAdviser, async (req, res, next) => {
-    try {
-        const internId = req.params.internId;
-        const { journalid, decision, remark } = req.body;
-        const backTo = `/adviser/interns/${internId}/journals`;
+router.post('/interns/:internId/journals', requireAdviser, reviewHandler({
+    page: 'journals',
+    idField: 'journalid',
+    what: 'journal',
+    update: updateJournalReview,
+    fromStatuses: ['PENDING'],
+    notAllowed: 'Only a journal waiting for review can be approved or rejected.',
+    auditAction: decision => (decision === 'APPROVED' ? 'journal_approved' : 'journal_rejected'),
+    success: decision => (decision === 'APPROVED' ? 'Journal approved.' : 'Journal sent back for changes.'),
+}));
 
-        if (decision !== 'APPROVED' && decision !== 'REJECTED') {
-            req.flash('error', 'Choose Approve or Reject.');
-            return res.redirect(backTo);
-        }
-
-        const result = await updateJournalReview(journalid, req.session.adviserID, decision, remark);
-        if (result.affectedRows === 0) {
-            req.flash('error', 'That journal was not found.');
-        } else {
-            req.flash('success', decision === 'APPROVED' ? 'Journal approved.' : 'Journal rejected.');
-        }
-        res.redirect(backTo);
-    } catch (error) {
-        next(error);
-    }
-});
+router.post('/interns/:internId/journals/change', requireAdviser, reviewHandler({
+    page: 'journals',
+    idField: 'journalid',
+    what: 'journal',
+    update: updateJournalReview,
+    fromStatuses: ['APPROVED', 'REJECTED'],
+    notAllowed: 'Only an approved or rejected journal can be changed. If the intern sent the month again, review that one.',
+    auditAction: () => 'journal_review_changed',
+    success: () => 'Your decision and remark were saved.',
+}));
 
 router.get("/journals/:journalId/file", requireAdviser, async (req, res, next) => {
     try {

@@ -8,6 +8,7 @@ class HttpTest extends TestCase
     private const HOST = '127.0.0.1:8099';
     private static $server;
     private string $cookie = '';
+    private ?array $ana = null;
 
     public static function setUpBeforeClass(): void
     {
@@ -24,6 +25,30 @@ class HttpTest extends TestCase
             usleep(100000);
         }
         throw new RuntimeException('The test server did not start.');
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->ana) {
+            db()->execute_query("UPDATE interns SET deployed_on = ? WHERE internid = ?", [$this->ana['deployed'], $this->ana['internid']]);
+        }
+    }
+
+    // whether Ana has a week open depends on today and on what was sent in the browser,
+    // so her start date moves back a week at a time until one is open. tearDown puts it back
+    private function anaWithAnOpenWeek(): array
+    {
+        $this->ana = db()->execute_query("SELECT internid, adviserid, DATE_FORMAT(deployed_on, '%Y-%m-%d') AS deployed FROM interns WHERE studentid = 2299003")->fetch_assoc();
+        $deployed = new DateTimeImmutable($this->ana['deployed']);
+        for ($tries = 0; $tries < 20; $tries++) {
+            $now = reportingWeek($deployed->format('Y-m-d'), getDueRules($this->ana['adviserid']), getReportedWeeks($this->ana['internid']), date('Y-m-d'));
+            if ($now['week'] !== null) {
+                break;
+            }
+            $deployed = $deployed->modify('-7 days');
+        }
+        db()->execute_query("UPDATE interns SET deployed_on = ? WHERE internid = ?", [$deployed->format('Y-m-d'), $this->ana['internid']]);
+        return $now;
     }
 
     public static function tearDownAfterClass(): void
@@ -191,6 +216,57 @@ class HttpTest extends TestCase
         } finally {
             db()->execute_query("UPDATE internrequirements SET status = ?, remarks = ? WHERE internid = 300 AND reqid = 1", [$before['status'], $before['remarks']]);
         }
+    }
+
+    public function testADeployedInternSeesTheWeekToReportAndWhenItIsDue(): void
+    {
+        $now = $this->anaWithAnOpenWeek();
+        $this->logIn('2299003', '1234');
+
+        $body = $this->request('GET', '/weekly-reports')['body'];
+
+        $this->assertStringContainsString('Week ' . $now['week'] . ' report', $body);
+        $this->assertStringContainsString('due ' . $now['due']->format('l, M j') . ', 12 noon', $body);
+        $this->assertStringNotContainsString('name="weeknumber"', $body);
+        $this->assertStringContainsString('accepts', $body);
+        $this->assertStringContainsString('a medical certificate only.', $body);
+    }
+
+    public function testAWeeklyReportWithAMistakeKeepsWhatTheInternTyped(): void
+    {
+        $now = $this->anaWithAnOpenWeek();
+        $firstDay = reportDays($now['range'])[0]['date'];
+        $this->logIn('2299003', '1234');
+        $token = $this->tokenFrom($this->request('GET', '/weekly-reports')['body']);
+
+        $response = $this->request('POST', '/weekly-reports', [
+            'csrf_token' => $token,
+            'days' => [$firstDay => ['am_in' => '08:00', 'am_out' => '12:00']],
+            'accomplishment' => 'Wrote tests',
+        ]);
+
+        $this->assertSame(400, $response['status']);
+        $this->assertStringContainsString('Attach the copy your supervisor signed.', $response['body']);
+        $this->assertStringContainsString('value="08:00"', $response['body']);
+        $this->assertStringContainsString('Wrote tests', $response['body']);
+    }
+
+    public function testANoWorkWeekWithoutAReasonKeepsTheDetails(): void
+    {
+        $now = $this->anaWithAnOpenWeek();
+        $this->logIn('2299003', '1234');
+        $page = $this->request('GET', '/weekly-reports?week=no-work')['body'];
+        $this->assertStringContainsString('Send for week ' . $now['week'], $page);
+
+        $response = $this->request('POST', '/weekly-reports/no-work', [
+            'csrf_token' => $this->tokenFrom($page),
+            'details' => 'Office closed for the holiday',
+        ]);
+
+        $this->assertSame(400, $response['status']);
+        $this->assertStringContainsString('Choose why there was no work this week.', $response['body']);
+        $this->assertStringContainsString('Office closed for the holiday', $response['body']);
+        $this->assertStringContainsString('aria-current="page">No work this week', $response['body']);
     }
 
     public function testAWithdrawnInternOnlySeesTheWithdrawnPage(): void
