@@ -21,12 +21,25 @@ function getWeeklyReportFile($internID, $reportID)
     return $row ? $row['file_path'] : null;
 }
 
-function submitWeeklyReport($internID, $weeknumber, $hours, $workdescription, $filePath)
+function getDueRules($adviserID): array
 {
-    $date = date("Y-m-d");
-    $query = "INSERT INTO weeklyreports (internid, weeknumber, hours, workdescription, file_path, status, datesubmitted) VALUES (?, ?, ?, ?, ?, 'PENDING', ?)";
-    $statement = db()->prepare($query);
-    $statement->bind_param("iiisss", $internID, $weeknumber, $hours, $workdescription, $filePath, $date);
-    $statement->execute();
-    return $statement->affected_rows;
+    return db()->execute_query(
+        "SELECT DATE_FORMAT(starts_on, '%Y-%m-%d') AS starts_on, due_days FROM weekly_due_rules WHERE adviserid = ? ORDER BY starts_on",
+        [$adviserID]
+    )->fetch_all(MYSQLI_ASSOC);
+}
+
+function getReportedWeeks($internID): array
+{
+    $rows = db()->execute_query("SELECT DISTINCT weeknumber FROM weeklyreports WHERE internid = ?", [$internID])->fetch_all(MYSQLI_ASSOC);
+    return array_map(fn ($row) => (int) $row['weeknumber'], $rows);
+}
+
+function submitWeeklyReport($internID, $weeknumber, $weekStart, $hours, $workdescription, $filePath)
+{
+    return db()->execute_query(
+        "INSERT INTO weeklyreports (internid, weeknumber, week_start, hours, workdescription, file_path, status, datesubmitted)
+         VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?)",
+        [$internID, $weeknumber, $weekStart, $hours, $workdescription, $filePath, date('Y-m-d')]
+    ) ? db()->affected_rows : 0;
 }

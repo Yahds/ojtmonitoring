@@ -193,6 +193,20 @@ class HttpTest extends TestCase
         }
     }
 
+    public function testADeployedInternSeesTheWeekToReportAndWhenItIsDue(): void
+    {
+        $ana = db()->execute_query("SELECT internid, adviserid, DATE_FORMAT(deployed_on, '%Y-%m-%d') AS deployed FROM interns WHERE studentid = 2299003")->fetch_assoc();
+        $now = reportingWeek($ana['deployed'], getDueRules($ana['adviserid']), getReportedWeeks($ana['internid']), date('Y-m-d'));
+        $this->logIn('2299003', '1234');
+
+        $body = $this->request('GET', '/weekly-reports')['body'];
+
+        $this->assertNotNull($now['week'], 'Ana should have a week to report');
+        $this->assertStringContainsString('Week ' . $now['week'] . ' report', $body);
+        $this->assertStringContainsString('due ' . $now['due']->format('l, M j') . ', 12 noon', $body);
+        $this->assertStringNotContainsString('name="weeknumber"', $body);
+    }
+
     public function testAWithdrawnInternOnlySeesTheWithdrawnPage(): void
     {
         db()->execute_query("UPDATE interns SET status = 'WITHDRAWN' WHERE internid = 300");

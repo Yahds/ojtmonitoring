@@ -71,7 +71,26 @@ async function endOtherSessions(adviserID, keepSessionID) {
     await pool.query("DELETE FROM sessions WHERE session_id <> ? AND JSON_EXTRACT(data, '$.adviserID') = ?", [keepSessionID, adviserID]);
 }
 
+async function fetchWeeklyDueDays(adviserID) {
+    const [[rule]] = await pool.query(
+        'SELECT due_days FROM weekly_due_rules WHERE adviserid = ? ORDER BY starts_on DESC LIMIT 1',
+        [adviserID]
+    );
+    return rule ? rule.due_days : 3;
+}
+
+// starts tomorrow so weeks that already ended keep their due date
+async function setWeeklyDueDays(adviserID, dueDays) {
+    await pool.query(
+        `INSERT INTO weekly_due_rules (adviserid, starts_on, due_days) VALUES (?, CURDATE() + INTERVAL 1 DAY, ?) AS new
+         ON DUPLICATE KEY UPDATE due_days = new.due_days`,
+        [adviserID, dueDays]
+    );
+}
+
 module.exports = {
+    fetchWeeklyDueDays,
+    setWeeklyDueDays,
     authenticateAdviser,
     fetchAdviser,
     fetchAdvisersByDepartment,

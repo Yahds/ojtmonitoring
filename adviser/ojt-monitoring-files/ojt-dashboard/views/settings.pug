@@ -1,0 +1,19 @@
+extends ../../layouts/main
+
+block content
+  h1.page-title OJT settings
+  p.muted These rules apply to all your interns. Students see them on their forms.
+
+  section.card.card-pad
+    form.form(action='/adviser/settings' method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      fieldset.field
+        legend.label When weekly reports are due
+        each choice in dueChoices
+          label.check-row
+            input(type='radio' name='weeklyDueDays' value=choice.days checked=weeklyDueDays === choice.days)
+            | #{choice.label}
+        span.help A week runs Monday to Friday. Late reports are still accepted and marked late.
+        span.help A change applies to weeks that end after today. Weeks that already ended keep their due dates.
+      .btn-row
+        button.btn.btn-create(type='submit') Save settings

@@ -38,9 +38,11 @@ class StudentDataTest extends TestCase
 
     public function testInternGetsAllSevenRequirements(): void
     {
-        $requirements = getRequirements(self::MARIA);
+        // advisers can add their own on top, so count only the school's
+        $schoolIds = array_map('intval', array_column($this->db->query("SELECT reqid FROM requirements WHERE created_by IS NULL")->fetch_all(MYSQLI_ASSOC), 'reqid'));
+        $school = array_filter(getRequirements(self::MARIA), fn ($requirement) => in_array($requirement->reqID, $schoolIds, true));
 
-        $this->assertCount(7, $requirements);
+        $this->assertCount(7, $school);
     }
 
     public function testSubmittingARequirementSavesStatusDateAndRemark(): void
@@ -118,7 +120,7 @@ class StudentDataTest extends TestCase
 
     public function testSubmittingAWeeklyReportSavesItAsPending(): void
     {
-        submitWeeklyReport(self::JOSE, 3, 8, 'set up the database', null);
+        submitWeeklyReport(self::JOSE, 3, null, 8, 'set up the database', null);
 
         $row = $this->db->query("SELECT hours, status, datesubmitted FROM weeklyreports
                                  WHERE internid = " . self::JOSE . " AND weeknumber = 3")->fetch_assoc();
