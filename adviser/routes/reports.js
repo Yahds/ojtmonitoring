@@ -10,6 +10,7 @@ const router = express.Router();
 
 const ABSENCE_PARTS = { DAY: 'Whole day', AM: 'Morning', PM: 'Afternoon' };
 const PROOF_TYPES = { MEDICAL: 'Medical certificate', LETTER: "Parent's letter" };
+const NO_WORK_REASONS = { HOLIDAY: 'Holiday', CLOSED: 'Company was closed', SCHOOL: 'School activity', OTHER: 'Other' };
 
 function sendUpload(res, fileName) {
     const safePath = path.join('/var/www/uploads', path.basename(fileName));
@@ -27,6 +28,7 @@ router.get("/interns/:internId/weekly-reports", requireAdviser, async (req, res,
         weeklyReports.forEach(report => {
             if (report.datesubmitted) report.datesubmitted = new Date(report.datesubmitted).toDateString();
             report.days = days.filter(day => day.reportid === report.reportid);
+            report.noWorkReason = NO_WORK_REASONS[report.no_work_reason];
             report.absences = absences
                 .filter(absence => absence.reportid === report.reportid)
                 .map(absence => ({ ...absence, part: ABSENCE_PARTS[absence.part], proof: PROOF_TYPES[absence.proof_type] }));

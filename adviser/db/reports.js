@@ -12,6 +12,8 @@ async function fetchWeeklyReportsForReview(internID, adviserID) {
             wr.remark,
             wr.datesubmitted,
             wr.supervisor_name,
+            wr.kind,
+            wr.no_work_reason,
             students.studentName
         FROM weeklyreports wr
         JOIN interns ON wr.internid = interns.internid

@@ -62,6 +62,7 @@ function readTimeRecord(array $posted, array $dates): array
 
 const ABSENCE_PARTS = ['DAY' => 'Whole day', 'AM' => 'Morning', 'PM' => 'Afternoon'];
 const PROOF_TYPES = ['MEDICAL' => 'Medical certificate', 'LETTER' => "Parent's letter"];
+const NO_WORK_REASONS = ['HOLIDAY' => 'Holiday', 'CLOSED' => 'Company was closed', 'SCHOOL' => 'School activity', 'OTHER' => 'Other'];
 
 function readAbsences(array $posted, array $dates, bool $acceptsLetter, array $workDays): array
 {

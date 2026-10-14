@@ -17,7 +17,10 @@ block content
     each report in weeklyReports
       article.item
         .item-head
-          h3 Week #{report.weeknumber} · #{report.hours} hours
+          if report.kind === 'NO_WORK'
+            h3 Week #{report.weeknumber} · No work this week
+          else
+            h3 Week #{report.weeknumber} · #{report.hours} hours
           - const status = statusOf('review', report.status)
           span.tag(class=status.tag)= status.label
         if report.datesubmitted
@@ -57,13 +60,17 @@ block content
                     td= absence.reason
                     td
                       a(href=`/adviser/weekly-reports/${report.reportid}/absences/${absence.date}/proof`)= absence.proof
-        if report.workdescription
+        if report.kind === 'NO_WORK'
+          p.note
+            b Why: #{report.noWorkReason}.
+            |  #{report.workdescription}
+        else if report.workdescription
           p.note
             b Work accomplishment:
             |  #{report.workdescription}
         if report.file_path
           p
-            a(href=`/adviser/weekly-reports/${report.reportid}/file`) View signed report
+            a(href=`/adviser/weekly-reports/${report.reportid}/file`)= report.kind === 'NO_WORK' ? 'View proof' : 'View signed report'
         form.form(action=`/adviser/interns/${internId}/weekly-reports` method='POST')
           input(type='hidden' name='csrf_token' value=csrfToken)
           input(type='hidden' name='reportid' value=report.reportid)

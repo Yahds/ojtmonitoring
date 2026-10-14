@@ -147,6 +147,16 @@ class StudentDataTest extends TestCase
         $this->assertEquals(1, getWeeklyReports(self::JOSE)[0]['absences']);
     }
 
+    public function testANoWorkWeekIsSavedWithZeroHoursAndCountsAsReported(): void
+    {
+        submitNoWorkWeek(self::JOSE, 4, '2026-09-21', 'HOLIDAY', 'Company closed for the fiesta', null);
+
+        $row = $this->db->query("SELECT kind, no_work_reason, hours, workdescription, status FROM weeklyreports WHERE internid = " . self::JOSE)->fetch_assoc();
+
+        $this->assertSame(['kind' => 'NO_WORK', 'no_work_reason' => 'HOLIDAY', 'hours' => '0.00', 'workdescription' => 'Company closed for the fiesta', 'status' => 'PENDING'], $row);
+        $this->assertSame([4], getReportedWeeks(self::JOSE));
+    }
+
     public function testSubmittingAJournalSavesItAsPending(): void
     {
         submitJournal(self::JOSE, 1, 'first month notes', null);

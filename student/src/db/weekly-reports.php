@@ -36,6 +36,24 @@ function getReportedWeeks($internID): array
     return array_map(fn ($row) => (int) $row['weeknumber'], $rows);
 }
 
+// null when the start date isn't recorded yet
+function currentWeekFor($internID, array $profile): ?array
+{
+    if (!$profile['deployedOn']) {
+        return null;
+    }
+    return reportingWeek($profile['deployedOn'], getDueRules($profile['adviserid']), getReportedWeeks($internID), date('Y-m-d'));
+}
+
+function submitNoWorkWeek($internID, int $week, string $weekStart, string $reason, string $details, ?string $filePath): void
+{
+    db()->execute_query(
+        "INSERT INTO weeklyreports (internid, weeknumber, week_start, kind, no_work_reason, hours, workdescription, file_path, status, datesubmitted)
+         VALUES (?, ?, ?, 'NO_WORK', ?, 0, ?, ?, 'PENDING', ?)",
+        [$internID, $week, $weekStart, $reason, $details, $filePath, date('Y-m-d')]
+    );
+}
+
 function submitWeeklyReport($internID, int $week, string $weekStart, array $days, string $accomplishment, string $supervisorName, ?string $filePath, array $absences = []): int
 {
     $db = db();

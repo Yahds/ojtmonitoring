@@ -251,6 +251,24 @@ class HttpTest extends TestCase
         $this->assertStringContainsString('Wrote tests', $response['body']);
     }
 
+    public function testANoWorkWeekWithoutAReasonKeepsTheDetails(): void
+    {
+        $now = $this->anaWithAnOpenWeek();
+        $this->logIn('2299003', '1234');
+        $page = $this->request('GET', '/weekly-reports?week=no-work')['body'];
+        $this->assertStringContainsString('Send for week ' . $now['week'], $page);
+
+        $response = $this->request('POST', '/weekly-reports/no-work', [
+            'csrf_token' => $this->tokenFrom($page),
+            'details' => 'Office closed for the holiday',
+        ]);
+
+        $this->assertSame(400, $response['status']);
+        $this->assertStringContainsString('Choose why there was no work this week.', $response['body']);
+        $this->assertStringContainsString('Office closed for the holiday', $response['body']);
+        $this->assertStringContainsString('aria-current="page">No work this week', $response['body']);
+    }
+
     public function testAWithdrawnInternOnlySeesTheWithdrawnPage(): void
     {
         db()->execute_query("UPDATE interns SET status = 'WITHDRAWN' WHERE internid = 300");

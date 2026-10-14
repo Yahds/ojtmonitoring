@@ -32,6 +32,11 @@ beforeAll(async () => {
         [reportId]
     );
     await pool.query("INSERT INTO weeklyreports (internid, weeknumber, hours, status) VALUES (?, 1, 200, 'APPROVED'), (?, 3, 39.5, 'APPROVED')", [internId, internId]);
+    await pool.query(
+        `INSERT INTO weeklyreports (internid, weeknumber, kind, no_work_reason, hours, workdescription, status, datesubmitted)
+         VALUES (?, 4, 'NO_WORK', 'CLOSED', 0, 'Office moved to a new building', 'PENDING', '2026-09-28')`,
+        [internId]
+    );
 
     agent = await loginAs(app, adviser.email);
 });
@@ -75,4 +80,15 @@ test('a proof that is not on the report is not found', async () => {
     const res = await agent.get(`/adviser/weekly-reports/${reportId}/absences/2026-09-10/proof`);
 
     expect(res.status).toBe(404);
+});
+
+test('a no-work week shows why instead of hours and is in the review queue', async () => {
+    const page = await agent.get(`/adviser/interns/${internId}/weekly-reports`);
+
+    expect(page.text).toContain('Week 4 · No work this week');
+    expect(page.text).toContain('Why: Company was closed.');
+    expect(page.text).toContain('Office moved to a new building');
+
+    const queue = await agent.get('/adviser/review');
+    expect(queue.text).toContain('Week 4 · no work');
 });

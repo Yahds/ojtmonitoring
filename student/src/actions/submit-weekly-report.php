@@ -4,10 +4,8 @@ verify_csrf();
 
 // week comes from the deploy date, not the form
 $profile = getInternProfile($_SESSION['internid']);
-$now = $profile['deployedOn']
-    ? reportingWeek($profile['deployedOn'], getDueRules($profile['adviserid']), getReportedWeeks($_SESSION['internid']), date('Y-m-d'))
-    : ['week' => null];
-if ($now['week'] === null) {
+$now = currentWeekFor($_SESSION['internid'], $profile);
+if ($now === null || $now['week'] === null) {
     flash('error', 'There is no week to report right now. A week opens on its Friday.');
     redirect('/weekly-reports');
 }

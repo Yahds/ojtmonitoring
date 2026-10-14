@@ -5,9 +5,8 @@ $profile = getInternProfile($_SESSION['internid']);
 $adviser = displayName($profile['adviserName']);
 $supervisor = getSupervisor($_SESSION['internid']);
 $approvedHours = getApprovedHours($_SESSION['internid']);
-$now = $profile['deployedOn']
-    ? reportingWeek($profile['deployedOn'], getDueRules($profile['adviserid']), getReportedWeeks($_SESSION['internid']), date('Y-m-d'))
-    : null;
+$now = currentWeekFor($_SESSION['internid'], $profile);
+$noWork = $noWork ?? ($_GET['week'] ?? '') === 'no-work';
 $form = $form ?? ['days' => [], 'accomplishment' => '', 'absences' => []];
 $acceptsLetter = (bool) $profile['accepts_parent_letter'];
 $errors = $errors ?? [];
@@ -33,6 +32,13 @@ require __DIR__ . '/../views/header.php';
     <?php if ($errors): ?>
         <div class="flash flash-error" role="alert">Please fix the items marked below. Attach your files again too.</div>
     <?php endif; ?>
+    <nav class="switch" aria-label="Report type">
+        <a href="/student/weekly-reports"<?= $noWork ? '' : ' aria-current="page"' ?>>I worked this week</a>
+        <a href="/student/weekly-reports?week=no-work"<?= $noWork ? ' aria-current="page"' : '' ?>>No work this week</a>
+    </nav>
+    <?php if ($noWork): ?>
+        <?php require __DIR__ . '/../views/no-work-form.php'; ?>
+    <?php else: ?>
     <form class="form form-wide" action="/student/weekly-reports" method="post" enctype="multipart/form-data" data-time-record data-draft="weekly-draft-<?= (int) $_SESSION['internid'] ?>-<?= (int) $now['week'] ?>">
         <?= csrf_field() ?>
         <fieldset class="field" aria-describedby="<?= isset($errors['days']) ? 'days-error' : 'days-help' ?>">
@@ -123,6 +129,7 @@ require __DIR__ . '/../views/header.php';
             <button class="btn btn-create" type="submit"<?= $supervisor ? '' : ' disabled' ?>>Submit week <?= (int) $now['week'] ?></button>
         </div>
     </form>
+    <?php endif; ?>
 </section>
 <script src="/assets/js/time-record.js" defer></script>
 <?php endif; ?>
@@ -135,7 +142,11 @@ require __DIR__ . '/../views/header.php';
     <?php foreach ($reports as $report): ?>
         <article class="item">
             <div class="item-head">
-                <h3>Week <?= (int) $report['weeknumber'] ?> · <?= e(hoursText($report['hours'])) ?> hours</h3>
+                <?php if ($report['kind'] === 'NO_WORK'): ?>
+                    <h3>Week <?= (int) $report['weeknumber'] ?> · No work · <?= e(NO_WORK_REASONS[$report['no_work_reason']]) ?></h3>
+                <?php else: ?>
+                    <h3>Week <?= (int) $report['weeknumber'] ?> · <?= e(hoursText($report['hours'])) ?> hours</h3>
+                <?php endif; ?>
                 <?php $status = $report['status']; require __DIR__ . '/../views/status-tag.php'; ?>
             </div>
             <p class="meta">

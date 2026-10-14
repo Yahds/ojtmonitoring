@@ -19,6 +19,7 @@ const ROUTES = [
     'GET /requirements/version-file' => 'actions/download-requirement-version.php',
     'GET /weekly-reports'      => 'pages/weekly-reports.php',
     'POST /weekly-reports'     => 'actions/submit-weekly-report.php',
+    'POST /weekly-reports/no-work' => 'actions/submit-no-work-week.php',
     'GET /weekly-reports/file' => 'actions/download-weekly-report.php',
     'GET /journals'            => 'pages/journals.php',
     'POST /journals'           => 'actions/submit-journal.php',
