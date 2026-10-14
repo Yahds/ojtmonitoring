@@ -136,6 +136,17 @@ class StudentDataTest extends TestCase
         $this->assertEquals([['work_date' => '2026-09-14', 'hours' => 8], ['work_date' => '2026-09-15', 'hours' => 3.5]], $saved);
     }
 
+    public function testAbsencesAreSavedWithTheReport(): void
+    {
+        $absences = ['2026-09-16' => ['part' => 'DAY', 'reason' => 'Flu', 'proof_type' => 'MEDICAL', 'proof_path' => 'test-proof.pdf']];
+        $reportID = submitWeeklyReport(self::JOSE, 3, '2026-09-14', [], 'out sick', 'Joel Bautista', null, $absences);
+
+        $saved = $this->db->query("SELECT absent_date, part, reason, proof_type, proof_path FROM weeklyreport_absences WHERE reportid = $reportID")->fetch_all(MYSQLI_ASSOC);
+
+        $this->assertSame([['absent_date' => '2026-09-16', 'part' => 'DAY', 'reason' => 'Flu', 'proof_type' => 'MEDICAL', 'proof_path' => 'test-proof.pdf']], $saved);
+        $this->assertEquals(1, getWeeklyReports(self::JOSE)[0]['absences']);
+    }
+
     public function testSubmittingAJournalSavesItAsPending(): void
     {
         submitJournal(self::JOSE, 1, 'first month notes', null);

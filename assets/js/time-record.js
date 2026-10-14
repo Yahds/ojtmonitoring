@@ -63,7 +63,7 @@ document.querySelectorAll('[data-time-record]').forEach((form) => {
 
   // keeps what the intern typed if they leave the page, like going to change their supervisor
   const draftKey = form.dataset.draft;
-  const fields = form.querySelectorAll('input[type="time"], textarea');
+  const fields = form.querySelectorAll('input[type="time"], input[type="text"], select, textarea');
   const saveDraft = () => {
     const draft = Object.fromEntries([...fields].map((field) => [field.name, field.value]));
     try {
@@ -79,10 +79,11 @@ document.querySelectorAll('[data-time-record]').forEach((form) => {
       if (!field.value && draft[field.name]) field.value = draft[field.name];
     });
   } catch {}
-  const weekend = form.querySelector('details');
-  if (weekend && [...weekend.querySelectorAll('input[type="time"]')].some((field) => field.value)) {
-    weekend.open = true;
-  }
+  form.querySelectorAll('details').forEach((section) => {
+    if ([...section.querySelectorAll('input:not([type="file"]), select')].some((field) => field.value)) {
+      section.open = true;
+    }
+  });
 
   form.addEventListener('input', () => {
     update();

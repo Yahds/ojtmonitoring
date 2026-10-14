@@ -38,6 +38,25 @@ block content
                     td= day.am_in ? `${day.am_in} – ${day.am_out}` : '–'
                     td= day.pm_in ? `${day.pm_in} – ${day.pm_out}` : '–'
                     td.num= day.hours
+        if report.absences.length
+          p
+            b Absence report · #{report.absences.length} #{report.absences.length === 1 ? 'absence' : 'absences'}
+          .table-wrap
+            table
+              thead
+                tr
+                  th(scope='col') Date
+                  th(scope='col') Absent
+                  th(scope='col') Reason
+                  th(scope='col') Proof
+              tbody
+                each absence in report.absences
+                  tr
+                    th(scope='row')= absence.day
+                    td= absence.part
+                    td= absence.reason
+                    td
+                      a(href=`/adviser/weekly-reports/${report.reportid}/absences/${absence.date}/proof`)= absence.proof
         if report.workdescription
           p.note
             b Work accomplishment:

@@ -33,6 +33,20 @@ function uploadError(?array $file): ?string
     return null;
 }
 
+// php sends name="field[key]" files as field[name][key], field[tmp_name][key]... so this groups them back per key
+function uploadedFiles(string $field): array
+{
+    $upload = $_FILES[$field] ?? null;
+    if (!is_array($upload) || !is_array($upload['error'] ?? null)) {
+        return [];
+    }
+    $files = [];
+    foreach (array_keys($upload['error']) as $key) {
+        $files[$key] = array_map(fn ($values) => $values[$key], $upload);
+    }
+    return $files;
+}
+
 function saveUpload(array $file, string $prefix): string
 {
     $name = $prefix . '_' . bin2hex(random_bytes(8)) . '.' . UPLOAD_TYPES[mimeOf($file['tmp_name'])];

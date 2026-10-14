@@ -60,6 +60,39 @@ function readTimeRecord(array $posted, array $dates): array
     return ['days' => $days, 'error' => null];
 }
 
+const ABSENCE_PARTS = ['DAY' => 'Whole day', 'AM' => 'Morning', 'PM' => 'Afternoon'];
+const PROOF_TYPES = ['MEDICAL' => 'Medical certificate', 'LETTER' => "Parent's letter"];
+
+function readAbsences(array $posted, array $dates, bool $acceptsLetter, array $workDays): array
+{
+    $absences = [];
+    foreach ($dates as $date) {
+        $row = is_array($posted[$date] ?? null) ? $posted[$date] : [];
+        $part = is_string($row['part'] ?? null) ? $row['part'] : '';
+        if ($part === '') {
+            continue;
+        }
+        $day = dayLabel($date);
+        if (!isset(ABSENCE_PARTS[$part])) {
+            return ['absences' => [], 'error' => "Choose how long you were absent on $day."];
+        }
+        $reason = is_string($row['reason'] ?? null) ? trim($row['reason']) : '';
+        if ($reason === '' || mb_strlen($reason) > 200) {
+            return ['absences' => [], 'error' => "Write why you were absent on $day, up to 200 characters."];
+        }
+        $proofType = $acceptsLetter ? ($row['proof_type'] ?? '') : 'MEDICAL';
+        if (!is_string($proofType) || !isset(PROOF_TYPES[$proofType])) {
+            return ['absences' => [], 'error' => "Choose which proof you're attaching for $day."];
+        }
+        $worked = $workDays[$date] ?? null;
+        if ($worked && ($part === 'DAY' || $worked[strtolower($part) . '_in'] !== null)) {
+            return ['absences' => [], 'error' => "You marked $day as absent but also entered work times for that part of the day."];
+        }
+        $absences[$date] = ['part' => $part, 'reason' => $reason, 'proof_type' => $proofType];
+    }
+    return ['absences' => $absences, 'error' => null];
+}
+
 function hoursText(float|string|null $hours): string
 {
     return rtrim(rtrim(number_format((float) $hours, 2, '.', ''), '0'), '.');

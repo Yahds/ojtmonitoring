@@ -35,7 +35,7 @@ test('weekly reports are due the Monday after by default', async () => {
 });
 
 test('a new due rule starts tomorrow, so weeks that already ended keep their due date', async () => {
-    const res = await agent.post('/adviser/settings').type('form').send({ csrf_token: csrfToken, weeklyDueDays: '10' });
+    const res = await agent.post('/adviser/settings').type('form').send({ csrf_token: csrfToken, weeklyDueDays: '10', absenceProof: 'MEDICAL' });
 
     expect(res.headers.location).toBe('/adviser/settings');
     expect(await rules()).toEqual([{ startsTomorrow: 1, due_days: 10 }]);
@@ -44,10 +44,30 @@ test('a new due rule starts tomorrow, so weeks that already ended keep their due
 });
 
 test('saving the same rule again or a value that is not a choice adds nothing', async () => {
-    await agent.post('/adviser/settings').type('form').send({ csrf_token: csrfToken, weeklyDueDays: '10' });
-    await agent.post('/adviser/settings').type('form').send({ csrf_token: csrfToken, weeklyDueDays: '400' });
+    await agent.post('/adviser/settings').type('form').send({ csrf_token: csrfToken, weeklyDueDays: '10', absenceProof: 'MEDICAL' });
+    await agent.post('/adviser/settings').type('form').send({ csrf_token: csrfToken, weeklyDueDays: '400', absenceProof: 'MEDICAL' });
 
     expect(await rules()).toEqual([{ startsTomorrow: 1, due_days: 10 }]);
     const page = await agent.get('/adviser/settings');
     expect(page.text).toMatch(/value="10" checked/);
+});
+
+test('only a medical certificate is accepted for absences until the adviser allows a parent letter', async () => {
+    expect((await agent.get('/adviser/settings')).text).toMatch(/value="MEDICAL" checked/);
+
+    await agent.post('/adviser/settings').type('form').send({ csrf_token: csrfToken, weeklyDueDays: '10', absenceProof: 'LETTER' });
+
+    const [[saved]] = await pool.query('SELECT accepts_parent_letter FROM advisers WHERE adviserID = ?', [adviser.adviserID]);
+    expect(saved.accepts_parent_letter).toBe(1);
+    expect((await agent.get('/adviser/settings')).text).toMatch(/value="LETTER" checked/);
+    const [events] = await pool.query("SELECT target FROM audit_log WHERE actor_adviser_id = ? AND action = 'settings_changed'", [adviser.adviserID]);
+    expect(events.map(e => e.target)).toContain("absences: medical certificate or parent's letter");
+});
+
+test('a proof choice that is not on the page is refused', async () => {
+    const res = await agent.post('/adviser/settings').type('form').send({ csrf_token: csrfToken, weeklyDueDays: '10', absenceProof: 'ANYTHING' });
+
+    expect(res.headers.location).toBe('/adviser/settings');
+    const [[saved]] = await pool.query('SELECT accepts_parent_letter FROM advisers WHERE adviserID = ?', [adviser.adviserID]);
+    expect(saved.accepts_parent_letter).toBe(1);
 });

@@ -1,7 +1,8 @@
 <?php
 function getWeeklyReports($internID)
 {
-    $query = "SELECT * FROM weeklyreports WHERE internid = ? ORDER BY weeknumber";
+    $query = "SELECT w.*, (SELECT COUNT(*) FROM weeklyreport_absences a WHERE a.reportid = w.reportid) AS absences
+              FROM weeklyreports w WHERE w.internid = ? ORDER BY w.weeknumber";
     $statement = db()->prepare($query);
     $statement->bind_param("i", $internID);
     $statement->execute();
@@ -35,7 +36,7 @@ function getReportedWeeks($internID): array
     return array_map(fn ($row) => (int) $row['weeknumber'], $rows);
 }
 
-function submitWeeklyReport($internID, int $week, string $weekStart, array $days, string $accomplishment, string $supervisorName, ?string $filePath): int
+function submitWeeklyReport($internID, int $week, string $weekStart, array $days, string $accomplishment, string $supervisorName, ?string $filePath, array $absences = []): int
 {
     $db = db();
     $db->begin_transaction();
@@ -50,6 +51,12 @@ function submitWeeklyReport($internID, int $week, string $weekStart, array $days
             $db->execute_query(
                 "INSERT INTO weeklyreport_days (reportid, work_date, am_in, am_out, pm_in, pm_out, hours) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 [$reportID, $date, $day['am_in'], $day['am_out'], $day['pm_in'], $day['pm_out'], $day['hours']]
+            );
+        }
+        foreach ($absences as $date => $absence) {
+            $db->execute_query(
+                "INSERT INTO weeklyreport_absences (reportid, absent_date, part, reason, proof_type, proof_path) VALUES (?, ?, ?, ?, ?, ?)",
+                [$reportID, $date, $absence['part'], $absence['reason'], $absence['proof_type'], $absence['proof_path']]
             );
         }
         $db->commit();

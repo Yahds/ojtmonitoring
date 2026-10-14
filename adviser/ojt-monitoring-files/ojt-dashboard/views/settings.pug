@@ -15,5 +15,14 @@ block content
             | #{choice.label}
         span.help A week runs Monday to Friday. Late reports are still accepted and marked late.
         span.help A change applies to weeks that end after today. Weeks that already ended keep their due dates.
+      fieldset.field
+        legend.label Proof you accept for absences
+        label.check-row
+          input(type='radio' name='absenceProof' value='MEDICAL' checked=!acceptsParentLetter)
+          | Medical certificate only
+        label.check-row
+          input(type='radio' name='absenceProof' value='LETTER' checked=acceptsParentLetter)
+          | Medical certificate or a letter signed by a parent or guardian
+        span.help Interns see this on the weekly report form. Reports already sent keep the proof they came with.
       .btn-row
         button.btn.btn-create(type='submit') Save settings

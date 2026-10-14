@@ -76,4 +76,49 @@ class TimeRecordTest extends TestCase
         $this->assertSame(['2026-09-07', '2026-09-08', '2026-09-09', '2026-09-10', '2026-09-11', '2026-09-12', '2026-09-13'], array_column($days, 'date'));
         $this->assertSame([false, false, false, false, false, true, true], array_column($days, 'weekend'));
     }
+
+    private function absences(array $posted, bool $acceptsLetter = false, array $workDays = []): array
+    {
+        return readAbsences($posted, [self::MONDAY, self::TUESDAY], $acceptsLetter, $workDays);
+    }
+
+    public function testOnlyDaysMarkedAbsentAreKept(): void
+    {
+        $result = $this->absences([
+            self::MONDAY => ['part' => 'DAY', 'reason' => ' Flu '],
+            self::TUESDAY => ['part' => '', 'reason' => 'typed but not absent'],
+        ]);
+
+        $this->assertNull($result['error']);
+        $this->assertSame([self::MONDAY => ['part' => 'DAY', 'reason' => 'Flu', 'proof_type' => 'MEDICAL']], $result['absences']);
+    }
+
+    public function testAParentsLetterOnlyCountsWhenTheAdviserAcceptsIt(): void
+    {
+        $posted = [self::MONDAY => ['part' => 'DAY', 'reason' => 'Flu', 'proof_type' => 'LETTER']];
+
+        $this->assertSame('MEDICAL', $this->absences($posted)['absences'][self::MONDAY]['proof_type']);
+        $this->assertSame('LETTER', $this->absences($posted, true)['absences'][self::MONDAY]['proof_type']);
+        $this->assertSame(
+            "Choose which proof you're attaching for Mon, Sep 7.",
+            $this->absences([self::MONDAY => ['part' => 'DAY', 'reason' => 'Flu']], true)['error']
+        );
+    }
+
+    public function testAnAbsenceNeedsAReason(): void
+    {
+        $result = $this->absences([self::MONDAY => ['part' => 'AM', 'reason' => '  ']]);
+
+        $this->assertSame('Write why you were absent on Mon, Sep 7, up to 200 characters.', $result['error']);
+    }
+
+    public function testTheAbsentPartOfTheDayCannotHaveWorkTimes(): void
+    {
+        $afternoonWork = [self::MONDAY => ['am_in' => null, 'am_out' => null, 'pm_in' => '13:00', 'pm_out' => '17:00', 'hours' => 4.0]];
+        $clash = 'You marked Mon, Sep 7 as absent but also entered work times for that part of the day.';
+
+        $this->assertNull($this->absences([self::MONDAY => ['part' => 'AM', 'reason' => 'Clinic']], false, $afternoonWork)['error']);
+        $this->assertSame($clash, $this->absences([self::MONDAY => ['part' => 'PM', 'reason' => 'Clinic']], false, $afternoonWork)['error']);
+        $this->assertSame($clash, $this->absences([self::MONDAY => ['part' => 'DAY', 'reason' => 'Clinic']], false, $afternoonWork)['error']);
+    }
 }

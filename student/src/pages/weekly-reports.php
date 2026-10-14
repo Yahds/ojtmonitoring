@@ -8,7 +8,8 @@ $approvedHours = getApprovedHours($_SESSION['internid']);
 $now = $profile['deployedOn']
     ? reportingWeek($profile['deployedOn'], getDueRules($profile['adviserid']), getReportedWeeks($_SESSION['internid']), date('Y-m-d'))
     : null;
-$form = $form ?? ['days' => [], 'accomplishment' => ''];
+$form = $form ?? ['days' => [], 'accomplishment' => '', 'absences' => []];
+$acceptsLetter = (bool) $profile['accepts_parent_letter'];
 $errors = $errors ?? [];
 $title = 'Weekly reports';
 require __DIR__ . '/../views/header.php';
@@ -30,7 +31,7 @@ require __DIR__ . '/../views/header.php';
 <section class="card card-pad">
     <p class="meta"><?= e(weekLabel($now['range'])) ?><?= $profile['companyname'] ? ' · ' . e($profile['companyname']) : '' ?> · due <?= e($now['due']->format('l, M j')) ?>, 12 noon</p>
     <?php if ($errors): ?>
-        <div class="flash flash-error" role="alert">Please fix the items marked below. Attach the signed copy again too.</div>
+        <div class="flash flash-error" role="alert">Please fix the items marked below. Attach your files again too.</div>
     <?php endif; ?>
     <form class="form form-wide" action="/student/weekly-reports" method="post" enctype="multipart/form-data" data-time-record data-draft="weekly-draft-<?= (int) $_SESSION['internid'] ?>-<?= (int) $now['week'] ?>">
         <?= csrf_field() ?>
@@ -73,6 +74,30 @@ require __DIR__ . '/../views/header.php';
                 <span class="error" id="accomplishment-error"><?= e($errors['accomplishment']) ?></span>
             <?php endif; ?>
         </div>
+        <?php $absenceFilled = isset($errors['absences']) || array_filter($form['absences'], fn ($absence) => is_array($absence) && ($absence['part'] ?? '') !== ''); ?>
+        <fieldset class="field" aria-describedby="<?= isset($errors['absences']) ? 'absences-error' : 'absences-help' ?>">
+            <legend class="label">Absence report</legend>
+            <span class="help" id="absences-help">
+                Each absence needs proof. <?= e($adviser) ?> accepts
+                <?= $acceptsLetter ? "a medical certificate or a letter signed by your parent or guardian." : 'a medical certificate only.' ?>
+            </span>
+            <?php if (isset($errors['absences'])): ?>
+                <span class="error" id="absences-error"><?= e($errors['absences']) ?></span>
+            <?php endif; ?>
+            <details<?= $absenceFilled ? ' open' : '' ?>>
+                <summary class="link-btn">Were you absent this week?</summary>
+                <div class="table-wrap">
+                    <table class="time-table">
+                        <thead><tr><th scope="col">Date</th><th scope="col">Absent</th><th scope="col">Reason</th><th scope="col">Proof</th></tr></thead>
+                        <tbody>
+                            <?php foreach (array_filter($days, fn ($day) => !$day['weekend']) as $day): ?>
+                                <?php require __DIR__ . '/../views/absence-row.php'; ?>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </fieldset>
         <div class="field">
             <span class="label">Supervisor</span>
             <?php if ($supervisor): ?>
@@ -118,6 +143,9 @@ require __DIR__ . '/../views/header.php';
                     <?= e(weekLabel(weekRange($profile['deployedOn'], (int) $report['weeknumber']))) ?> ·
                 <?php endif; ?>
                 Submitted <?= e($report['datesubmitted']) ?>
+                <?php if ($report['absences']): ?>
+                    · <?= (int) $report['absences'] ?> <?= $report['absences'] == 1 ? 'absence' : 'absences' ?>
+                <?php endif; ?>
                 <?php if ($report['file_path']): ?>
                     · <a href="/student/weekly-reports/file?reportid=<?= (int) $report['reportid'] ?>">View your file</a>
                 <?php endif; ?>

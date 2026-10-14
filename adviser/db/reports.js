@@ -37,6 +37,32 @@ async function fetchWeeklyReportDays(internID, adviserID) {
     return rows;
 }
 
+async function fetchWeeklyReportAbsences(internID, adviserID) {
+    const [rows] = await pool.query(
+        `SELECT a.reportid, DATE_FORMAT(a.absent_date, '%Y-%m-%d') AS date, DATE_FORMAT(a.absent_date, '%a, %b %e') AS day,
+                a.part, a.reason, a.proof_type
+         FROM weeklyreport_absences a
+         JOIN weeklyreports w ON w.reportid = a.reportid
+         JOIN interns i ON i.internid = w.internid
+         WHERE w.internid = ? AND i.adviserid = ?
+         ORDER BY a.absent_date`,
+        [internID, adviserID]
+    );
+    return rows;
+}
+
+async function fetchAbsenceProofForAdviser(reportID, date, adviserID) {
+    const [rows] = await pool.query(
+        `SELECT a.proof_path
+         FROM weeklyreport_absences a
+         JOIN weeklyreports w ON w.reportid = a.reportid
+         JOIN interns i ON i.internid = w.internid
+         WHERE a.reportid = ? AND a.absent_date = ? AND i.adviserid = ?`,
+        [reportID, date, adviserID]
+    );
+    return rows[0] ? rows[0].proof_path : null;
+}
+
 async function fetchWeeklyReportFileForAdviser(reportID, adviserID) {
     const [rows] = await pool.query(
         `SELECT wr.file_path
@@ -60,6 +86,8 @@ async function updateWeeklyReportReview(reportID, adviserID, decision, remark) {
 module.exports = {
     fetchWeeklyReportsForReview,
     fetchWeeklyReportDays,
+    fetchWeeklyReportAbsences,
+    fetchAbsenceProofForAdviser,
     fetchWeeklyReportFileForAdviser,
     updateWeeklyReportReview,
 };

@@ -88,9 +88,20 @@ async function setWeeklyDueDays(adviserID, dueDays) {
     );
 }
 
+async function fetchAcceptsParentLetter(adviserID) {
+    const [[adviser]] = await pool.query('SELECT accepts_parent_letter FROM advisers WHERE adviserID = ?', [adviserID]);
+    return adviser.accepts_parent_letter === 1;
+}
+
+async function setAcceptsParentLetter(adviserID, accepts) {
+    await pool.query('UPDATE advisers SET accepts_parent_letter = ? WHERE adviserID = ?', [accepts ? 1 : 0, adviserID]);
+}
+
 module.exports = {
     fetchWeeklyDueDays,
     setWeeklyDueDays,
+    fetchAcceptsParentLetter,
+    setAcceptsParentLetter,
     authenticateAdviser,
     fetchAdviser,
     fetchAdvisersByDepartment,

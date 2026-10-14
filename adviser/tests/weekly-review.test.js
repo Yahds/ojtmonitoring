@@ -8,6 +8,7 @@ const STUDENT_ID = 9900095;
 let adviser;
 let agent;
 let internId;
+let reportId;
 
 beforeAll(async () => {
     adviser = await createTestAdviser('weekly');
@@ -24,6 +25,11 @@ beforeAll(async () => {
         `INSERT INTO weeklyreport_days (reportid, work_date, am_in, am_out, pm_in, pm_out, hours) VALUES
          (?, '2026-09-07', '08:00', '12:00', '13:00', '17:00', 8), (?, '2026-09-08', '08:00', '11:30', NULL, NULL, 3.5)`,
         [report.insertId, report.insertId]
+    );
+    reportId = report.insertId;
+    await pool.query(
+        "INSERT INTO weeklyreport_absences (reportid, absent_date, part, reason, proof_type, proof_path) VALUES (?, '2026-09-09', 'DAY', 'Flu', 'MEDICAL', 'missing-proof.pdf')",
+        [reportId]
     );
     await pool.query("INSERT INTO weeklyreports (internid, weeknumber, hours, status) VALUES (?, 1, 200, 'APPROVED'), (?, 3, 39.5, 'APPROVED')", [internId, internId]);
 
@@ -53,4 +59,20 @@ test('half hours are not rounded up when checking the target', async () => {
     const page = await agent.get(`/adviser/interns/${internId}/finish`);
 
     expect(page.text).toContain('239.5 of 240');
+});
+
+test('the adviser sees the absence report with a link to the proof', async () => {
+    const page = await agent.get(`/adviser/interns/${internId}/weekly-reports`);
+
+    expect(page.text).toContain('Absence report · 1 absence');
+    expect(page.text).toContain('Wed, Sep 9');
+    expect(page.text).toContain('Whole day');
+    expect(page.text).toContain('Flu');
+    expect(page.text).toContain(`href="/adviser/weekly-reports/${reportId}/absences/2026-09-09/proof">Medical certificate`);
+});
+
+test('a proof that is not on the report is not found', async () => {
+    const res = await agent.get(`/adviser/weekly-reports/${reportId}/absences/2026-09-10/proof`);
+
+    expect(res.status).toBe(404);
 });
