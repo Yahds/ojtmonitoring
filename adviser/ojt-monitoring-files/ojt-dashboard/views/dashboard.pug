@@ -1,0 +1,149 @@
+extends ../../layouts/main
+
+mixin initials(name)
+  span.ini(aria-hidden='true')= name.split(/[ ,]+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('')
+
+block content
+  - const withSection = (path) => section ? `${path}?section=${section}` : path
+  .dash
+    .dash-main
+      section.card.hero-slim
+        img(src='/assets/img/slu-logo.png' alt='Saint Louis University crest')
+        div
+          h1= user.name
+          p.meta Adviser · #{sections.length} #{sections.length === 1 ? 'section' : 'sections'} · #{everyoneCount} #{everyoneCount === 1 ? 'intern' : 'interns'}
+        p.date
+          b#clock-date &nbsp;
+          span#clock-time &nbsp;
+
+      if sections.length > 1
+        nav.chips(aria-label='Section')
+          span.k Section
+          a.chip(href='/adviser/dashboard' aria-current=(section ? undefined : 'page')) All #[span.c= everyoneCount]
+          each item in sections
+            a.chip(href=`/adviser/dashboard?section=${item.code}` aria-current=(section === item.code ? 'page' : undefined)) #{item.code} #[span.c= item.count]
+
+      section.stats3(aria-label='Needs your attention')
+        a.tile(href='#review')
+          span.num= queueCount
+          span.k To review
+          span.hint= queueCount ? (oldestDays > 0 ? `Oldest waiting ${oldestDays} ${oldestDays === 1 ? 'day' : 'days'}` : 'Sent today') : 'All caught up'
+        a.tile(href='#follow-up')
+          span.num= missing.length
+          span.k Missing weekly reports
+          span.hint= missing.length ? 'Past the due time' : 'Everyone is up to date'
+        a.tile(href='#follow-up')
+          span.num= ready.length
+          span.k Ready to deploy
+          span.hint= ready.length ? ready.slice(0, 2).map(intern => intern.studentName).join(', ') + (ready.length > 2 ? ` and ${ready.length - 2} more` : '') : 'No one yet'
+
+      section.card#review
+        .card-head
+          h2 To review #[span.sub oldest first]
+          if queueCount
+            a.btn.btn-create.btn-sm(href=withSection('/adviser/review')) Start reviewing
+        if !queueCount
+          .empty
+            b Nothing to review
+            | New submissions from your interns will show up here.
+        else
+          ul.rows
+            each item in queue
+              li
+                +initials(item.studentName)
+                a.main(href=item.href)
+                  b= item.studentName
+                  span= item.item
+                span.sec= item.classcode
+                span.wait(class=item.days >= 3 ? 'old' : undefined)= item.days > 0 ? `${item.days} ${item.days === 1 ? 'day' : 'days'}` : 'Today'
+          if queueCount > queue.length
+            p.more-row
+              a(href=withSection('/adviser/review')) Show #{queueCount - queue.length} more
+
+      section.card#follow-up
+        .card-head
+          h2 Follow up
+        if !missing.length && !ready.length
+          .empty
+            b Nothing to follow up
+            | Interns who are ready to deploy or missing a weekly report show up here.
+        else
+          ul.rows
+            each intern in ready
+              li
+                +initials(intern.studentName)
+                .main
+                  b= intern.studentName
+                  span Company reply and Data Privacy Certificate are in
+                span.sec= intern.classcode
+                span.wait
+                  a.btn.btn-outline.btn-sm(href=`/adviser/interns/${intern.internid}/deploy`) Deploy
+            each item in missing
+              li
+                +initials(item.intern.studentName)
+                a.main(href=`/adviser/interns/${item.intern.internid}/weekly-reports`)
+                  b= item.intern.studentName
+                  span No week #{item.weeks.join(', ')} #{item.weeks.length === 1 ? 'report' : 'reports'} yet
+                span.sec= item.intern.classcode
+                span.wait
+                  span.tag.tag-warn Missing
+
+      section.card
+        .card-head
+          h2 Interns #[span.sub= internCount]
+          a.btn.btn-create.btn-sm(href='/adviser/interns/new') + Enroll intern
+        if !internCount
+          .empty
+            b No interns yet
+            | Enroll your first intern to start.
+        else
+          .table-wrap
+            table
+              thead
+                tr
+                  th(scope='col') Name
+                  th(scope='col') Section
+                  th(scope='col') Approved hours
+                  th(scope='col') Status
+              tbody
+                each intern in interns
+                  - const status = statusOf('intern', intern.status)
+                  tr
+                    td.who
+                      a(href=`/adviser/interns/${intern.internid}/requirements`)
+                        b= intern.studentName
+                      span #{intern.studentID} · #{intern.course}
+                    td= intern.classcode
+                    td
+                      if intern.deployedOn
+                        .hours
+                          .bar
+                            span(style=`width: ${Math.min(100, Math.round(intern.approvedHours / intern.target_hours * 100))}%`)
+                          span.num #{intern.approvedHours} / #{intern.target_hours}
+                      else
+                        span.muted Not deployed yet
+                    td
+                      span.tag(class=status.tag)= status.label
+          if internCount > interns.length
+            p.more-row
+              a(href='/adviser/interns') See all #{internCount} interns
+
+    aside.dash-side(aria-label='Announcements')
+      section.card
+        .card-head
+          h2 Announcements
+          a.btn.btn-create.btn-sm(href='/adviser/announcements') Create post
+        if !announcements.length
+          .empty
+            b No posts yet
+            | Posts to your sections show up here.
+        each post in announcements
+          article.item
+            h3= post.subject
+            p.meta #{post.date} · #{post.audience ? `Section ${post.audience}` : 'All sections'}#{post.edited ? ' · Edited' : ''}
+            p= post.message
+        if announcements.length
+          p.more-row
+            a(href='/adviser/announcements') All announcements
+
+  script(src='/assets/js/clock.js' defer)
