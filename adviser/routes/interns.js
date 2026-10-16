@@ -1,19 +1,62 @@
 const express = require('express');
-const { fetchInternsByAdviser, fetchCourses, enrollIntern,
+const { fetchInternSummaries, fetchReviewQueue, fetchWeeklyDueRules, fetchCourses, enrollIntern,
     updateInternRemarks, deployIntern, isAdvisersIntern, fetchDeployCheck } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 const { audit } = require('../lib/audit')
 const { statusOf } = require('../lib/statuses');
 const { isRealDate, today } = require('../lib/dates');
+const { overdueWeeks } = require('../lib/weeks');
 
 const router = express.Router();
+
+const INTERN_STATUSES = ['ENROLLED', 'PENDING', 'ACTIVE', 'FINISHED', 'WITHDRAWN'];
+
+// short list of what the adviser has to do for this intern, e.g. "2 to review · week 5 missing"
+function needsOf(intern, waiting, dueRules) {
+    const needs = [];
+    if (waiting.length === 1) needs.push(`${waiting[0].item} to review`);
+    if (waiting.length > 1) needs.push(`${waiting.length} to review`);
+    const weeks = overdueWeeks(intern, dueRules);
+    if (weeks.length) needs.push(`${weeks.length === 1 ? 'week' : 'weeks'} ${weeks.join(', ')} missing`);
+    if (intern.readyToDeploy) needs.push('ready to deploy');
+    const text = needs.join(' · ');
+    return text && text[0].toUpperCase() + text.slice(1);
+}
 
 //GET REQUESTS
 
 router.get('/interns', requireAdviser, async (req, res, next) => {
     try {
-        const interns = await fetchInternsByAdviser(req.session.adviserID);
-        res.render('ojt-dashboard/views/interns', { title: 'Interns', interns });
+        const adviserID = req.session.adviserID;
+        const [everyone, queue, dueRules] = await Promise.all([
+            fetchInternSummaries(adviserID),
+            fetchReviewQueue(adviserID),
+            fetchWeeklyDueRules(adviserID),
+        ]);
+        const search = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 100) : '';
+        const status = INTERN_STATUSES.includes(req.query.status) ? req.query.status : '';
+        const sections = [...new Set(everyone.map(intern => intern.classcode))].sort()
+            .map(code => ({ code, count: everyone.filter(intern => intern.classcode === code).length }));
+        const section = sections.some(({ code }) => code === req.query.section) ? req.query.section : '';
+
+        const words = search.toLowerCase();
+        const interns = everyone
+            .filter(intern => !section || intern.classcode === section)
+            .filter(intern => !status || intern.status === status)
+            .filter(intern => !words || intern.studentName.toLowerCase().includes(words) || String(intern.studentID).includes(words))
+            .map(intern => ({ ...intern, needs: needsOf(intern, queue.filter(item => item.internid === intern.internid), dueRules) }))
+            .sort((a, b) => Boolean(b.needs) - Boolean(a.needs));
+
+        // a chip link keeps the search and status that are already picked
+        const linkTo = changes => {
+            const query = new URLSearchParams(Object.entries({ q: search, section, status, ...changes }).filter(([, value]) => value)).toString();
+            return `/adviser/interns${query ? `?${query}` : ''}`;
+        };
+
+        res.render('ojt-dashboard/views/interns', {
+            title: 'Interns', interns, everyoneCount: everyone.length, sections, section, search, status,
+            statuses: INTERN_STATUSES.map(code => ({ code, label: statusOf('intern', code).label })), linkTo,
+        });
     } catch (error) {
         next(error);
     }

@@ -1,4 +1,6 @@
 // same week rules as the student app's weeks.php. dates are 'YYYY-MM-DD' text
+const { today } = require('./dates');
+
 const DEFAULT_DUE_DAYS = 3;
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -58,4 +60,12 @@ function dueLabel(date) {
     return format(date, { weekday: 'long', month: 'short', day: 'numeric' });
 }
 
-module.exports = { firstFriday, weekRange, weekDueOn, missingWeeks, isPastNoon, weekLabel, dueLabel };
+// weeks that ended without a report and are past their due time
+function overdueWeeks(intern, dueRules) {
+    if (intern.status !== 'ACTIVE' || !intern.deployedOn) return [];
+    return missingWeeks(intern.deployedOn, today(), intern.reportedWeeks, dueRules)
+        .filter(missing => isPastNoon(missing.due))
+        .map(missing => missing.week);
+}
+
+module.exports = { firstFriday, weekRange, weekDueOn, missingWeeks, isPastNoon, overdueWeeks, weekLabel, dueLabel };

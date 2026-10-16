@@ -1,53 +1,82 @@
 extends ../../layouts/main
 
 block content
-  h1.page-title Interns
+  h1.page-title Interns #[span.count= everyoneCount]
+
+  if sections.length > 1
+    nav.chips(aria-label='Section')
+      span.k Section
+      a.chip(href=linkTo({ section: '' }) aria-current=(section ? undefined : 'page')) All #[span.c= everyoneCount]
+      each item in sections
+        a.chip(href=linkTo({ section: item.code }) aria-current=(section === item.code ? 'page' : undefined)) #{item.code} #[span.c= item.count]
 
   section.card
     .card-head
-      h2 My interns
-      a.btn.btn-create.btn-sm(href='/adviser/interns/new') Enroll intern
-    if interns.length === 0
+      h2 My interns #[span.sub= interns.length === everyoneCount ? 'who need something first' : `${interns.length} of ${everyoneCount}`]
+      a.btn.btn-create.btn-sm(href='/adviser/interns/new') + Enroll intern
+    if everyoneCount
+      form.search-row(action='/adviser/interns' method='GET' role='search')
+        if section
+          input(type='hidden' name='section' value=section)
+        .field
+          label(for='q') Search
+          input.input#q(type='search' name='q' value=search maxlength='100' placeholder='Name or student ID')
+        .field.field-narrow
+          label(for='status') Status
+          select.input#status(name='status')
+            option(value='') Any status
+            each item in statuses
+              option(value=item.code selected=status === item.code)= item.label
+        button.btn.btn-outline(type='submit') Show
+        if search || status || section
+          a.btn.btn-outline(href='/adviser/interns') Clear
+    if !everyoneCount
       .empty
         b No interns yet
         | Enroll your first intern to get started.
+    else if !interns.length
+      .empty
+        b No interns match
+        | Check the spelling, or pick another section or status.
     else
       .table-wrap
         table
           thead
             tr
-              th Name
-              th Course
-              th Company
-              th Status
-              th Review
-              th Action
+              th(scope='col') Name
+              th(scope='col') Section
+              th(scope='col') Status
+              th(scope='col') Approved hours
+              th(scope='col') Needs
           tbody
-            each i in interns
+            each intern in interns
+              - const internStatus = statusOf('intern', intern.status)
               tr
-                td= i.studentName
-                td= i.course
-                td= i.companyname || '—'
+                td.who
+                  a(href=`/adviser/interns/${intern.internid}/requirements`)
+                    b= intern.studentName
+                  span #{intern.studentID} · #{intern.course}#{intern.companyname ? ` · ${intern.companyname}` : ''}
+                td= intern.classcode
                 td
-                  - const status = statusOf('intern', i.status)
-                  span.tag(class=status.tag)= status.label
-                  if i.status === 'WITHDRAWN' && i.withdrawn_reason
-                    br
-                    span.help= i.withdrawn_reason
+                  span.tag(class=internStatus.tag)= internStatus.label
                 td
-                  .btn-row
-                    a(href=`/adviser/interns/${i.internid}/requirements`) Requirements
-                    a(href=`/adviser/interns/${i.internid}/weekly-reports`) Reports
-                    a(href=`/adviser/interns/${i.internid}/journals`) Journals
+                  if intern.deployedOn
+                    .hours
+                      .bar
+                        span(style=`width: ${Math.min(100, Math.round(intern.approvedHours / intern.target_hours * 100))}%`)
+                      span.num #{intern.approvedHours} / #{intern.target_hours}
+                  else
+                    span.muted Not deployed yet
                 td
-                  .btn-row
-                    if i.status === 'PENDING'
-                      a.btn.btn-create.btn-sm(href=`/adviser/interns/${i.internid}/deploy`) Deploy
-                    else if i.status === 'ACTIVE'
-                      a.btn.btn-outline.btn-sm(href=`/adviser/interns/${i.internid}/finish`) Finish
-                    if ['ENROLLED', 'PENDING', 'ACTIVE'].includes(i.status)
-                      a.btn.btn-reject.btn-sm(href=`/adviser/interns/${i.internid}/withdraw`) Withdraw
-                    else if i.status === 'WITHDRAWN'
-                      form(action=`/adviser/interns/${i.internid}/undo-withdraw` method='POST')
-                        input(type='hidden' name='csrf_token' value=csrfToken)
-                        button.btn.btn-outline.btn-sm(type='submit') Undo withdraw
+                  if intern.status === 'WITHDRAWN'
+                    if intern.withdrawn_reason
+                      p.help= intern.withdrawn_reason
+                    form(action=`/adviser/interns/${intern.internid}/undo-withdraw` method='POST')
+                      input(type='hidden' name='csrf_token' value=csrfToken)
+                      button.btn.btn-outline.btn-sm(type='submit') Undo withdraw
+                  else if intern.needs
+                    span.needs= intern.needs
+                    if intern.readyToDeploy
+                      a.btn.btn-outline.btn-sm(href=`/adviser/interns/${intern.internid}/deploy`) Deploy
+                  else
+                    span.muted —

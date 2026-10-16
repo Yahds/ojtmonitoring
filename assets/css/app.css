@@ -257,6 +257,9 @@ th:last-child, td:last-child { padding-right: 24px; }
 .hours { display: flex; align-items: center; gap: 10px; min-width: 150px; }
 .hours .bar { flex: 1; margin: 0; height: 6px; }
 .hours .num { font-size: 13px; white-space: nowrap; }
+.page-title .count { margin-left: 6px; font-size: 14px; font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.search-row .field-narrow { flex: 0 1 220px; }
+.needs { display: block; margin-bottom: 4px; font-size: 13.5px; font-weight: 600; color: var(--amber); }
 @media (min-width: 700px) {
   .stats3 { grid-template-columns: repeat(3, 1fr); }
   .rows li { grid-template-columns: 34px 1fr 70px 110px; }

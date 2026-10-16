@@ -167,10 +167,10 @@ async function fetchInterns(adviserID) {
     return rows;
 }
 
-// everyone the adviser still handles, with what the dashboard needs to know about each one
-async function fetchDashboardInterns(adviserID) {
+// all of the adviser's interns, with what the dashboard and the interns list need to know about each one
+async function fetchInternSummaries(adviserID) {
     const [rows] = await pool.query(
-        `SELECT i.internid, s.studentID, s.studentName, s.course, s.classcode, i.status,
+        `SELECT i.internid, s.studentID, s.studentName, s.course, s.classcode, i.status, i.withdrawn_reason, c.companyname,
                 DATE_FORMAT(i.deployed_on, '%Y-%m-%d') AS deployedOn, co.target_hours, ${APPROVED_HOURS} AS approvedHours,
                 (i.status = 'PENDING' AND e.status = 'ACCEPTED' AND e.companyid = i.companyid AND ir.status = 'APPROVED') = 1 AS readyToDeploy,
                 (SELECT GROUP_CONCAT(w.weeknumber) FROM weeklyreports w
@@ -178,9 +178,10 @@ async function fetchDashboardInterns(adviserID) {
          FROM interns i
          JOIN students s ON s.studentID = i.studentid
          JOIN courses co ON co.code = s.course
+         LEFT JOIN company c ON c.companyid = i.companyid
          LEFT JOIN endorsements e ON e.internid = i.internid
          LEFT JOIN internrequirements ir ON ir.internid = i.internid AND ir.reqid = ?
-         WHERE i.adviserid = ? AND i.status <> 'WITHDRAWN'
+         WHERE i.adviserid = ?
          ORDER BY s.studentName`,
         [DATA_PRIVACY_CERTIFICATE, adviserID]
     );
@@ -189,11 +190,6 @@ async function fetchDashboardInterns(adviserID) {
         readyToDeploy: row.readyToDeploy === 1,
         reportedWeeks: row.reportedWeeks ? row.reportedWeeks.split(',').map(Number) : [],
     }));
-}
-
-async function fetchInternsByAdviser(adviserid){
-    const [rows] = await pool.query("SELECT i.internid, s.studentID, s.studentName, s.course, i.status, i.withdrawn_reason, c.companyname FROM interns i JOIN students s ON i.studentid = s.studentID LEFT JOIN company c ON i.companyid = c.companyid WHERE i.adviserid = ? ORDER BY s.studentName", [adviserid]);
-    return rows;
 }
 
 async function fetchInternId(name, adviserID) {
@@ -217,13 +213,12 @@ async function isAdvisersIntern(internId, adviserID) {
 }
 
 module.exports = {
-    fetchDashboardInterns,
+    fetchInternSummaries,
     deployIntern,
     fetchDeployCheck,
     updateInternRemarks,
     enrollIntern,
     fetchInterns,
-    fetchInternsByAdviser,
     fetchInternId,
     isAdvisersIntern,
     fetchFinishCheck,

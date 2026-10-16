@@ -1,8 +1,7 @@
 const express = require('express');
-const { fetchAdviser, fetchDashboardInterns, fetchReviewQueue, fetchWeeklyDueRules, fetchAnnouncements } = require('../db');
+const { fetchAdviser, fetchInternSummaries, fetchReviewQueue, fetchWeeklyDueRules, fetchAnnouncements } = require('../db');
 const { requireAuth, requireAdviser } = require('../middleware/auth');
-const { today } = require('../lib/dates');
-const { missingWeeks, isPastNoon } = require('../lib/weeks');
+const { overdueWeeks } = require('../lib/weeks');
 
 const router = express.Router();
 
@@ -10,22 +9,15 @@ const REVIEW_PAGES = { requirement: 'requirements', weekly: 'weekly-reports', jo
 const SHOWN_IN_LISTS = 5;
 const SHOWN_IN_TABLE = 8;
 
-// weeks that ended without a report and are past their due time
-function overdueWeeks(intern, dueRules) {
-    if (intern.status !== 'ACTIVE' || !intern.deployedOn) return [];
-    return missingWeeks(intern.deployedOn, today(), intern.reportedWeeks, dueRules)
-        .filter(missing => isPastNoon(missing.due))
-        .map(missing => missing.week);
-}
-
 router.get('/dashboard', requireAdviser, async (req, res, next) => {
     try {
         const adviserID = req.session.adviserID;
-        const [everyone, dueRules, { announcements }] = await Promise.all([
-            fetchDashboardInterns(adviserID),
+        const [all, dueRules, { announcements }] = await Promise.all([
+            fetchInternSummaries(adviserID),
             fetchWeeklyDueRules(adviserID),
             fetchAnnouncements(adviserID),
         ]);
+        const everyone = all.filter(intern => intern.status !== 'WITHDRAWN');
         const sections = [...new Set(everyone.map(intern => intern.classcode))].sort()
             .map(code => ({ code, count: everyone.filter(intern => intern.classcode === code).length }));
         const section = sections.some(({ code }) => code === req.query.section) ? req.query.section : '';
