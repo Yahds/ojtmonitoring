@@ -1,15 +1,10 @@
 extends ../../layouts/main
 
 include ../../partials/review-decision
+include ../../partials/intern-header
 
 block content
-  p.crumb
-    a(href='/adviser/interns') Interns
-    |  / Monthly journals
-  h1.page-title
-    | Monthly journals
-    if journals.length
-      |  · #{journals[0].studentName}
+  +internHeader(intern, 'journals')
 
   section.card
     if journals.length === 0

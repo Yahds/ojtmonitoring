@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { fetchInternId, fetchRequirementsForReview, updateRequirementReview, fetchRequirementFile,
-    fetchRequirementVersions, fetchVersionFile } = require('../db');
+    fetchRequirementVersions, fetchVersionFile, fetchInternForAdviser } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 const { audit } = require('../lib/audit');
 
@@ -40,19 +40,20 @@ router.get("/requirements-reports/:internName", requireAdviser, async (req, res,
 router.get("/interns/:internId/requirements", requireAdviser, async (req, res, next) => {
     try {
         const internId = req.params.internId;
+        const [intern, assignedRequirements] = await Promise.all([
+            fetchInternForAdviser(internId, req.session.adviserID),
+            fetchRequirementsForReview(internId, req.session.adviserID),
+        ]);
+        if (!intern) return next();
 
-        const assignedRequirements = await fetchRequirementsForReview(internId, req.session.adviserID);
-
-        // Format dates in assigned requirements
         assignedRequirements.forEach(requirement => {
             if (requirement.datesubmitted) {
                 requirement.datesubmitted = new Date(requirement.datesubmitted).toDateString();
             }
         });
 
-        // Render the intern requirements view with the requirements data
         res.render('ojt-dashboard/views/review-requirements', {
-            title: 'Requirements', assignedRequirements, internId
+            title: `Requirements · ${intern.studentName}`, intern, assignedRequirements, internId
         });
     } catch (error) {
         next(error);

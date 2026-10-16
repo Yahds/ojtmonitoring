@@ -1,22 +1,17 @@
 extends ../../layouts/main
 
+include ../../partials/intern-header
+
 block content
-  p.crumb
-    a(href='/adviser/interns') Interns
-    |  / Requirements
-  h1.page-title
-    | Requirements
-    if assignedRequirements.length
-      |  · #{assignedRequirements[0].studentName}
-  if assignedRequirements.length
-    p.btn-row
-      a.btn.btn-create.btn-sm(href=`/adviser/interns/${internId}/requirements/new`) Add requirement
+  +internHeader(intern, 'requirements')
+  p.btn-row
+    a.btn.btn-create.btn-sm(href=`/adviser/interns/${internId}/requirements/new`) Add requirement
 
   section.card
     if assignedRequirements.length === 0
       .empty
-        b No requirements found
-        | This intern has no requirements yet, or is not one of your interns.
+        b No requirements yet
+        | Requirements you add for this intern show up here.
     each req in assignedRequirements
       article.item
         .item-head

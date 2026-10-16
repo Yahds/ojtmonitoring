@@ -1,12 +1,10 @@
 extends ../../layouts/main
 
 include ../../partials/review-decision
+include ../../partials/intern-header
 
 block content
-  p.crumb
-    a(href='/adviser/interns') Interns
-    |  / Weekly reports
-  h1.page-title Weekly reports · #{intern.studentName}
+  +internHeader(intern, 'weekly-reports')
 
   if notSent.length
     h2.section-title Not sent · #{notSent.length}

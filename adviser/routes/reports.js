@@ -50,7 +50,7 @@ router.get("/interns/:internId/weekly-reports", requireAdviser, async (req, res,
                 .filter(absence => absence.reportid === report.reportid)
                 .map(absence => ({ ...absence, part: ABSENCE_PARTS[absence.part], proof: PROOF_TYPES[absence.proof_type] }));
         });
-        res.render('ojt-dashboard/views/weekly-reports-review', { title: 'Weekly reports', intern, weeklyReports, notSent, internId });
+        res.render('ojt-dashboard/views/weekly-reports-review', { title: `Weekly reports · ${intern.studentName}`, intern, weeklyReports, notSent, internId });
     } catch (error) {
         next(error);
     }
