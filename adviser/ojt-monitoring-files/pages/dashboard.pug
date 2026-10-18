@@ -5,16 +5,24 @@ mixin initials(name)
 
 block content
   - const withSection = (path) => section ? `${path}?section=${section}` : path
+  - const someNames = (names) => names.slice(0, 2).join(', ') + (names.length > 2 ? ` and ${names.length - 2} more` : '')
   .dash
     .dash-main
-      section.card.hero-slim
-        img(src='/assets/img/slu-logo.png' alt='Saint Louis University crest')
-        div
-          h1= user.name
-          p.meta Adviser · #{sections.length} #{sections.length === 1 ? 'section' : 'sections'} · #{everyoneCount} #{everyoneCount === 1 ? 'intern' : 'interns'}
-        p.date
-          b#clock-date &nbsp;
-          span#clock-time &nbsp;
+      section.card.hero
+        .hero-banner(role='img' aria-label='Saint Louis University campus')
+        .hero-body
+          img(src='/assets/img/slu-logo.png' alt='Saint Louis University crest')
+          div
+            h1.hero-name= user.name
+            .hero-divider
+            .hero-meta Adviser · #{sections.length} #{sections.length === 1 ? 'section' : 'sections'} · #{everyoneCount} #{everyoneCount === 1 ? 'intern' : 'interns'}
+          .clock
+            div
+              .k Time
+              .v#clock-time &nbsp;
+            div
+              .k Date
+              .v#clock-date &nbsp;
 
       if sections.length > 1
         nav.chips(aria-label='Section')
@@ -31,11 +39,11 @@ block content
         a.tile(href='#follow-up')
           span.num= missing.length
           span.k Missing weekly reports
-          span.hint= missing.length ? 'Past the due time' : 'Everyone is up to date'
+          span.hint= missing.length ? someNames(missing.map(item => item.intern.studentName)) : 'Everyone is up to date'
         a.tile(href='#follow-up')
           span.num= ready.length
           span.k Ready to deploy
-          span.hint= ready.length ? ready.slice(0, 2).map(intern => intern.studentName).join(', ') + (ready.length > 2 ? ` and ${ready.length - 2} more` : '') : 'No one yet'
+          span.hint= ready.length ? someNames(ready.map(intern => intern.studentName)) : 'No one yet'
 
       section.card#review
         .card-head
