@@ -1,8 +1,28 @@
 const { parse } = require('csv-parse/sync');
+const multer = require('multer');
 
 const COLUMNS = ['student_id', 'name', 'course', 'year', 'section', 'email'];
 const MAX_ROWS = 200;
 const MAX_TEXT = 45; // students.studentName, year and classcode are VARCHAR(45)
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 1024 * 1024, files: 1, fields: 5 },
+}).single('file');
+
+// runs before the CSRF check, which needs the token from the form body; only for logged-in advisers
+function parseClassListUpload(req, res, next) {
+    if (!req.session.adviserID || !req.is('multipart/form-data')) {
+        return next();
+    }
+    upload(req, res, error => {
+        if (error && error.code === 'LIMIT_FILE_SIZE') {
+            req.uploadError = 'The file is bigger than 1 MB. A class list should be much smaller; check that it is a CSV.';
+            return next();
+        }
+        next(error);
+    });
+}
 
 // reads an uploaded class list and checks every row. `taken` holds the student IDs and emails
 // already in the database. Each row keeps its line number in the file so errors can point to it.
@@ -58,4 +78,4 @@ function readClassList(text, { courses, takenIds = new Set(), takenEmails = new 
     return { rows, fileError: '' };
 }
 
-module.exports = { readClassList, COLUMNS, MAX_ROWS };
+module.exports = { readClassList, parseClassListUpload, COLUMNS, MAX_ROWS };
