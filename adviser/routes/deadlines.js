@@ -14,7 +14,7 @@ async function showDeadlinePage(req, res, next, status, values, errors) {
     if (!deadlines) {
         return next();
     }
-    res.status(status).render('ojt-dashboard/views/requirement-deadline', {
+    res.status(status).render('pages/requirement-deadline', {
         title: `${deadlines.requirementname} deadline`, deadlines, internId, reqid, values, errors, today: today(),
     });
 }

@@ -53,7 +53,7 @@ router.get('/interns', requireAdviser, async (req, res, next) => {
             return `/adviser/interns${query ? `?${query}` : ''}`;
         };
 
-        res.render('ojt-dashboard/views/interns', {
+        res.render('pages/interns', {
             title: 'Interns', interns, everyoneCount: everyone.length, sections, section, search, status,
             statuses: INTERN_STATUSES.map(code => ({ code, label: statusOf('intern', code).label })), linkTo,
         });
@@ -65,7 +65,7 @@ router.get('/interns', requireAdviser, async (req, res, next) => {
 // errors go next to the form fields
 async function showEnrollForm(res, status, values, errors) {
     const courses = await fetchCourses();
-    res.status(status).render('ojt-dashboard/views/intern-new', { title: 'Enroll intern', courses, values, errors });
+    res.status(status).render('pages/intern-new', { title: 'Enroll intern', courses, values, errors });
 }
 
 router.get('/interns/new', requireAdviser, async (req, res, next) => {
@@ -130,7 +130,7 @@ async function showDeployPage(req, res, next, status, startDate, errors) {
         return res.redirect('/adviser/interns');
     }
     const checklist = deployChecklist(intern);
-    res.status(status).render('ojt-dashboard/views/deploy', {
+    res.status(status).render('pages/deploy', {
         title: 'Deploy intern',
         intern,
         checklist,

@@ -19,7 +19,7 @@ async function showAnnouncements(req, res, status, values, errors) {
     ]);
     // keeps the search when moving between pages
     const pageHref = n => `/adviser/announcements?${new URLSearchParams(search ? { q: search, page: n } : { page: n })}`;
-    res.status(status).render('ojt-dashboard/views/announcements', {
+    res.status(status).render('pages/announcements', {
         title: 'Announcements', sections, values, errors, search, pageHref, ...list,
     });
 }
@@ -30,7 +30,7 @@ async function showEdit(req, res, status, announcement, values, errors) {
     if (announcement.audience && !sections.includes(announcement.audience)) {
         sections.push(announcement.audience);
     }
-    res.status(status).render('ojt-dashboard/views/announcement-edit', {
+    res.status(status).render('pages/announcement-edit', {
         title: 'Edit announcement', announcement, sections, values, errors,
     });
 }
@@ -155,7 +155,7 @@ router.get('/announcements/:announcementId/delete', requireAdviser, async (req, 
         if (!announcement) {
             return next();
         }
-        res.render('ojt-dashboard/views/announcement-delete', { title: 'Delete announcement', announcement });
+        res.render('pages/announcement-delete', { title: 'Delete announcement', announcement });
     } catch (error) {
         next(error);
     }

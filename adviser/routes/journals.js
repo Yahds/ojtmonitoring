@@ -17,7 +17,7 @@ router.get("/interns/:internId/journals", requireAdviser, async (req, res, next)
         journals.forEach(journal => {
             if (journal.datesubmitted) journal.datesubmitted = new Date(journal.datesubmitted).toDateString();
         });
-        res.render('ojt-dashboard/views/review-journals', { title: `Journals · ${intern.studentName}`, intern, journals, internId });
+        res.render('pages/review-journals', { title: `Journals · ${intern.studentName}`, intern, journals, internId });
     } catch (error) {
         next(error);
     }

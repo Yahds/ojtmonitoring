@@ -22,7 +22,7 @@ router.get("/interns/:internId/requirements", requireAdviser, async (req, res, n
             }
         });
 
-        res.render('ojt-dashboard/views/review-requirements', {
+        res.render('pages/review-requirements', {
             title: `Requirements · ${intern.studentName}`, intern, assignedRequirements, internId
         });
     } catch (error) {
@@ -105,7 +105,7 @@ router.get('/interns/:internId/requirements/:reqid/versions', requireAdviser, as
         if (!requirement) {
             return next();
         }
-        res.render('ojt-dashboard/views/requirement-versions', {
+        res.render('pages/requirement-versions', {
             title: `${requirement.requirementname} versions`, requirement, internId, reqid,
         });
     } catch (error) {

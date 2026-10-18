@@ -11,7 +11,7 @@ const router = express.Router();
 const AUDIENCES = ['INTERN', 'SECTION', 'ALL'];
 
 function showForm(res, status, intern, values, errors) {
-    res.status(status).render('ojt-dashboard/views/requirement-new', {
+    res.status(status).render('pages/requirement-new', {
         title: 'Add requirement', intern, values, errors, today: today(),
     });
 }
@@ -84,7 +84,7 @@ router.get('/requirements/:reqid/remove', requireAdviser, async (req, res, next)
         if (!requirement) {
             return next(); // a school requirement or another adviser's
         }
-        res.render('ojt-dashboard/views/requirement-remove', {
+        res.render('pages/requirement-remove', {
             title: 'Remove requirement', requirement, from: req.query.from, back: backTo(req.query.from),
         });
     } catch (error) {

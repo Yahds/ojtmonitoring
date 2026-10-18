@@ -31,7 +31,7 @@ router.get('/dashboard', requireAdviser, async (req, res, next) => {
             .filter(({ weeks }) => weeks.length);
         const ready = interns.filter(intern => intern.readyToDeploy);
 
-        res.render('ojt-dashboard/views/dashboard', {
+        res.render('pages/dashboard', {
             title: 'Dashboard',
             everyoneCount: everyone.length,
             sections,

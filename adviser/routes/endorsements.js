@@ -13,7 +13,7 @@ router.get('/endorsements', requireAdviser, async (req, res, next) => {
     try {
         const endorsements = await fetchEndorsements(req.session.adviserID);
         const withStatus = status => endorsements.filter(e => e.status === status);
-        res.render('ojt-dashboard/views/endorsements', {
+        res.render('pages/endorsements', {
             title: 'Endorsements',
             toSend: withStatus('REQUESTED'),
             waiting: withStatus('SENT'),
