@@ -115,15 +115,6 @@ async function undoWithdraw(internID, adviserID) {
     return result.affectedRows === 1;
 }
 
-// updates the status in the interns table
-async function updateInternRemarks(internId, remarks) {
-    // Loop through the remarks and update each one in the database
-    for (let i = 0; i < remarks.length; i++) {
-        await pool.query('UPDATE internrequirements SET remarks = ? WHERE internid = ? AND reqid = ?',
-            [remarks[i], internId, i + 1]); // Assuming reqid starts from 1
-    }
-}
-
 async function enrollIntern(student, adviserID) {
     const connection = await pool.getConnection();
     try {
@@ -154,24 +145,6 @@ async function enrollIntern(student, adviserID) {
     }
 }
 
-// deployed interns with approved hours, status FINISHED means the course's target is reached
-async function fetchInterns(adviserID) {
-    const [rows] = await pool.query(
-        `SELECT s.studentid, s.studentname, s.classcode, c.companyname, c.companyaddress,
-                COALESCE(h.totalhours, 0) AS totalhours, co.target_hours,
-                CASE WHEN COALESCE(h.totalhours, 0) >= co.target_hours THEN 'FINISHED' ELSE 'ON GOING' END AS status
-         FROM interns i
-         JOIN students s ON s.studentID = i.studentid
-         JOIN courses co ON co.code = s.course
-         LEFT JOIN company c ON c.companyid = i.companyid
-         LEFT JOIN (SELECT internid, SUM(hours) AS totalhours FROM weeklyreports WHERE status = 'APPROVED' GROUP BY internid) h
-                ON h.internid = i.internid
-         WHERE i.adviserid = ? AND i.status = 'ACTIVE'`,
-        [adviserID]
-    );
-    return rows;
-}
-
 // all of the adviser's interns, with what the dashboard and the interns list need to know about each one
 async function fetchInternSummaries(adviserID) {
     const [rows] = await pool.query(
@@ -197,35 +170,11 @@ async function fetchInternSummaries(adviserID) {
     }));
 }
 
-async function fetchInternId(name, adviserID) {
-    const [rows] = await pool.query(`
-        SELECT interns.internid
-        FROM interns
-        JOIN students ON interns.studentid = students.studentID
-        WHERE students.studentName = ? AND interns.adviserid = ?
-    `, [name, adviserID]);
-
-    return rows;
-}
-
-// to just check if intern belongs to adviser
-async function isAdvisersIntern(internId, adviserID) {
-    const [rows] = await pool.query(
-        'SELECT 1 FROM interns WHERE internid = ? AND adviserid = ?',
-        [internId, adviserID]
-    );
-    return rows.length === 1;
-}
-
 module.exports = {
     fetchInternSummaries,
     deployIntern,
     fetchDeployCheck,
-    updateInternRemarks,
     enrollIntern,
-    fetchInterns,
-    fetchInternId,
-    isAdvisersIntern,
     fetchFinishCheck,
     markEvaluationReceived,
     finishIntern,

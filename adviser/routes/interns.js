@@ -1,6 +1,6 @@
 const express = require('express');
 const { fetchInternSummaries, fetchReviewQueue, fetchWeeklyDueRules, fetchCourses, enrollIntern,
-    updateInternRemarks, deployIntern, isAdvisersIntern, fetchDeployCheck } = require('../db');
+    deployIntern, fetchDeployCheck } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 const { audit } = require('../lib/audit')
 const { statusOf } = require('../lib/statuses');
@@ -77,20 +77,6 @@ router.get('/interns/new', requireAdviser, async (req, res, next) => {
 });
 
 //POST REQUESTS
-
-router.post('/intern-remarks', requireAdviser, async (req, res, next) => {
-    const { internId, remarks } = req.body;
-
-    try {
-        if (!(await isAdvisersIntern(internId, req.session.adviserID))) {
-            return res.status(404).json({ message: 'Intern not found' });
-        }
-        await updateInternRemarks(internId, remarks);
-        res.json({ message: 'Remarks updated successfully' });
-    } catch (error) {
-        next(error);
-    }
-});
 
 router.post('/interns', requireAdviser, async (req, res, next) => {
     const { studentID, name, course, year, classcode } = req.body;

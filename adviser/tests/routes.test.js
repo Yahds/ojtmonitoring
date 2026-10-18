@@ -44,14 +44,12 @@ describe('route smoke tests', () => {
         ['get', '/adviser/interns'],
         ['post', '/adviser/interns'],
         ['post', '/adviser/interns/1/deploy'],
-        ['post', '/adviser/intern-remarks'],   
         ['get', '/adviser/interns/1/journals'],
         ['post', '/adviser/interns/1/journals'],
         ['get', '/adviser/journals/1/file'],
         ['get', '/adviser/interns/1/weekly-reports'],
         ['post', '/adviser/interns/1/weekly-reports'],
         ['get', '/adviser/weekly-reports/1/file'],
-        ['get', '/adviser/requirements-reports/someone'],
         ['get', '/adviser/interns/1/requirements'],
         ['post', '/adviser/interns/1/requirements'],
         ['get', '/adviser/interns/1/requirements/1/file'],
@@ -80,7 +78,6 @@ describe('route smoke tests', () => {
     // static folders should serve stylesheets and images only
     test.each([
         '/ojt-login-page/styles.css',
-        '/ojt-dashboard/styles.css',
         '/ojt-images/slu-logo.png',
         '/ojt-about-us/images/a.png',
     ])('serves the asset %s', async (url) => {
