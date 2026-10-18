@@ -29,6 +29,9 @@ mixin internHeader(intern, tab)
             else
               a.danger(href=`${base}/withdraw`) Withdraw
   nav.tabs(aria-label='Intern pages')
-    a(href=`${base}/requirements` aria-current=(tab === 'requirements' ? 'page' : undefined)) Requirements
-    a(href=`${base}/weekly-reports` aria-current=(tab === 'weekly-reports' ? 'page' : undefined)) Weekly reports
-    a(href=`${base}/journals` aria-current=(tab === 'journals' ? 'page' : undefined)) Journals
+    each item in [['requirements', 'Requirements', intern.waitingRequirements], ['weekly-reports', 'Weekly reports', intern.waitingWeekly], ['journals', 'Journals', intern.waitingJournals]]
+      a(href=`${base}/${item[0]}` aria-current=(tab === item[0] ? 'page' : undefined))
+        = item[1]
+        if item[2]
+          span.count= item[2]
+          span.sr-only  to review

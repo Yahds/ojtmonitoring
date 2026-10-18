@@ -83,7 +83,10 @@ async function fetchInternForAdviser(internID, adviserID) {
     const [rows] = await pool.query(
         `SELECT i.internid, i.status, s.studentID, s.studentName, s.course, s.classcode, c.companyname,
                 DATE_FORMAT(i.deployed_on, '%Y-%m-%d') AS deployedOn, DATE_FORMAT(i.deployed_on, '%b %e') AS deployedLabel,
-                co.target_hours, ${APPROVED_HOURS} AS approvedHours
+                co.target_hours, ${APPROVED_HOURS} AS approvedHours,
+                (SELECT COUNT(*) FROM internrequirements r WHERE r.internid = i.internid AND r.status = 'SUBMITTED') AS waitingRequirements,
+                (SELECT COUNT(*) FROM weeklyreports w WHERE w.internid = i.internid AND w.status = 'PENDING') AS waitingWeekly,
+                (SELECT COUNT(*) FROM journals j WHERE j.internid = i.internid AND j.status = 'PENDING') AS waitingJournals
          FROM interns i
          JOIN students s ON s.studentID = i.studentid
          JOIN courses co ON co.code = s.course

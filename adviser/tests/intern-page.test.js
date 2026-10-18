@@ -22,11 +22,13 @@ beforeAll(async () => {
     internIds.active = row.insertId;
     [row] = await pool.query("INSERT INTO interns (adviserid, studentid, status, withdrawn_from) VALUES (?, 9900402, 'WITHDRAWN', 'ENROLLED')", [adviser.adviserID]);
     internIds.withdrawn = row.insertId;
+    await pool.query("INSERT INTO internrequirements (internid, reqid, status) VALUES (?, 1, 'SUBMITTED'), (?, 2, 'APPROVED')", [internIds.active, internIds.active]);
 
     agent = await loginAs(app, adviser.email);
 });
 
 afterAll(async () => {
+    await pool.query('DELETE FROM internrequirements WHERE internid IN (?)', [Object.values(internIds)]);
     await pool.query('DELETE FROM interns WHERE internid IN (?)', [Object.values(internIds)]);
     await pool.query('DELETE FROM students WHERE studentID IN (?)', [STUDENTS.map(([id]) => id)]);
     await deleteTestAdviser(adviser.adviserID);
@@ -41,6 +43,22 @@ test.each(['requirements', 'weekly-reports', 'journals'])('the %s tab shows the 
     expect(page.text).toContain('9900401 · BSCS · Section P1');
     expect(page.text).toContain('Deployed since Sep 1');
     expect(page.text).toContain(`href="/adviser/interns/${internIds.active}/${tab}" aria-current="page"`);
+});
+
+test('requirements are grouped: waiting for review first, approved ones folded at the end', async () => {
+    const [names] = await pool.query('SELECT reqid, requirementname FROM requirements WHERE reqid IN (1, 2) ORDER BY reqid');
+    const page = await agent.get(`/adviser/interns/${internIds.active}/requirements`);
+
+    expect(page.text).toContain('Needs your review · 1');
+    expect(page.text).toContain('Approved · 1');
+    expect(page.text.indexOf(names[0].requirementname)).toBeLessThan(page.text.indexOf('Approved · 1'));
+    expect(page.text).toMatch(new RegExp(`<details class="fold"><summary><span>${names[1].requirementname}</span>`));
+});
+
+test('the Requirements tab shows how many wait for review', async () => {
+    const page = await agent.get(`/adviser/interns/${internIds.active}/journals`);
+
+    expect(page.text).toMatch(/Requirements<span class="count">1<\/span><span class="sr-only"> to review<\/span>/);
 });
 
 test('the menu of a deployed intern offers finish and withdraw, not deploy', async () => {

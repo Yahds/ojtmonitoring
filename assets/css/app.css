@@ -267,6 +267,13 @@ th:last-child, td:last-child { padding-right: 24px; }
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
 .tabs a { padding: 10px 16px; min-height: 44px; font-size: 14px; font-weight: 700; color: var(--muted); text-decoration: none; border-bottom: 3px solid transparent; white-space: nowrap; }
 .tabs a[aria-current="page"] { color: var(--navy); border-bottom-color: var(--navy); }
+.tabs .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-left: 6px; padding: 0 6px; border-radius: 999px; background: var(--amber); color: #fff; font-size: 12px; }
+.group-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.fold > summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 24px; font-size: 14px; color: var(--muted); }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold[open] > summary { border-bottom: 1px solid var(--line); }
+.fold[open] > summary .link-btn { visibility: hidden; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (min-width: 700px) {
   .stats3 { grid-template-columns: repeat(3, 1fr); }
   .rows li { grid-template-columns: 34px 1fr 70px 110px; }

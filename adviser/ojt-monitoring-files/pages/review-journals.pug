@@ -3,25 +3,52 @@ extends ../layouts/main
 include ../partials/review-decision
 include ../partials/intern-header
 
+mixin journal(journal)
+  article.item
+    .item-head
+      h3 Month #{journal.monthnumber}
+      - const status = statusOf('review', journal.status)
+      span.tag(class=status.tag)= status.label
+    if journal.datesubmitted
+      p.meta Submitted #{journal.datesubmitted}
+    if journal.notes
+      p.note= journal.notes
+    if journal.file_path
+      p
+        a(href=`/adviser/journals/${journal.journalid}/file`) View journal file
+    +reviewDecision(`/adviser/interns/${internId}/journals`, 'journalid', journal.journalid, journal.status, journal.remark)
+
 block content
   +internHeader(intern, 'journals')
+  - const toReview = journals.filter(journal => journal.status === 'PENDING')
+  - const sentBack = journals.filter(journal => journal.status === 'REJECTED')
+  - const done = journals.filter(journal => journal.status === 'APPROVED')
 
+  h2.section-title Needs your review · #{toReview.length}
   section.card
-    if journals.length === 0
+    if !journals.length
       .empty
         b No journals yet
         | Journals show up here once the intern submits them.
-    each journal in journals
-      article.item
-        .item-head
-          h3 Month #{journal.monthnumber}
-          - const status = statusOf('review', journal.status)
-          span.tag(class=status.tag)= status.label
-        if journal.datesubmitted
-          p.meta Submitted #{journal.datesubmitted}
-        if journal.notes
-          p.note= journal.notes
-        if journal.file_path
-          p
-            a(href=`/adviser/journals/${journal.journalid}/file`) View journal file
-        +reviewDecision(`/adviser/interns/${internId}/journals`, 'journalid', journal.journalid, journal.status, journal.remark)
+    else if !toReview.length
+      .empty
+        b Nothing to review
+        | Journals the intern sends show up here.
+    each journal in toReview
+      +journal(journal)
+
+  if sentBack.length
+    h2.section-title Waiting for the intern · #{sentBack.length}
+    section.card
+      each journal in sentBack
+        +journal(journal)
+
+  if done.length
+    h2.section-title Done · #{done.length}
+    section.card
+      details.fold
+        summary
+          span= done.map(journal => `Month ${journal.monthnumber}`).join(', ')
+          span.link-btn Show and change
+        each journal in done
+          +journal(journal)
