@@ -1,4 +1,4 @@
-extends ../../layouts/main
+extends ../layouts/main
 
 block content
   h1.page-title Announcements
@@ -7,7 +7,7 @@ block content
     h2.section-title New announcement
     form.form(action='/adviser/announcements' method='POST' enctype='multipart/form-data')
       input(type='hidden' name='csrf_token' value=csrfToken)
-      include ../../partials/announcement-fields
+      include ../partials/announcement-fields
       .btn-row
         button.btn.btn-create(type='submit') Post announcement
 
@@ -43,4 +43,4 @@ block content
           if announcement.file_name
             p
               a(href=`/adviser/announcements/${announcement.announcementid}/file`) #{announcement.file_name}
-    include ../../partials/pager
+    include ../partials/pager

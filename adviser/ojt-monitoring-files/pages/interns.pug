@@ -1,0 +1,82 @@
+extends ../layouts/main
+
+block content
+  h1.page-title Interns #[span.count= everyoneCount]
+
+  if sections.length > 1
+    nav.chips(aria-label='Section')
+      span.k Section
+      a.chip(href=linkTo({ section: '' }) aria-current=(section ? undefined : 'page')) All #[span.c= everyoneCount]
+      each item in sections
+        a.chip(href=linkTo({ section: item.code }) aria-current=(section === item.code ? 'page' : undefined)) #{item.code} #[span.c= item.count]
+
+  section.card
+    .card-head
+      h2 My interns #[span.sub= interns.length === everyoneCount ? 'who need something first' : `${interns.length} of ${everyoneCount}`]
+      a.btn.btn-create.btn-sm(href='/adviser/interns/new') + Enroll intern
+    if everyoneCount
+      form.search-row(action='/adviser/interns' method='GET' role='search')
+        if section
+          input(type='hidden' name='section' value=section)
+        .field
+          label(for='q') Search
+          input.input#q(type='search' name='q' value=search maxlength='100' placeholder='Name or student ID')
+        .field.field-narrow
+          label(for='status') Status
+          select.input#status(name='status')
+            option(value='') Any status
+            each item in statuses
+              option(value=item.code selected=status === item.code)= item.label
+        button.btn.btn-outline(type='submit') Show
+        if search || status || section
+          a.btn.btn-outline(href='/adviser/interns') Clear
+    if !everyoneCount
+      .empty
+        b No interns yet
+        | Enroll your first intern to get started.
+    else if !interns.length
+      .empty
+        b No interns match
+        | Check the spelling, or pick another section or status.
+    else
+      .table-wrap
+        table.list-table
+          thead
+            tr
+              th(scope='col') Name
+              th(scope='col') Section
+              th(scope='col') Status
+              th(scope='col') Approved hours
+              th(scope='col') Needs
+          tbody
+            each intern in interns
+              - const internStatus = statusOf('intern', intern.status)
+              tr
+                td.who
+                  a(href=`/adviser/interns/${intern.internid}/requirements`)
+                    b= intern.studentName
+                  span #{intern.studentID} · #{intern.course}#{intern.companyname ? ` · ${intern.companyname}` : ''}
+                td.col-section= intern.classcode
+                td.col-status
+                  span.tag(class=internStatus.tag)= internStatus.label
+                td.col-wide
+                  if intern.deployedOn
+                    .hours
+                      .bar
+                        span(style=`width: ${Math.min(100, Math.round(intern.approvedHours / intern.target_hours * 100))}%`)
+                      span.num #{intern.approvedHours} / #{intern.target_hours}
+                  else
+                    span.muted Not deployed yet
+                td.col-wide
+                  if intern.status === 'WITHDRAWN'
+                    if intern.withdrawn_reason
+                      p.help= intern.withdrawn_reason
+                    form(action=`/adviser/interns/${intern.internid}/undo-withdraw` method='POST')
+                      input(type='hidden' name='csrf_token' value=csrfToken)
+                      button.btn.btn-outline.btn-sm(type='submit') Undo withdraw
+                  else if intern.needs
+                    span.needs= intern.needs
+                    if intern.readyToDeploy
+                      a.btn.btn-outline.btn-sm(href=`/adviser/interns/${intern.internid}/deploy`) Deploy
+                  else
+                    span.muted —

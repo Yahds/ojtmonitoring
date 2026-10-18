@@ -23,7 +23,7 @@ async function showWithdrawForm(req, res, next, status, values, errors) {
         req.flash('info', `${intern.studentName} is ${statusOf('intern', intern.status).label.toLowerCase()}, so they cannot be withdrawn.`);
         return res.redirect('/adviser/interns');
     }
-    res.status(status).render('ojt-dashboard/views/withdraw', { title: 'Withdraw intern', intern, reasons: REASONS, values, errors });
+    res.status(status).render('pages/withdraw', { title: 'Withdraw intern', intern, reasons: REASONS, values, errors });
 }
 
 router.get('/interns/:internId/withdraw', requireAdviser, async (req, res, next) => {

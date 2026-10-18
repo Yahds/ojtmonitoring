@@ -60,7 +60,6 @@ function publicFiles(folder) {
 app.use('/ojt-images', publicFiles(path.join(__dirname, 'ojt-images')));
 app.use('/ojt-about-us', publicFiles(path.join(__dirname, 'ojt-monitoring-files', 'ojt-about-us')));
 app.use('/ojt-login-page', publicFiles(path.join(__dirname, 'ojt-monitoring-files', 'ojt-login-page')));
-app.use('/ojt-dashboard', publicFiles(path.join(__dirname, 'ojt-monitoring-files', 'ojt-dashboard')));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(session({

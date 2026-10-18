@@ -1,0 +1,106 @@
+extends ../layouts/main
+
+include ../partials/intern-header
+
+mixin requirement(req)
+  article.item
+    .item-head
+      h3
+        | #{req.requirementname}
+        if req.custom
+          span.meta  · Added by you
+      - const status = statusOf('requirement', req.status)
+      .btn-row
+        if req.deadline
+          - const deadline = statusOf('deadline', req.deadline)
+          span.tag(class=deadline.tag)= deadline.label
+        span.tag(class=status.tag)= status.label
+    if req.due
+      p.meta Due #{req.due}
+    if req.datesubmitted
+      p.meta Submitted #{req.datesubmitted}#{req.versions > 1 ? ` · Version ${req.versions}` : ''}
+    if req.intern_remarks
+      p.note
+        b Intern:
+        |  #{req.intern_remarks}
+    p.btn-row
+      if req.file_path
+        a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/file`) View submitted file
+      if req.versions > 1
+        a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/versions`) All versions (#{req.versions})
+      a(href=`/adviser/interns/${internId}/requirements/${req.reqid}/deadline`) #{req.due ? 'Change deadline' : 'Set deadline'}
+      if req.custom
+        a(href=`/adviser/requirements/${req.reqid}/remove?from=${internId}`) Remove
+    if req.status === 'PENDING'
+      p.meta Waiting for the intern to submit.
+    else if req.status !== 'SUBMITTED'
+      if req.remarks
+        p.note
+          b Your remark:
+          |  #{req.remarks}
+      details
+        summary.link-btn Change decision or remark
+        form.form(action=`/adviser/interns/${internId}/requirements/change` method='POST')
+          input(type='hidden' name='csrf_token' value=csrfToken)
+          input(type='hidden' name='reqid' value=req.reqid)
+          fieldset.field
+            legend.label Decision
+            label.check-row
+              input(type='radio' name='decision' value='APPROVED' checked=req.status === 'APPROVED')
+              | Approved
+            label.check-row
+              input(type='radio' name='decision' value='REJECTED' checked=req.status === 'REJECTED')
+              | Needs changes
+          .field
+            label(for=`change-remarks-${req.reqid}`) Your remark
+            textarea.input(id=`change-remarks-${req.reqid}` name='remarks' rows='2' maxlength='200')= req.remarks
+          p.muted Needs changes unlocks the requirement, so the intern can submit again.
+          .btn-row
+            button.btn.btn-create.btn-sm(type='submit') Save changes
+    else
+      form.form(action=`/adviser/interns/${internId}/requirements` method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        input(type='hidden' name='reqid' value=req.reqid)
+        .field
+          label(for=`remarks-${req.reqid}`) Your remark
+          textarea.input(id=`remarks-${req.reqid}` name='remarks' rows='2' maxlength='200')
+        .btn-row
+          button.btn.btn-create.btn-sm(type='submit' name='decision' value='APPROVED') Approve
+          button.btn.btn-reject.btn-sm(type='submit' name='decision' value='REJECTED') Reject
+
+block content
+  +internHeader(intern, 'requirements')
+  - const toReview = assignedRequirements.filter(req => req.status === 'SUBMITTED')
+  - const waiting = assignedRequirements.filter(req => req.status === 'PENDING' || req.status === 'REJECTED')
+  - const approved = assignedRequirements.filter(req => req.status === 'APPROVED')
+
+  .group-head
+    h2.section-title Needs your review · #{toReview.length}
+    a.btn.btn-create.btn-sm(href=`/adviser/interns/${internId}/requirements/new`) + Add requirement
+  section.card
+    if !assignedRequirements.length
+      .empty
+        b No requirements yet
+        | Requirements you add for this intern show up here.
+    else if !toReview.length
+      .empty
+        b Nothing to review
+        | Requirements the intern sends show up here.
+    each req in toReview
+      +requirement(req)
+
+  if waiting.length
+    h2.section-title Waiting for the intern · #{waiting.length}
+    section.card
+      each req in waiting
+        +requirement(req)
+
+  if approved.length
+    h2.section-title Approved · #{approved.length}
+    section.card
+      details.fold
+        summary
+          span= approved.map(req => req.requirementname).join(', ')
+          span.link-btn Show and change
+        each req in approved
+          +requirement(req)

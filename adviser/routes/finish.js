@@ -37,7 +37,7 @@ router.get('/interns/:internId/finish', requireAdviser, async (req, res, next) =
             return res.redirect('/adviser/interns');
         }
         const checklist = finishChecklist(intern);
-        res.render('ojt-dashboard/views/finish', {
+        res.render('pages/finish', {
             title: 'Mark finished',
             intern,
             checklist,

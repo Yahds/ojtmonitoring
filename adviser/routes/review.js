@@ -13,7 +13,7 @@ router.get('/review', requireAdviser, async (req, res, next) => {
         const sections = await fetchAdviserSections(req.session.adviserID);
         const section = sections.includes(req.query.section) ? req.query.section : '';
         const items = await fetchReviewQueue(req.session.adviserID, section);
-        res.render('ojt-dashboard/views/review-queue', {
+        res.render('pages/review-queue', {
             title: 'To review',
             sections,
             section,

@@ -1,12 +1,12 @@
-const { fetchInternsByAdviser, closeDatabase } = require('../db');
+const { fetchInternSummaries, closeDatabase } = require('../db');
 const { pool } = require('../db/pool');
 
 afterAll(async () => {
   await closeDatabase();
 });
 
-test('fetchInternsByAdviser returns the adviser\'s interns with their company', async () => {
-  const interns = await fetchInternsByAdviser(1);
+test('fetchInternSummaries returns the adviser\'s interns with their company', async () => {
+  const interns = await fetchInternSummaries(1);
 
   const maria = interns.find(i => i.internid === 300);
 

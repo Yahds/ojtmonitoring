@@ -5,7 +5,6 @@ const { createTestAdviser, deleteTestAdviser, loginAs, csrfTokenFrom } = require
 
 // in the seed, intern 300 (Maria Santos) belongs to adviser 1, not the test adviser
 const OTHER_INTERN_ID = 300;
-const OTHER_INTERN_NAME = 'Maria Santos';
 
 let adviser;
 let agent;
@@ -31,18 +30,6 @@ afterAll(async () => {
 });
 
 describe("an adviser cannot use another adviser's intern", () => {
-    test('cannot change their requirement remarks', async () => {
-        const before = await requirementsOf(OTHER_INTERN_ID);
-
-        const res = await agent
-            .post('/adviser/intern-remarks')
-            .type('form')
-            .send({ internId: OTHER_INTERN_ID, remarks: Array(7).fill('changed by another adviser'), csrf_token: csrfToken });
-
-        expect(res.status).toBe(404);
-        expect(await requirementsOf(OTHER_INTERN_ID)).toEqual(before);
-    });
-
     test('cannot assign them a requirement', async () => {
         const before = await requirementsOf(OTHER_INTERN_ID);
 
@@ -55,10 +42,6 @@ describe("an adviser cannot use another adviser's intern", () => {
         expect(await requirementsOf(OTHER_INTERN_ID)).toEqual(before);
     });
 
-    test('cannot look them up by name', async () => {
-        const res = await agent.get('/adviser/requirements-reports/' + encodeURIComponent(OTHER_INTERN_NAME));
-        expect(res.status).toBe(404);
-    });
 
     test('cannot approve or reject their requirements', async () => {
         const url = `/adviser/interns/${OTHER_INTERN_ID}/requirements`;
@@ -71,7 +54,7 @@ describe("an adviser cannot use another adviser's intern", () => {
         expect(res.headers.location).toBe(url);
 
         const page = await agent.get(url);
-        expect(page.text).toContain('Only a submitted requirement can be approved or rejected.');
+        expect(page.status).toBe(404);
         expect(await requirementsOf(OTHER_INTERN_ID)).toEqual(before);
     });
 });

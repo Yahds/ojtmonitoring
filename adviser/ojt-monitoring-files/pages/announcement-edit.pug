@@ -1,4 +1,4 @@
-extends ../../layouts/main
+extends ../layouts/main
 
 block content
   p.crumb
@@ -9,7 +9,7 @@ block content
   section.card.card-pad
     form.form(action=`/adviser/announcements/${announcement.announcementid}/edit` method='POST' enctype='multipart/form-data')
       input(type='hidden' name='csrf_token' value=csrfToken)
-      include ../../partials/announcement-fields
+      include ../partials/announcement-fields
       if announcement.file_name
         .field
           span.help Current file: #[a(href=`/adviser/announcements/${announcement.announcementid}/file`) #{announcement.file_name}]. Choosing a new file replaces it.

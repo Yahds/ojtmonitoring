@@ -17,7 +17,7 @@ router.get('/settings', requireAdviser, async (req, res, next) => {
             fetchWeeklyDueDays(req.session.adviserID),
             fetchAcceptsParentLetter(req.session.adviserID),
         ]);
-        res.render('ojt-dashboard/views/settings', { title: 'OJT settings', weeklyDueDays, acceptsParentLetter, dueChoices: DUE_CHOICES });
+        res.render('pages/settings', { title: 'OJT settings', weeklyDueDays, acceptsParentLetter, dueChoices: DUE_CHOICES });
     } catch (error) {
         next(error);
     }
