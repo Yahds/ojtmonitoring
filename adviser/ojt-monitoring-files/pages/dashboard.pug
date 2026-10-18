@@ -98,7 +98,7 @@ block content
             | Enroll your first intern to start.
         else
           .table-wrap
-            table
+            table.list-table
               thead
                 tr
                   th(scope='col') Name
@@ -113,8 +113,8 @@ block content
                       a(href=`/adviser/interns/${intern.internid}/requirements`)
                         b= intern.studentName
                       span #{intern.studentID} · #{intern.course}
-                    td= intern.classcode
-                    td
+                    td.col-section= intern.classcode
+                    td.col-wide
                       if intern.deployedOn
                         .hours
                           .bar
@@ -122,7 +122,7 @@ block content
                           span.num #{intern.approvedHours} / #{intern.target_hours}
                       else
                         span.muted Not deployed yet
-                    td
+                    td.col-status
                       span.tag(class=status.tag)= status.label
           if internCount > interns.length
             p.more-row

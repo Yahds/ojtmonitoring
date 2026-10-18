@@ -325,6 +325,26 @@ th:last-child, td:last-child { padding-right: 24px; }
   .switch { display: flex; align-self: stretch; }
   .switch a { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 6px 10px; text-align: center; }
   .check-row { min-height: 44px; }
+
+  /* adviser: name and date on their own rows, chips in one row that scrolls sideways */
+  .hero-slim { grid-template-columns: 48px 1fr; }
+  .hero-slim .date { grid-column: 1 / -1; text-align: left; }
+  .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .chip { flex: none; }
+
+  /* each intern is a block: name and status on top, hours and needs below */
+  .list-table thead, .list-table .col-section { display: none; }
+  .list-table, .list-table tbody { display: block; }
+  .list-table tr { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+  .list-table tr:last-child { border-bottom: 0; }
+  .list-table td { display: block; padding: 0; border: 0; }
+  .list-table td:first-child, .list-table td:last-child { padding: 0; }
+  .list-table .col-status { grid-column: 2; grid-row: 1; }
+  .list-table .col-wide { grid-column: 1 / -1; }
+  .list-table td:has(> .muted:only-child) { display: none; }
+
+  /* small tables inside a review item (days, absences) */
+  .item table th, .item table td { padding: 8px 6px; font-size: 13px; }
 }
 .big-btn { white-space: normal; }
 

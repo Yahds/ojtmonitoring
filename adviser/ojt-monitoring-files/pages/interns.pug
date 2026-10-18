@@ -40,7 +40,7 @@ block content
         | Check the spelling, or pick another section or status.
     else
       .table-wrap
-        table
+        table.list-table
           thead
             tr
               th(scope='col') Name
@@ -56,10 +56,10 @@ block content
                   a(href=`/adviser/interns/${intern.internid}/requirements`)
                     b= intern.studentName
                   span #{intern.studentID} · #{intern.course}#{intern.companyname ? ` · ${intern.companyname}` : ''}
-                td= intern.classcode
-                td
+                td.col-section= intern.classcode
+                td.col-status
                   span.tag(class=internStatus.tag)= internStatus.label
-                td
+                td.col-wide
                   if intern.deployedOn
                     .hours
                       .bar
@@ -67,7 +67,7 @@ block content
                       span.num #{intern.approvedHours} / #{intern.target_hours}
                   else
                     span.muted Not deployed yet
-                td
+                td.col-wide
                   if intern.status === 'WITHDRAWN'
                     if intern.withdrawn_reason
                       p.help= intern.withdrawn_reason
