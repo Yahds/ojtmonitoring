@@ -90,6 +90,7 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_TEST_DATABASE=ojt_test
       - OIDC_PROVIDER_URL=http://sso:8080/realms/slu
       - OIDC_CLIENT_ID=ojt-portal
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}

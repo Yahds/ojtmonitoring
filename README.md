@@ -69,6 +69,7 @@ The tests use their own database, `ojt_test`, so they never change the demo data
 ```
 docker compose run --rm migrate-test
 docker compose exec adviser-node sh -c "npm run lint && npm test"
+docker compose exec student-php vendor/bin/phpunit
 ```
 GitHub Actions runs lint and the tests on every pull request and on every push to `main`.
 
