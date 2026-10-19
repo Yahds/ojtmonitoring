@@ -28,6 +28,8 @@ services:
   database:
     image: mysql:8.0.46
     restart: unless-stopped
+    # query statistics we never read; turning them off saves about 200 MB of RAM
+    command: --performance-schema=OFF
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
