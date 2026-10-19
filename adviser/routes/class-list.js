@@ -13,6 +13,11 @@ router.get('/interns/import', requireAdviser, (req, res) => {
     res.render(PAGE, pageLocals);
 });
 
+// an empty file with the right first row, ready to fill in Excel
+router.get('/interns/import/template.csv', requireAdviser, (req, res) => {
+    res.attachment('class-list-template.csv').type('text/csv').send(`${COLUMNS.join(',')}\r\n`);
+});
+
 router.post('/interns/import', requireAdviser, async (req, res, next) => {
     try {
         delete req.session.classList;

@@ -9,6 +9,9 @@ block content
     p Upload a CSV file with one student per row, at most #{maxRows}. The first row must name the columns:
     p
       code= columns.join(',')
+    p
+      a(href='/adviser/interns/import/template.csv' download) Download a template
+      |  with this first row already filled in.
     p.muted In Excel: File → Save as → "CSV UTF-8". Students sign in with their SLU account, so no passwords are needed.
     form.form(action='/adviser/interns/import' method='POST' enctype='multipart/form-data')
       input(type='hidden' name='csrf_token' value=csrfToken)

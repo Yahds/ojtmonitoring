@@ -92,6 +92,20 @@ test('if one student gets enrolled between the preview and the confirm, nobody i
     expect(await savedStudents()).toEqual([9900501, 9900502, 9900504]);
 });
 
+test('the template is a CSV with only the column names', async () => {
+    const res = await agent.get('/adviser/interns/import/template.csv');
+
+    expect(res.headers['content-type']).toMatch(/^text\/csv/);
+    expect(res.headers['content-disposition']).toContain('class-list-template.csv');
+    expect(res.text).toBe(`${HEADER}\r\n`);
+});
+
+test('the interns page links to the import', async () => {
+    const page = await agent.get('/adviser/interns');
+
+    expect(page.text).toContain('href="/adviser/interns/import"');
+});
+
 test('checking without a file asks for one', async () => {
     const res = await agent.post('/adviser/interns/import').field('csrf_token', csrfToken);
 

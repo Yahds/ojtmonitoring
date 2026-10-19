@@ -13,7 +13,9 @@ block content
   section.card
     .card-head
       h2 My interns #[span.sub= interns.length === everyoneCount ? 'who need something first' : `${interns.length} of ${everyoneCount}`]
-      a.btn.btn-create.btn-sm(href='/adviser/interns/new') + Enroll intern
+      .btn-row
+        a.btn.btn-outline.btn-sm(href='/adviser/interns/import') Import class list
+        a.btn.btn-create.btn-sm(href='/adviser/interns/new') + Enroll intern
     if everyoneCount
       form.search-row(action='/adviser/interns' method='GET' role='search')
         if section
@@ -33,7 +35,7 @@ block content
     if !everyoneCount
       .empty
         b No interns yet
-        | Enroll your first intern to get started.
+        | Enroll your first intern, or #[a(href='/adviser/interns/import') import your class list].
     else if !interns.length
       .empty
         b No interns match
