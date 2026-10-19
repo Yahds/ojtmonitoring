@@ -118,34 +118,60 @@ async function undoWithdraw(internID, adviserID) {
     return result.affectedRows === 1;
 }
 
-async function enrollIntern(student, adviserID) {
+async function addIntern(connection, student, adviserID) {
+    await connection.query(
+        'INSERT INTO students (studentID, studentName, course, year, classcode, email) VALUES (?, ?, ?, ?, ?, ?)',
+        [student.id, student.name, student.course, student.year, student.classcode, student.email]
+    );
+    const [result] = await connection.query(
+        "INSERT INTO interns (adviserid, studentid, status) VALUES (?, ?, 'ENROLLED')",
+        [adviserID, student.id]
+    );
+    // the school's requirements, plus this adviser's own ones meant for everyone or for this student's section
+    await connection.query(
+        `INSERT INTO internrequirements (internid, reqid, status, remarks)
+         SELECT ?, reqid, 'PENDING', '' FROM requirements
+         WHERE created_by IS NULL
+            OR (created_by = ? AND (audience = 'ALL' OR (audience = 'SECTION' AND audience_classcode = ?)))`,
+        [result.insertId, adviserID, student.classcode]
+    );
+    return result.insertId;
+}
+
+// all students are saved, or none of them
+async function enrollInterns(students, adviserID) {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
-        await connection.query(
-            'INSERT INTO students (studentID, studentName, course, year, classcode, email) VALUES (?, ?, ?, ?, ?, ?)',
-            [student.id, student.name, student.course, student.year, student.classcode, student.email]
-        );
-        const [result] = await connection.query(
-            "INSERT INTO interns (adviserid, studentid, status) VALUES (?, ?, 'ENROLLED')",
-            [adviserID, student.id]
-        );
-        // the school's requirements, plus this adviser's own ones meant for everyone or for this student's section
-        await connection.query(
-            `INSERT INTO internrequirements (internid, reqid, status, remarks)
-             SELECT ?, reqid, 'PENDING', '' FROM requirements
-             WHERE created_by IS NULL
-                OR (created_by = ? AND (audience = 'ALL' OR (audience = 'SECTION' AND audience_classcode = ?)))`,
-            [result.insertId, adviserID, student.classcode]
-        );
+        const ids = [];
+        for (const student of students) {
+            ids.push(await addIntern(connection, student, adviserID));
+        }
         await connection.commit();
-        return result.insertId;
+        return ids;
     } catch (error) {
         await connection.rollback();
         throw error;
     } finally {
         connection.release();
     }
+}
+
+async function enrollIntern(student, adviserID) {
+    const [internId] = await enrollInterns([student], adviserID);
+    return internId;
+}
+
+// which of these student IDs and emails are already in the database
+async function fetchTakenStudents(ids, emails) {
+    const [rows] = await pool.query(
+        'SELECT studentID, email FROM students WHERE studentID IN (?) OR email IN (?)',
+        [ids.length ? ids : [null], emails.length ? emails : [null]]
+    );
+    return {
+        takenIds: new Set(rows.map(row => String(row.studentID))),
+        takenEmails: new Set(rows.filter(row => row.email).map(row => row.email.toLowerCase())),
+    };
 }
 
 // all of the adviser's interns, with what the dashboard and the interns list need to know about each one
@@ -178,6 +204,8 @@ module.exports = {
     deployIntern,
     fetchDeployCheck,
     enrollIntern,
+    enrollInterns,
+    fetchTakenStudents,
     fetchFinishCheck,
     markEvaluationReceived,
     finishIntern,

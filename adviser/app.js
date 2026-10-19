@@ -14,12 +14,14 @@ const { idleTimeout } = require('./middleware/idleTimeout');
 const { requirePasswordChange } = require('./middleware/auth');
 const { notFound, handleErrors } = require('./middleware/errorHandler');
 const { parseAttachment } = require('./lib/attachments');
+const { parseClassListUpload } = require('./lib/class-list');
 
 const homeRoutes = require('./routes/home');
 const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
 const dashboardRoutes = require('./routes/dashboard');
 const internRoutes = require('./routes/interns');
+const classListRoutes = require('./routes/class-list');
 const requirementRoutes = require('./routes/requirements');
 const deadlineRoutes = require('./routes/deadlines');
 const customRequirementRoutes = require('./routes/custom-requirements');
@@ -77,6 +79,7 @@ app.use(session({
 }));
 app.use(provideCsrfToken);
 app.use('/adviser/announcements', parseAttachment); // file forms are multipart, so read them before the CSRF check
+app.use('/adviser/interns/import', parseClassListUpload);
 app.use(verifyCsrf);
 app.use(currentUser);
 app.use(flash);
@@ -85,7 +88,7 @@ app.use(requirePasswordChange);
 
 // pages
 app.use(homeRoutes);
-app.use('/adviser', authRoutes, accountRoutes, settingsRoutes, dashboardRoutes, reviewRoutes, internRoutes,
+app.use('/adviser', authRoutes, accountRoutes, settingsRoutes, dashboardRoutes, reviewRoutes, classListRoutes, internRoutes,
     customRequirementRoutes, requirementRoutes, deadlineRoutes, reportRoutes, journalRoutes, endorsementRoutes, finishRoutes, withdrawRoutes, announcementRoutes, adminRoutes);
 
 app.use(notFound);

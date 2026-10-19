@@ -1,0 +1,75 @@
+extends ../layouts/main
+
+block content
+  p.crumb
+    a(href='/adviser/interns') ← Interns
+  h1.page-title Import class list
+
+  section.card.card-pad
+    p Upload a CSV file with one student per row, at most #{maxRows}. The first row must name the columns:
+    p
+      code= columns.join(',')
+    p
+      a(href='/adviser/interns/import/template.csv' download) Download a template
+      |  with this first row already filled in.
+    p.muted In Excel: File → Save as → "CSV UTF-8". Students sign in with their SLU account, so no passwords are needed.
+    form.form(action='/adviser/interns/import' method='POST' enctype='multipart/form-data')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      .field
+        label(for='file') Class list file
+        input.input#file(type='file' name='file' accept='.csv,text/csv' required aria-invalid=(fileError ? 'true' : undefined) aria-describedby=(fileError ? 'file-error' : undefined))
+        if fileError
+          span.error#file-error= fileError
+      .btn-row
+        button.btn.btn-outline(type='submit') Check file
+
+  if rows && withErrors.length
+    h2.section-title #{withErrors.length} of #{rows.length} #{rows.length === 1 ? 'row has' : 'rows have'} errors · nothing was saved
+    section.card
+      p.card-pad Fix these rows in #{fileName}, then upload it again.
+      .table-wrap
+        table
+          thead
+            tr
+              th(scope='col') Line
+              th(scope='col') Student
+              th(scope='col') What to fix
+          tbody
+            each row in withErrors
+              tr
+                td.num= row.line
+                td.who
+                  b= row.name || '(no name)'
+                  span #{row.id || 'no ID'} · #{row.classcode || 'no section'}
+                td
+                  ul.errors
+                    each error in row.errors
+                      li= error
+
+  else if rows && rows.length
+    h2.section-title #{rows.length} #{rows.length === 1 ? 'student' : 'students'} ready to enroll
+    section.card
+      .table-wrap
+        table
+          thead
+            tr
+              th(scope='col') Line
+              th(scope='col') Student
+              th(scope='col') Course
+              th(scope='col') Section
+              th(scope='col') Email
+          tbody
+            each row in rows
+              tr
+                td.num= row.line
+                td.who
+                  b= row.name
+                  span= row.id
+                td #{row.course} #{row.year}
+                td= row.classcode
+                td= row.email
+      form.card-pad(action='/adviser/interns/import/confirm' method='POST')
+        input(type='hidden' name='csrf_token' value=csrfToken)
+        .btn-row
+          button.btn.btn-create(type='submit') Enroll #{rows.length} #{rows.length === 1 ? 'intern' : 'interns'}
+          a.btn.btn-outline(href='/adviser/interns') Cancel
