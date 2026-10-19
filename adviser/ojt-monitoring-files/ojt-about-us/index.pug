@@ -7,10 +7,8 @@ header
     .nav-logo SAINT LOUIS UNIVERSITY
     .nav-name  
       p #{adviser.adviserName.split(' ').reverse().join(' ').replace(',', '') }
-    form(action='/ojt-dashboard/uploadprofilepicture' method='POST' enctype="multipart/form-data")
-      .nav-item
-        img#profile-image(src='../ojt-images/user-profile.png' alt='Profile')
-        input#fileInput(type='file', style='display: none;', accept='image/*', name="prof_image")
+    .nav-item
+      img#profile-image(src='../ojt-images/user-profile.png' alt='')
 main.container
   aside.left-nav
     ol

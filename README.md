@@ -65,9 +65,11 @@ Amelia is the adviser of student 2299001.
 
 ## Tests
 
-The tests run inside the adviser container against the real database:
+The tests use their own database, `ojt_test`, so they never change the demo data. Rebuild it, then run the tests:
 ```
+docker compose run --rm migrate-test
 docker compose exec adviser-node sh -c "npm run lint && npm test"
+docker compose exec student-php vendor/bin/phpunit
 ```
 GitHub Actions runs lint and the tests on every pull request and on every push to `main`.
 

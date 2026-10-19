@@ -9,6 +9,7 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_TEST_DATABASE=ojt_test
       - PORT=8080
       - SESSION_SECRET=${SESSION_SECRET}
       - TZ=Asia/Manila
@@ -28,14 +29,18 @@ services:
   database:
     image: mysql:8.0.46
     restart: unless-stopped
+    # query statistics we never read; turning them off saves about 200 MB of RAM
+    command: --performance-schema=OFF
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_TEST_DATABASE=ojt_test
       - TZ=Asia/Manila
     volumes:
       - db_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -57,6 +62,24 @@ services:
       database:
         condition: service_healthy
 
+  # empties the test database and rebuilds it, so every test run starts from the same data.
+  # only runs when asked: docker compose run --rm migrate-test
+  migrate-test:
+    image: flyway/flyway:13.9.0-alpine
+    profiles: [test]
+    command: -cleanDisabled=false clean migrate
+    environment:
+      - FLYWAY_URL=jdbc:mysql://database:3306/ojt_test?allowPublicKeyRetrieval=true
+      - FLYWAY_USER=${MYSQL_USER}
+      - FLYWAY_PASSWORD=${MYSQL_PASSWORD}
+      - FLYWAY_LOCATIONS=filesystem:/flyway/migrations,filesystem:/flyway/demo-data
+    volumes:
+      - ./db/migrations:/flyway/migrations:ro
+      - ./db/demo-data:/flyway/demo-data:ro
+    depends_on:
+      database:
+        condition: service_healthy
+
   student-php:
     build:
       context: ./student
@@ -67,6 +90,7 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_TEST_DATABASE=ojt_test
       - OIDC_PROVIDER_URL=http://sso:8080/realms/slu
       - OIDC_CLIENT_ID=ojt-portal
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
