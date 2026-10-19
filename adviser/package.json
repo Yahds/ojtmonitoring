@@ -20,6 +20,9 @@
       "mysql2": "$mysql2"
     }
   },
+  "jest": {
+    "setupFiles": ["<rootDir>/tests/setup-env.js"]
+  },
   "scripts": {
     "test": "jest --runInBand",
     "lint": "eslint ."

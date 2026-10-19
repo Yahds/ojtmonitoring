@@ -1,0 +1,2 @@
+# shell scripts run inside Linux containers, where Windows line endings break them
+*.sh text eol=lf
