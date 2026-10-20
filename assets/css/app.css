@@ -163,6 +163,11 @@ th:last-child, td:last-child { padding-right: 24px; }
 .item:first-child { border-top: 0; }
 .item-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .item-head h3 { font-size: 15px; }
+.steps { list-style: none; margin: 0; padding: 0; }
+.card:has(> .steps) { overflow: hidden; }
+.steps > li + li { border-top: 1px solid var(--line); }
+.steps > li[aria-current="step"] { background: var(--soft); box-shadow: inset 4px 0 0 var(--navy); }
+.steps p { margin: 0 0 4px; }
 .item .meta { font-size: 13px; color: var(--muted); }
 .note { background: var(--soft); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
 

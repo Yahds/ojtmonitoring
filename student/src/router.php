@@ -13,6 +13,8 @@ const ROUTES = [
     'GET /choose-company'      => 'pages/choose-company.php',
     'POST /endorsement'        => 'actions/endorsement-form.php',
     'POST /choose-company'     => 'actions/update-company.php',
+    'POST /company-choices'    => 'actions/save-company-choices.php',
+    'POST /own-company'        => 'actions/add-own-company.php',
     'GET /requirements'        => 'pages/requirements.php',
     'POST /requirements'       => 'actions/submit-requirement.php',
     'GET /requirements/file'   => 'actions/download-requirement.php',
@@ -27,6 +29,7 @@ const ROUTES = [
     'GET /supervisor'          => 'pages/supervisor.php',
     'POST /supervisor'         => 'actions/save-supervisor.php',
     'GET /announcements'       => 'pages/announcements.php',
+    'GET /how-ojt-works'       => 'pages/how-ojt-works.php',
     'GET /announcements/file'  => 'actions/download-announcement-file.php',
 ];
 

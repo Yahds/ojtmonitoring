@@ -1,0 +1,56 @@
+extends ../layouts/main
+
+mixin companyTable(companies, label)
+  .table-wrap
+    table.list-table
+      caption.sr-only= label
+      thead
+        tr
+          th(scope='col') Company
+          th(scope='col') HR email
+          th(scope='col') My interns who want it
+          th(scope='col') Interns placed
+          th(scope='col')
+            span.sr-only Edit
+      tbody
+        each company in companies
+          tr
+            td.who
+              a(href=`/adviser/companies/${company.companyid}`)
+                b= company.companyname
+              if company.companyaddress
+                span= company.companyaddress
+            td.col-wide
+              if company.contact_email
+                a(href=`mailto:${company.contact_email}`)= company.contact_email
+              else
+                span.muted Not added
+            td
+              if company.wanted
+                a(href=`/adviser/companies/${company.companyid}`)= company.wanted
+              else
+                span.muted 0
+            td= company.placed
+            td
+              a.btn.btn-outline.btn-sm(href=`/adviser/companies/${company.companyid}/edit` aria-label=`Edit ${company.companyname}`) Edit
+
+block content
+  h1.page-title Companies #[span.count= partners.length + others.length]
+  p.muted Every adviser shares this list. Students choose from the partner companies.
+
+  section.card
+    .card-head
+      h2 SLU partners #[span.sub with a signed MOA]
+      a.btn.btn-create.btn-sm(href='/adviser/companies/new') + Add company
+    if partners.length === 0
+      .empty
+        b No partner companies yet
+        | Add the companies SLU has a signed MOA with, so students can choose them.
+    else
+      +companyTable(partners, 'SLU partner companies')
+
+  if others.length > 0
+    section.card
+      .card-head
+        h2 Other companies #[span.sub MOA not signed yet]
+      +companyTable(others, 'Companies without a signed MOA')
