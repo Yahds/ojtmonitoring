@@ -64,4 +64,26 @@ async function updateCompany(companyID, { name, address, email, moaOnFile }) {
     );
 }
 
-module.exports = { fetchCompanies, fetchCompanyApplicants, fetchCompany, companyNameTaken, addCompany, updateCompany };
+// the company that accepted the intern; a different company needs a new endorsement form
+async function recordPlacement(internID, adviserID, companyID) {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        const [result] = await connection.query(
+            "UPDATE interns SET companyid = ?, status = 'PENDING' WHERE internid = ? AND adviserid = ? AND status IN ('ENROLLED', 'PENDING')",
+            [companyID, internID, adviserID]
+        );
+        if (result.affectedRows > 0) {
+            await connection.query('DELETE FROM endorsements WHERE internid = ? AND companyid <> ?', [internID, companyID]);
+        }
+        await connection.commit();
+        return result.affectedRows > 0;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+}
+
+module.exports = { recordPlacement, fetchCompanies, fetchCompanyApplicants, fetchCompany, companyNameTaken, addCompany, updateCompany };

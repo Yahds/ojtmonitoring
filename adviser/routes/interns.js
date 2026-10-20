@@ -114,7 +114,7 @@ const DEPLOYABLE = ['ENROLLED', 'PENDING'];
 
 function deployChecklist(intern) {
     return [
-        { label: 'Company chosen', done: Boolean(intern.companyname), hint: 'The intern selects it on their own page.' },
+        { label: 'Company chosen', done: Boolean(intern.companyname), hint: 'The intern records it on their own page, or you use Record placement.' },
         { label: 'Endorsement reply form received', done: intern.replyReceived === 1, hint: 'Mark it on the Endorsements page once the company replies.' },
         { label: 'Data Privacy Certificate approved', done: intern.privacyApproved === 1, hint: "Review it on the intern's requirements page." },
     ];

@@ -14,6 +14,7 @@ const ROUTES = [
     'POST /endorsement'        => 'actions/endorsement-form.php',
     'POST /choose-company'     => 'actions/update-company.php',
     'POST /company-choices'    => 'actions/save-company-choices.php',
+    'POST /own-company'        => 'actions/add-own-company.php',
     'GET /requirements'        => 'pages/requirements.php',
     'POST /requirements'       => 'actions/submit-requirement.php',
     'GET /requirements/file'   => 'actions/download-requirement.php',

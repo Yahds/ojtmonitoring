@@ -4,8 +4,14 @@ if (in_array($_SESSION['status'], ['ACTIVE', 'FINISHED'], true)) {
     redirect('/dashboard');
 }
 $profile = getInternProfile($_SESSION['internid']);
-$companies = getCompanies();
 $partners = getPartnerCompanies();
+// partners, plus the company the intern added themselves
+$companies = $partners;
+if ($profile['companyid'] !== null && !in_array($profile['companyid'], array_column($partners, 'companyid'))) {
+    $companies[] = ['companyid' => $profile['companyid'], 'companyname' => $profile['companyname'], 'companyaddress' => ''];
+}
+$ownForm = $ownForm ?? ['name' => '', 'address' => '', 'email' => ''];
+$ownErrors = $ownErrors ?? [];
 $choices = getCompanyChoices($_SESSION['internid']);
 $choiceIds = array_column($choices, 'companyid', 'choice_rank');
 $canChoose = $_SESSION['status'] === 'ENROLLED' && $profile['companyid'] === null;
@@ -84,6 +90,25 @@ require __DIR__ . '/../views/header.php';
             <button class="btn btn-create btn-sm" type="submit">Save company</button>
         </div>
     </form>
+    <details class="fold"<?= $ownErrors ? ' open' : '' ?>>
+        <summary>Company not on the list?</summary>
+        <p class="muted">Add it here if it accepted you. SLU has no agreement with it yet, so you also submit an MOA.</p>
+        <form class="form" action="/student/own-company" method="post">
+            <?= csrf_field() ?>
+            <?php foreach ([['name', 'Company name', 100, 'text'], ['address', 'Address (optional)', 150, 'text'], ['email', 'HR email (optional)', 255, 'email']] as [$key, $label, $max, $type]): ?>
+                <div class="field">
+                    <label for="own-<?= $key ?>"><?= $label ?></label>
+                    <input class="input" id="own-<?= $key ?>" type="<?= $type ?>" name="<?= $key ?>" maxlength="<?= $max ?>" value="<?= e($ownForm[$key]) ?>"<?= $key === 'name' ? ' required' : '' ?><?= isset($ownErrors[$key]) ? ' aria-invalid="true" aria-describedby="own-' . $key . '-error"' : '' ?>>
+                    <?php if (isset($ownErrors[$key])): ?>
+                        <span class="error" id="own-<?= $key ?>-error"><?= e($ownErrors[$key]) ?></span>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+            <div class="btn-row">
+                <button class="btn btn-outline btn-sm" type="submit">Add my company</button>
+            </div>
+        </form>
+    </details>
 </section>
 
 <?php if ($profile['companyname']): ?>

@@ -7,7 +7,12 @@ if (in_array($_SESSION['status'], ['ACTIVE', 'FINISHED'], true)) {
 }
 
 $companyId = (int) ($_POST['companyid'] ?? 0);
-$companyIds = array_map('intval', array_column(getCompanies(), 'companyid'));
+// partners, plus the company the intern added themselves
+$companyIds = array_map('intval', array_column(getPartnerCompanies(), 'companyid'));
+$ownCompany = getInternProfile($_SESSION['internid'])['companyid'];
+if ($ownCompany !== null) {
+    $companyIds[] = (int) $ownCompany;
+}
 
 if (!in_array($companyId, $companyIds, true)) {
     flash('error', 'Please choose a company from the list.');

@@ -333,4 +333,19 @@ class HttpTest extends TestCase
             db()->execute_query("DELETE FROM company WHERE companyid = ?", [$noMoa]);
         }
     }
+
+    public function testAddingAPartnerAsYourOwnCompanyKeepsWhatWasTyped(): void
+    {
+        $this->logIn('2226913', '1234');
+        $page = $this->request('GET', '/choose-company')['body'];
+
+        $response = $this->request('POST', '/own-company', [
+            'csrf_token' => $this->tokenFrom($page), 'name' => 'Accenture', 'address' => 'Typed address', 'email' => '',
+        ]);
+
+        $this->assertSame(400, $response['status']);
+        $this->assertStringContainsString('This company is already on the list.', $response['body']);
+        $this->assertStringContainsString('value="Typed address"', $response['body']);
+        $this->assertSame('ENROLLED', getInternStatus(57));
+    }
 }

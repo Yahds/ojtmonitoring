@@ -8,10 +8,14 @@ class CompanyChoicesTest extends TestCase
     // Henry Taylor, still choosing in the demo data
     private const HENRY = 57;
 
+    private const OWN_COMPANY = 'Test Own Company';
+
     protected function tearDown(): void
     {
         db()->execute_query("DELETE FROM intern_company_choices WHERE internid = ?", [self::HENRY]);
+        db()->execute_query("DELETE FROM endorsements WHERE internid = ?", [self::HENRY]);
         db()->execute_query("UPDATE interns SET status = 'ENROLLED', companyid = NULL WHERE internid = ?", [self::HENRY]);
+        db()->execute_query("DELETE FROM company WHERE companyname = ?", [self::OWN_COMPANY]);
     }
 
     public function testOnlyPartnerCompaniesCanBeChosen(): void
@@ -55,5 +59,35 @@ class CompanyChoicesTest extends TestCase
         }
 
         $this->assertSame([1, 2], array_map('intval', array_column(getCompanyChoices(self::HENRY), 'companyid')));
+    }
+
+    public function testAnOwnCompanyIsAddedAsNotAPartnerAndPlacesTheIntern(): void
+    {
+        $companyID = addOwnCompany(self::HENRY, ['name' => self::OWN_COMPANY, 'address' => 'Baguio', 'email' => '']);
+
+        $company = findCompanyByName(self::OWN_COMPANY);
+        $this->assertSame($companyID, (int) $company['companyid']);
+        $this->assertSame(0, (int) $company['moa_on_file']);
+        $intern = db()->execute_query("SELECT status, companyid FROM interns WHERE internid = ?", [self::HENRY])->fetch_assoc();
+        $this->assertSame(['status' => 'PENDING', 'companyid' => $companyID], $intern);
+        $this->assertNotContains($companyID, array_map('intval', array_column(getPartnerCompanies(), 'companyid')));
+    }
+
+    public function testAnOwnCompanyThatIsAlreadyAddedIsReused(): void
+    {
+        $first = addOwnCompany(self::HENRY, ['name' => self::OWN_COMPANY, 'address' => '', 'email' => '']);
+        $second = addOwnCompany(self::HENRY, ['name' => strtoupper(self::OWN_COMPANY), 'address' => '', 'email' => '']);
+
+        $this->assertSame($first, $second);
+        $count = db()->execute_query("SELECT COUNT(*) FROM company WHERE companyname = ?", [self::OWN_COMPANY])->fetch_row()[0];
+        $this->assertSame(1, (int) $count);
+    }
+
+    public function testADeployedInternCannotAddACompany(): void
+    {
+        db()->execute_query("UPDATE interns SET status = 'ACTIVE', companyid = 2 WHERE internid = ?", [self::HENRY]);
+
+        $this->assertNull(addOwnCompany(self::HENRY, ['name' => self::OWN_COMPANY, 'address' => '', 'email' => '']));
+        $this->assertNull(findCompanyByName(self::OWN_COMPANY));
     }
 }

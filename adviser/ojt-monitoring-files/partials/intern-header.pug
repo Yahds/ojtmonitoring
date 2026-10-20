@@ -18,6 +18,8 @@ mixin internHeader(intern, tab)
         details.more-menu
           summary(aria-label='More actions') ⋯
           .menu
+            if intern.status === 'ENROLLED' || intern.status === 'PENDING'
+              a(href=`${base}/placement`)= intern.companyname ? 'Change placement' : 'Record placement'
             if intern.status === 'PENDING'
               a(href=`${base}/deploy`) Deploy
             if intern.status === 'ACTIVE'

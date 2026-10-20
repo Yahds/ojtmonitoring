@@ -48,3 +48,36 @@ function saveCompanyChoices($internID, array $companyIDs): bool
         throw $error;
     }
 }
+
+function findCompanyByName(string $name): ?array
+{
+    return db()->execute_query("SELECT companyid, companyname, moa_on_file FROM company WHERE companyname = ?", [$name])->fetch_assoc();
+}
+
+// a company that is not an SLU partner yet; it stays off the choices list until an adviser marks the MOA as signed
+function addOwnCompany($internID, array $company): ?int
+{
+    $connection = db();
+    $connection->begin_transaction();
+    try {
+        $status = $connection->execute_query("SELECT status FROM interns WHERE internid = ? FOR UPDATE", [$internID])->fetch_row()[0] ?? null;
+        if (!in_array($status, ['ENROLLED', 'PENDING'], true)) {
+            $connection->rollback();
+            return null;
+        }
+        $companyID = findCompanyByName($company['name'])['companyid'] ?? null;
+        if ($companyID === null) {
+            $connection->execute_query(
+                "INSERT INTO company (companyname, companyaddress, contact_email, moa_on_file) VALUES (?, ?, ?, FALSE)",
+                [$company['name'], $company['address'] ?: null, $company['email'] ?: null]
+            );
+            $companyID = $connection->insert_id;
+        }
+        chooseCompany($internID, $companyID);
+        $connection->commit();
+        return $companyID;
+    } catch (Throwable $error) {
+        $connection->rollback();
+        throw $error;
+    }
+}

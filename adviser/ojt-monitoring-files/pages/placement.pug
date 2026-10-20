@@ -1,0 +1,30 @@
+extends ../layouts/main
+
+block content
+  p.crumb #[a(href='/adviser/interns') Interns] / #[a(href=`/adviser/interns/${intern.internid}/requirements`)= intern.studentName] / Placement
+  h1.page-title Record placement
+  p.muted Use this when a company tells you it accepted #{intern.studentName}. The intern can also record it on their own page.
+
+  section.card.card-pad
+    form.form(action=`/adviser/interns/${intern.internid}/placement` method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      .field
+        label(for='companyId') Company that accepted them
+        select.input#companyId(name='companyId' required aria-invalid=(errors.companyId ? 'true' : undefined) aria-describedby=(errors.companyId ? 'companyId-error' : 'companyId-help'))
+          option(value='') Select a company
+          optgroup(label='SLU partners')
+            each company in partners
+              option(value=company.companyid selected=String(company.companyid) === values.companyId)= company.companyname
+          if others.length
+            optgroup(label='MOA not signed yet')
+              each company in others
+                option(value=company.companyid selected=String(company.companyid) === values.companyId)= company.companyname
+        if errors.companyId
+          span.error#companyId-error= errors.companyId
+        else
+          span.help#companyId-help Not on the list? #[a(href='/adviser/companies/new') Add the company] first.
+      if intern.companyname
+        p.muted Changing the company removes the endorsement form sent for #{intern.companyname}.
+      .btn-row
+        button.btn.btn-create(type='submit') Save placement
+        a.btn.btn-outline(href=`/adviser/interns/${intern.internid}/requirements`) Cancel
