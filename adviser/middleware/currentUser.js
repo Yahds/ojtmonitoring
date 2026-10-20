@@ -15,6 +15,11 @@ const ENDORSEMENTS_LINK = {
     label: 'Endorsements',
 };
 
+const COMPANIES_LINK = {
+    href: '/adviser/companies',
+    label: 'Companies',
+};
+
 const ANNOUNCEMENTS_LINK = {
     href: '/adviser/announcements',
     label: 'Announcements',
@@ -23,13 +28,13 @@ const ANNOUNCEMENTS_LINK = {
 const NAV = {
     adviser: [
         { href: '/adviser/dashboard', label: 'Dashboard', exact: true },
-        REVIEW_LINK, INTERNS_LINK, ENDORSEMENTS_LINK, ANNOUNCEMENTS_LINK,
+        REVIEW_LINK, INTERNS_LINK, ENDORSEMENTS_LINK, COMPANIES_LINK, ANNOUNCEMENTS_LINK,
         { href: '/adviser/about', label: 'About us' },
     ],
     dept_head: [
         { href: '/adviser/admin', label: 'Overview', exact: true },
         { href: '/adviser/admin/advisers', label: 'Advisers' },
-        REVIEW_LINK, INTERNS_LINK, ENDORSEMENTS_LINK, ANNOUNCEMENTS_LINK,
+        REVIEW_LINK, INTERNS_LINK, ENDORSEMENTS_LINK, COMPANIES_LINK, ANNOUNCEMENTS_LINK,
         { href: '/adviser/about', label: 'About us' },
     ],
 };

@@ -1,0 +1,35 @@
+extends ../layouts/main
+
+block content
+  - const action = company ? `/adviser/companies/${company.companyid}/edit` : '/adviser/companies/new'
+  p.crumb #[a(href='/adviser/companies') Companies] / #{company ? 'Edit' : 'Add'}
+  h1.page-title= company ? `Edit ${company.companyname}` : 'Add company'
+
+  section.card.card-pad
+    form.form(action=action method='POST')
+      input(type='hidden' name='csrf_token' value=csrfToken)
+      .field
+        label(for='name') Company name
+        input.input#name(type='text' name='name' maxlength='100' value=values.name required aria-invalid=(errors.name ? 'true' : undefined) aria-describedby=(errors.name ? 'name-error' : undefined))
+        if errors.name
+          span.error#name-error= errors.name
+      .field
+        label(for='address') Address (optional)
+        input.input#address(type='text' name='address' maxlength='150' value=values.address aria-invalid=(errors.address ? 'true' : undefined) aria-describedby=(errors.address ? 'address-error' : undefined))
+        if errors.address
+          span.error#address-error= errors.address
+      .field
+        label(for='email') HR email (optional)
+        input.input#email(type='email' name='email' maxlength='255' value=values.email aria-invalid=(errors.email ? 'true' : undefined) aria-describedby=(errors.email ? 'email-error' : 'email-help'))
+        if errors.email
+          span.error#email-error= errors.email
+        else
+          span.help#email-help Where you send the students' CVs.
+      .field
+        label.check-row
+          input(type='checkbox' name='moaOnFile' value='yes' checked=values.moaOnFile)
+          | SLU has a signed MOA with this company (partner)
+        span.help Only partners show up when students choose companies.
+      .btn-row
+        button.btn.btn-create(type='submit')= company ? 'Save' : 'Add company'
+        a.btn.btn-outline(href='/adviser/companies') Cancel

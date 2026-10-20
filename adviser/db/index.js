@@ -11,6 +11,7 @@ const audit = require('./audit');
 const courses = require('./courses');
 const endorsements = require('./endorsements');
 const review = require('./review');
+const companies = require('./companies');
 
 async function closeDatabase() {
     await sessionStore.close();
@@ -29,5 +30,6 @@ module.exports = {
     ...courses,
     ...endorsements,
     ...review,
+    ...companies,
     closeDatabase,
 };

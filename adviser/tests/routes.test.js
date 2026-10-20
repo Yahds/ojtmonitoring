@@ -66,6 +66,11 @@ describe('route smoke tests', () => {
         ['post', '/adviser/requirements/remove'],
         ['post', '/adviser/announcements'],
         ['post', '/adviser/announcements/delete'],
+        ['get', '/adviser/companies'],
+        ['get', '/adviser/companies/new'],
+        ['post', '/adviser/companies/new'],
+        ['get', '/adviser/companies/1/edit'],
+        ['post', '/adviser/companies/1/edit'],
         ['get', '/adviser/about'],
         ['post', '/adviser/logout'],
     ];
