@@ -282,4 +282,55 @@ class HttpTest extends TestCase
             db()->execute_query("UPDATE interns SET status = 'PENDING' WHERE internid = 300");
         }
     }
+
+    // Henry Taylor (intern 57) is still choosing in the demo data; log in as him first
+    private function henryChooses(array $choices): array
+    {
+        $page = $this->request('GET', '/choose-company')['body'];
+        return $this->request('POST', '/company-choices', ['csrf_token' => $this->tokenFrom($page), 'choices' => $choices]);
+    }
+
+    public function testAnInternStillChoosingSeesThePartnerCompanies(): void
+    {
+        $this->logIn('2226913', '1234');
+        $page = $this->request('GET', '/choose-company')['body'];
+
+        $this->assertStringContainsString('Companies you want', $page);
+        $this->assertStringContainsString('name="choices[]"', $page);
+        $this->assertStringContainsString('Accenture', $page);
+    }
+
+    public function testCompanyChoicesAreSavedInOrder(): void
+    {
+        $this->logIn('2226913', '1234');
+        try {
+            $response = $this->henryChooses(['2', '1', '']);
+
+            $this->assertSame('/student/choose-company', $response['location']);
+            $saved = getCompanyChoices(57);
+            $this->assertSame([1 => 2, 2 => 1], array_column($saved, 'companyid', 'choice_rank'));
+            $this->assertSame('ENROLLED', getInternStatus(57));
+        } finally {
+            db()->execute_query("DELETE FROM intern_company_choices WHERE internid = 57");
+        }
+    }
+
+    public function testTheSameCompanyTwiceOrANonPartnerIsRefused(): void
+    {
+        db()->query("INSERT INTO company (companyname, moa_on_file) VALUES ('Test No MOA Company', FALSE)");
+        $noMoa = (string) db()->insert_id;
+        $this->logIn('2226913', '1234');
+        try {
+            $this->henryChooses(['2', '2']);
+            $this->assertStringContainsString('Choose a different company for each choice.', $this->request('GET', '/choose-company')['body']);
+
+            $this->henryChooses([$noMoa]);
+            $this->assertStringContainsString('Please choose companies from the list.', $this->request('GET', '/choose-company')['body']);
+
+            $this->assertSame([], getCompanyChoices(57));
+        } finally {
+            db()->execute_query("DELETE FROM intern_company_choices WHERE internid = 57");
+            db()->execute_query("DELETE FROM company WHERE companyid = ?", [$noMoa]);
+        }
+    }
 }

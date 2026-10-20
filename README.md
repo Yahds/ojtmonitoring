@@ -60,6 +60,7 @@ All names and accounts in the seed data are made up.
 | Adviser | `amelia.stevens@example.com` | `amelia123` |
 | Department head | `maria.cruz@example.com` | `deanpass` |
 | Student | `2299001` | `1234` |
+| Student still choosing companies | `2226913` | `1234` |
 
 Amelia is the adviser of student 2299001.
 

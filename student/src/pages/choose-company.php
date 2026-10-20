@@ -5,6 +5,10 @@ if (in_array($_SESSION['status'], ['ACTIVE', 'FINISHED'], true)) {
 }
 $profile = getInternProfile($_SESSION['internid']);
 $companies = getCompanies();
+$partners = getPartnerCompanies();
+$choices = getCompanyChoices($_SESSION['internid']);
+$choiceIds = array_column($choices, 'companyid', 'choice_rank');
+$canChoose = $_SESSION['status'] === 'ENROLLED' && $profile['companyid'] === null;
 $summary = summarize(getRequirements($_SESSION['internid']), []);
 $todoCount = count($summary['todo']);
 $endorsement = getEndorsement($_SESSION['internid']);
@@ -14,9 +18,45 @@ $title = 'Choose company';
 require __DIR__ . '/../views/header.php';
 ?>
 <h1 class="page-title">Welcome, <?= e(displayName($profile['studentName'])) ?></h1>
-<p class="muted">To be deployed, select your company and complete your requirements. Your adviser reviews both.</p>
+<p class="muted">To be deployed, get accepted by a company and complete your requirements. Your adviser reviews both.</p>
 
-<h2 class="section-title">Step 1 · Company</h2>
+<h2 class="section-title">Step 1 · Companies you want</h2>
+<section class="card card-pad">
+    <?php if ($canChoose): ?>
+        <p class="muted">Choose up to <?= MAX_COMPANY_CHOICES ?> SLU partner companies, most wanted first. Your adviser sends your CV to them.</p>
+        <form class="form" action="/student/company-choices" method="post">
+            <?= csrf_field() ?>
+            <?php for ($rank = 1; $rank <= MAX_COMPANY_CHOICES; $rank++): ?>
+                <?php $chosenId = (int) ($choiceIds[$rank] ?? 0); ?>
+                <div class="field">
+                    <label for="choice-<?= $rank ?>"><?= ['', '1st choice', '2nd choice (optional)', '3rd choice (optional)'][$rank] ?></label>
+                    <select class="input" id="choice-<?= $rank ?>" name="choices[]"<?= $rank === 1 ? ' required' : '' ?>>
+                        <option value=""><?= $rank === 1 ? 'Select a company' : 'None' ?></option>
+                        <?php foreach ($partners as $company): ?>
+                            <option value="<?= (int) $company['companyid'] ?>" <?= (int) $company['companyid'] === $chosenId ? 'selected' : '' ?>>
+                                <?= e($company['companyname']) ?><?= $company['companyaddress'] ? ' · ' . e($company['companyaddress']) : '' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            <?php endfor; ?>
+            <div class="btn-row">
+                <button class="btn btn-create btn-sm" type="submit"><?= $choices ? 'Save choices' : 'Send choices' ?></button>
+            </div>
+        </form>
+    <?php elseif ($choices): ?>
+        <ol>
+            <?php foreach ($choices as $choice): ?>
+                <li><?= e($choice['companyname']) ?></li>
+            <?php endforeach; ?>
+        </ol>
+        <p class="muted">You already have a company, so these can no longer change.</p>
+    <?php else: ?>
+        <p class="muted">You already have a company.</p>
+    <?php endif; ?>
+</section>
+
+<h2 class="section-title">Step 2 · Where you were accepted</h2>
 <section class="card card-pad">
     <?php if ($profile['companyname']): ?>
         <div class="item-head">
@@ -24,6 +64,8 @@ require __DIR__ . '/../views/header.php';
             <span class="tag tag-warn">Waiting for approval</span>
         </div>
         <p class="muted">Your adviser will confirm this company. You can still change it until then.</p>
+    <?php else: ?>
+        <p class="muted">When a company tells you that you are accepted, choose it here.</p>
     <?php endif; ?>
     <form class="form" action="/student/choose-company" method="post">
         <?= csrf_field() ?>
@@ -33,7 +75,7 @@ require __DIR__ . '/../views/header.php';
                 <option value="">Select a company</option>
                 <?php foreach ($companies as $company): ?>
                     <option value="<?= (int) $company['companyid'] ?>" <?= (int) $company['companyid'] === (int) $profile['companyid'] ? 'selected' : '' ?>>
-                        <?= e($company['companyname']) ?> · <?= e($company['companyaddress']) ?>
+                        <?= e($company['companyname']) ?><?= $company['companyaddress'] ? ' · ' . e($company['companyaddress']) : '' ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -45,7 +87,7 @@ require __DIR__ . '/../views/header.php';
 </section>
 
 <?php if ($profile['companyname']): ?>
-<h2 class="section-title">Step 2 · Endorsement form</h2>
+<h2 class="section-title">Step 3 · Endorsement form</h2>
 <section class="card card-pad">
     <?php if ($endorsement && $endorsement['status'] === 'SENT'): ?>
         <div class="item-head">
@@ -101,7 +143,7 @@ require __DIR__ . '/../views/header.php';
 </section>
 <?php endif; ?>
 
-<h2 class="section-title">Step 3 · Requirements</h2>
+<h2 class="section-title">Step 4 · Requirements</h2>
 <section class="card card-pad">
     <p>
         <b><?= $summary['requirementsApproved'] ?> of <?= $summary['requirementsTotal'] ?></b> requirements approved
