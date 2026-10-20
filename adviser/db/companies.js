@@ -1,14 +1,36 @@
 const { pool } = require('./pool');
 
-// partners first, then by name; placed = interns of any adviser who work there now or did
-async function fetchCompanies() {
+const CURRICULUM_VITAE = 3;
+
+// interns who chose companies but don't have one yet
+const STILL_CHOOSING = "i.status = 'ENROLLED' AND i.companyid IS NULL";
+
+// partners first, then by name; placed = interns of any adviser, wanted = this adviser's interns still choosing
+async function fetchCompanies(adviserID) {
     const [rows] = await pool.query(
         `SELECT c.companyid, c.companyname, c.companyaddress, c.contact_email, c.moa_on_file,
-                COUNT(i.internid) AS placed
+                (SELECT COUNT(*) FROM interns i WHERE i.companyid = c.companyid AND i.status <> 'WITHDRAWN') AS placed,
+                (SELECT COUNT(*) FROM intern_company_choices ch JOIN interns i ON i.internid = ch.internid
+                 WHERE ch.companyid = c.companyid AND i.adviserid = ? AND ${STILL_CHOOSING}) AS wanted
          FROM company c
-         LEFT JOIN interns i ON i.companyid = c.companyid AND i.status <> 'WITHDRAWN'
-         GROUP BY c.companyid
-         ORDER BY c.moa_on_file DESC, c.companyname`
+         ORDER BY c.moa_on_file DESC, c.companyname`,
+        [adviserID]
+    );
+    return rows;
+}
+
+// this adviser's interns who want the company, with their CV
+async function fetchCompanyApplicants(companyID, adviserID) {
+    const [rows] = await pool.query(
+        `SELECT i.internid, s.studentName, s.studentID, s.course, s.classcode, ch.choice_rank,
+                COALESCE(ir.status, 'PENDING') AS cvStatus, ir.file_path AS cvFile
+         FROM intern_company_choices ch
+         JOIN interns i ON i.internid = ch.internid
+         JOIN students s ON s.studentID = i.studentid
+         LEFT JOIN internrequirements ir ON ir.internid = i.internid AND ir.reqid = ?
+         WHERE ch.companyid = ? AND i.adviserid = ? AND ${STILL_CHOOSING}
+         ORDER BY ch.choice_rank, s.studentName`,
+        [CURRICULUM_VITAE, companyID, adviserID]
     );
     return rows;
 }
@@ -42,4 +64,4 @@ async function updateCompany(companyID, { name, address, email, moaOnFile }) {
     );
 }
 
-module.exports = { fetchCompanies, fetchCompany, companyNameTaken, addCompany, updateCompany };
+module.exports = { fetchCompanies, fetchCompanyApplicants, fetchCompany, companyNameTaken, addCompany, updateCompany };

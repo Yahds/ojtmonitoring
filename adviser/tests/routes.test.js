@@ -71,6 +71,8 @@ describe('route smoke tests', () => {
         ['post', '/adviser/companies/new'],
         ['get', '/adviser/companies/1/edit'],
         ['post', '/adviser/companies/1/edit'],
+        ['get', '/adviser/companies/1'],
+        ['get', '/adviser/companies/1/cvs.zip'],
         ['get', '/adviser/about'],
         ['post', '/adviser/logout'],
     ];

@@ -8,6 +8,7 @@ mixin companyTable(companies, label)
         tr
           th(scope='col') Company
           th(scope='col') HR email
+          th(scope='col') My interns who want it
           th(scope='col') Interns placed
           th(scope='col')
             span.sr-only Edit
@@ -15,7 +16,8 @@ mixin companyTable(companies, label)
         each company in companies
           tr
             td.who
-              b= company.companyname
+              a(href=`/adviser/companies/${company.companyid}`)
+                b= company.companyname
               if company.companyaddress
                 span= company.companyaddress
             td.col-wide
@@ -23,6 +25,11 @@ mixin companyTable(companies, label)
                 a(href=`mailto:${company.contact_email}`)= company.contact_email
               else
                 span.muted Not added
+            td
+              if company.wanted
+                a(href=`/adviser/companies/${company.companyid}`)= company.wanted
+              else
+                span.muted 0
             td= company.placed
             td
               a.btn.btn-outline.btn-sm(href=`/adviser/companies/${company.companyid}/edit` aria-label=`Edit ${company.companyname}`) Edit

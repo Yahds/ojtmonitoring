@@ -1,7 +1,8 @@
 const express = require('express');
-const { fetchCompanies, fetchCompany, companyNameTaken, addCompany, updateCompany } = require('../db');
+const { fetchCompanies, fetchCompanyApplicants, fetchCompany, companyNameTaken, addCompany, updateCompany } = require('../db');
 const { requireAdviser } = require('../middleware/auth');
 const { audit } = require('../lib/audit');
+const { emailSubject, emailBody, cvsOnDisk, zipCvs } = require('../lib/company-email');
 
 const router = express.Router();
 
@@ -34,7 +35,7 @@ async function checkForm(values, exceptID) {
 
 router.get('/companies', requireAdviser, async (req, res, next) => {
     try {
-        const companies = await fetchCompanies();
+        const companies = await fetchCompanies(req.session.adviserID);
         res.render('pages/companies', {
             title: 'Companies',
             partners: companies.filter(company => company.moa_on_file),
@@ -60,6 +61,52 @@ router.post('/companies/new', requireAdviser, async (req, res, next) => {
         await audit(req, 'company_added', `company ${companyID}: ${values.name}`.slice(0, 100));
         req.flash('success', `${values.name} added.`);
         res.redirect('/adviser/companies');
+    } catch (error) {
+        next(error);
+    }
+});
+
+// who wants this company, and the CVs and email text to send them
+router.get('/companies/:companyId', requireAdviser, async (req, res, next) => {
+    try {
+        const company = await fetchCompany(req.params.companyId);
+        if (!company) {
+            return next();
+        }
+        const applicants = await fetchCompanyApplicants(company.companyid, req.session.adviserID);
+        const ready = cvsOnDisk(applicants.filter(applicant => applicant.cvStatus === 'APPROVED'));
+        const subject = emailSubject(company);
+        const body = emailBody(company, ready, res.locals.user.name);
+        res.render('pages/company', {
+            title: company.companyname,
+            company,
+            applicants,
+            ready,
+            subject,
+            body,
+            mailto: `mailto:${company.contact_email || ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/companies/:companyId/cvs.zip', requireAdviser, async (req, res, next) => {
+    try {
+        const company = await fetchCompany(req.params.companyId);
+        if (!company) {
+            return next();
+        }
+        const applicants = await fetchCompanyApplicants(company.companyid, req.session.adviserID);
+        const cvs = cvsOnDisk(applicants.filter(applicant => applicant.cvStatus === 'APPROVED'));
+        if (cvs.length === 0) {
+            req.flash('error', 'No approved CVs to download yet.');
+            return res.redirect(`/adviser/companies/${company.companyid}`);
+        }
+        await audit(req, 'cvs_downloaded', `company ${company.companyid}: ${cvs.length} CVs`);
+        const fileName = `CVs for ${company.companyname}.zip`.replace(/[^\w .-]/g, '');
+        res.attachment(fileName);
+        await zipCvs(cvs, res);
     } catch (error) {
         next(error);
     }

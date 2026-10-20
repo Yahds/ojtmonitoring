@@ -1,0 +1,61 @@
+extends ../layouts/main
+
+block content
+  - const choiceLabel = ['', '1st choice', '2nd choice', '3rd choice']
+  p.crumb #[a(href='/adviser/companies') Companies] / #{company.companyname}
+  h1.page-title= company.companyname
+  p.muted
+    if company.companyaddress
+      | #{company.companyaddress} ·
+    if company.contact_email
+      a(href=`mailto:${company.contact_email}`)= company.contact_email
+    else
+      | No HR email yet
+    |  · #[a(href=`/adviser/companies/${company.companyid}/edit`) Edit]
+
+  section.card
+    .card-head
+      h2 My interns who want it #[span.sub still choosing]
+    if applicants.length === 0
+      .empty
+        b Nobody yet
+        | Interns show up here after they choose this company.
+    else
+      .table-wrap
+        table.list-table
+          thead
+            tr
+              th(scope='col') Name
+              th(scope='col') Choice
+              th(scope='col') CV
+          tbody
+            each applicant in applicants
+              - const cv = statusOf('requirement', applicant.cvStatus)
+              tr
+                td.who
+                  a(href=`/adviser/interns/${applicant.internid}/requirements`)
+                    b= applicant.studentName
+                  span #{applicant.studentID} · #{applicant.course} · #{applicant.classcode}
+                td= choiceLabel[applicant.choice_rank]
+                td
+                  span.tag(class=cv.tag)= cv.label
+
+  section.card.card-pad
+    h2 Prepare email
+    if ready.length === 0
+      p.muted When an intern who wants this company has an approved CV, you can download it here with an email to send.
+    else
+      p #[b= ready.length] approved #{ready.length === 1 ? 'CV' : 'CVs'} ready. Only approved CVs go in the zip.
+      ol.help
+        li Download the CVs.
+        li Open the email, or copy the text below into your own email.
+        li Attach the zip, check the email, and send it.
+      .btn-row
+        a.btn.btn-create.btn-sm(href=`/adviser/companies/${company.companyid}/cvs.zip`) Download CVs (.zip)
+        a.btn.btn-outline.btn-sm(href=mailto) Open in email app
+      .field
+        label(for='email-subject') Subject
+        input.input#email-subject(type='text' value=subject readonly)
+      .field
+        label(for='email-body') Email text
+        textarea.input#email-body(rows='14' readonly)= body

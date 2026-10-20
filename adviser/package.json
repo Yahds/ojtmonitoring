@@ -4,6 +4,7 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "archiver": "^7.0.1",
     "bcrypt": "^6.0.0",
     "csv-parse": "^7.0.3",
     "dotenv": "^16.3.1",
@@ -21,7 +22,9 @@
     }
   },
   "jest": {
-    "setupFiles": ["<rootDir>/tests/setup-env.js"]
+    "setupFiles": [
+      "<rootDir>/tests/setup-env.js"
+    ]
   },
   "scripts": {
     "test": "jest --runInBand",
