@@ -348,4 +348,13 @@ class HttpTest extends TestCase
         $this->assertStringContainsString('value="Typed address"', $response['body']);
         $this->assertSame('ENROLLED', getInternStatus(57));
     }
+
+    public function testHowOjtWorksMarksTheStepTheInternIsOn(): void
+    {
+        $this->logIn('2226913', '1234');
+        $page = $this->request('GET', '/how-ojt-works');
+
+        $this->assertSame(200, $page['status']);
+        $this->assertMatchesRegularExpression('/aria-current="step">\s*<div class="item-head">\s*<p><b>1\. Choose companies/', $page['body']);
+    }
 }

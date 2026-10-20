@@ -29,6 +29,7 @@ const ROUTES = [
     'GET /supervisor'          => 'pages/supervisor.php',
     'POST /supervisor'         => 'actions/save-supervisor.php',
     'GET /announcements'       => 'pages/announcements.php',
+    'GET /how-ojt-works'       => 'pages/how-ojt-works.php',
     'GET /announcements/file'  => 'actions/download-announcement-file.php',
 ];
 

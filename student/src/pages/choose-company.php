@@ -24,7 +24,7 @@ $title = 'Choose company';
 require __DIR__ . '/../views/header.php';
 ?>
 <h1 class="page-title">Welcome, <?= e(displayName($profile['studentName'])) ?></h1>
-<p class="muted">To be deployed, get accepted by a company and complete your requirements. Your adviser reviews both.</p>
+<p class="muted">To be deployed, get accepted by a company and complete your requirements. Your adviser reviews both. <a href="/student/how-ojt-works">How OJT works</a></p>
 
 <h2 class="section-title">Step 1 · Companies you want</h2>
 <section class="card card-pad">
